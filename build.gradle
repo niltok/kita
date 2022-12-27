@@ -1,13 +1,44 @@
-plugins {
-    id 'java'
+allprojects {
+    group 'ikuyo'
+    version 'rolling'
+    apply {
+        plugin 'java'
+    }
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
 }
 
-group 'ikuyo'
-version '0.0-alpha-0'
+subprojects {
+    repositories {
+        maven {
+            url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+        }
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+        mavenCentral()
+    }
 
-repositories {
-    mavenCentral()
-}
+    tasks {
+        withType(JavaCompile).tap {
+            configureEach {
+                options.compilerArgs += '--enable-preview'
+            }
+        }
+        withType(JavaExec).tap {
+            configureEach {
+                jvmArgs += '--enable-preview'
+                standardInput = System.in
+            }
+        }
+    }
 
-dependencies {
+    dependencies {
+        implementation "io.vertx:vertx-core:4.3.7"
+        implementation 'io.vertx:vertx-web:4.3.7'
+        implementation 'io.vertx:vertx-pg-client:4.3.7'
+        implementation 'io.vertx:vertx-async-await-incubator:1.0.0-SNAPSHOT'
+        implementation 'io.vertx:vertx-execute-blocking-incubator:1.0.0-SNAPSHOT'
+        implementation 'com.google.inject:guice:5.1.0'
+    }
 }

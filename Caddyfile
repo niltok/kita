@@ -1,0 +1,6 @@
+:80 {
+    root * /web
+    file_server
+    reverse_proxy /manager/* manager:8070
+    reverse_proxy /server/* server:8071
+}
