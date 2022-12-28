@@ -19,7 +19,7 @@ public class SockVert extends AbstractVerticle {
         async.run(v -> {
             router = Router.router(vertx);
             var sockjsHandler = SockJSHandler.create(vertx);
-            router.route("/").subRouter(sockjsHandler.socketHandler(socket -> {
+            router.route("/*").subRouter(sockjsHandler.socketHandler(socket -> {
                 socket.handler(buffer -> {
                     await(socket.write(buffer));
                 });
