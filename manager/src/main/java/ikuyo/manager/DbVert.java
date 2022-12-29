@@ -1,5 +1,7 @@
 package ikuyo.manager;
 
+import ikuyo.api.Star;
+import ikuyo.api.Universe;
 import ikuyo.api.User;
 import io.vertx.await.Async;
 import io.vertx.core.AbstractVerticle;
@@ -28,8 +30,12 @@ public class DbVert extends AbstractVerticle {
 
     void startAsync() {
         pool = PgPool.pool(vertx, new PoolOptions());
-        await(pool.query(cleanDbSql).execute());
-        await(pool.query(User.createTableSql).execute());
-        System.out.println("User created");
+        await(pool.query(String.join("",
+                cleanDbSql,
+                Universe.createTableSql,
+                Star.StarGroup.createTableSql,
+                Star.createTableSql,
+                User.createTableSql
+        )).execute());
     }
 }

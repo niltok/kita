@@ -17,7 +17,7 @@ public class AppVert extends AbstractVerticle {
         async.run(v -> {
             System.out.println(Thread.currentThread().getName());
             await(vertx.deployVerticle(DbVert.class.getName()));
-            await(vertx.deployVerticle(HttpVert.class.getName(), new DeploymentOptions()));
+            await(vertx.deployVerticle(HttpVert.class.getName()));
         });
     }
 }

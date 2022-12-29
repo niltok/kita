@@ -37,6 +37,7 @@ subprojects {
         implementation "io.vertx:vertx-core:4.3.7"
         implementation 'io.vertx:vertx-web:4.3.7'
         implementation 'io.vertx:vertx-pg-client:4.3.7'
+        implementation 'io.vertx:vertx-hazelcast:4.3.6'
         implementation 'io.vertx:vertx-async-await-incubator:1.0.0-SNAPSHOT'
         implementation 'io.vertx:vertx-execute-blocking-incubator:1.0.0-SNAPSHOT'
         implementation 'com.ongres.scram:client:2.1'

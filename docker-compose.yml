@@ -27,7 +27,8 @@ services:
     volumes:
       - "./manager/build/libs:/app"
     working_dir: "/app"
-    command: ["java", "--enable-preview", "-jar", "manager-rolling-all.jar"]
+    command: ["java", "--enable-preview", "-jar", "manager-rolling-all.jar", "-cluster",
+              "-cluster-port", "8072"]
     links:
       - "psql:psql"
     environment:
@@ -41,9 +42,11 @@ services:
     volumes:
       - "./server/build/libs:/app"
     working_dir: "/app"
-    command: ["java", "--enable-preview", "-jar", "server-rolling-all.jar"]
+    command: ["java", "--enable-preview", "-jar", "server-rolling-all.jar", "-cluster",
+              "-cluster-public-port", "8072", "-cluster-public-host", "manager"]
     links:
       - "psql:psql"
+      - "manager:manager"
     environment:
       PGHOST: psql
       PGUSER: postgres

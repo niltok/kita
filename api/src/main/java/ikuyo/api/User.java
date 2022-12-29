@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.vertx.await.Async.await;
 
-public record User(int id, String name, String pwd, boolean isAdmin) {
+public record User(int id, String name, String pwd, boolean isAdmin, int universe, int star) {
     //language=PostgreSQL
     static final String getByIdSql = """
             select * from "user" where id = $1;
@@ -39,16 +39,19 @@ public record User(int id, String name, String pwd, boolean isAdmin) {
     private static @NotNull User getUser(RowSet<Row> rows) {
         var row = rows.iterator().next();
         return new User(row.getInteger("id"), row.getString("name"),
-                row.getString("pwd"), row.getBoolean("is_admin"));
+                row.getString("pwd"), row.getBoolean("is_admin"),
+                row.getInteger("universe"), row.getInteger("star"));
     }
 
     //language=PostgreSQL
-    static public final String createTableSql = """
+    public static final String createTableSql = """
             create table "user"(
                 id serial primary key,
                 name text not null unique,
                 pwd text not null,
-                is_admin bool not null
+                is_admin bool not null,
+                universe int references universe default null,
+                star int references star default null
             );
             insert into "user"(name, pwd, is_admin) values ('admin', 'admin', true);
             """;

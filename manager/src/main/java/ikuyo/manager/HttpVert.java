@@ -17,7 +17,15 @@ public class HttpVert extends AbstractVerticle {
         System.out.println(Thread.currentThread().getName());
         server.requestHandler(req -> {
             System.out.println(Thread.currentThread().getName());
-            req.response().end("hello");
+            //language=HTML
+            req.response().end("""
+            <!DOCTYPE html>
+            <html lang="zh-cn">
+            <body>
+            <h1>hello</h1>
+            </body>
+            </html>
+            """);
         });
         async.run(v -> {
             System.out.println(Thread.currentThread().getName());
