@@ -16,7 +16,7 @@ public class StarVert extends AbstractVerticle {
 
     void startAsync() {
         var eb = vertx.eventBus();
-        var starNone = eb.consumer("star-none", msg -> {
+        var starNone = eb.consumer("star.none", msg -> {
         });
         vertx.setPeriodic(1000 / 60, id -> mainLoop());
     }
