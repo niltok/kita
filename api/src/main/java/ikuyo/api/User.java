@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.vertx.await.Async.await;
 
-public record User(int id, String name, String pwd, boolean isAdmin, int universe, int star) {
+public record User(int id, String name, String pwd, boolean isAdmin, String token, int universe, int star) {
     //language=PostgreSQL
     static final String getByIdSql = """
             select * from "user" where id = $1;
@@ -36,10 +36,25 @@ public record User(int id, String name, String pwd, boolean isAdmin, int univers
         }
     }
 
+    //language=PostgreSQL
+    static final String getByTokenSql = """
+            select * from "user" where name = $1;
+            """;
+
+    public static User getUserByToken(SqlClient client, String token) {
+        try {
+            var rows = await(client.preparedQuery(getByTokenSql).execute(Tuple.of(token)));
+            return getUser(rows);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static @NotNull User getUser(RowSet<Row> rows) {
         var row = rows.iterator().next();
         return new User(row.getInteger("id"), row.getString("name"),
                 row.getString("pwd"), row.getBoolean("is_admin"),
+                row.getString("token"),
                 row.getInteger("universe"), row.getInteger("star"));
     }
 

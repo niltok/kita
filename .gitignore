@@ -12,6 +12,7 @@ build/
 
 ### IntelliJ IDEA ###
 .idea
+!.idea/sqldialects.xml
 *.iws
 *.ipr
 out/

@@ -9,7 +9,7 @@ package ikuyo.api;
  * @param z -1 ~ 1 (ly)
  * @param blocks
  */
-public record Star(int index, int universe, double x, double y, double z, Block[] blocks) {
+public record Star(int index, int universe, double x, double y, double z, Block[] blocks, String vertId) {
     /**
      * 用于标注宇宙 auto expand 的边界的星团
      * @param universe
@@ -36,7 +36,8 @@ public record Star(int index, int universe, double x, double y, double z, Block[
             x double precision not null,
             y double precision not null,
             z double precision not null,
-            block text
+            block text,
+            vert_id text
         );
         """;
 }
