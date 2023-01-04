@@ -47,7 +47,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
             }))
         }
         return () => {
-            dispatch(applyDiff({'/socket': undefined}))
+            dispatch(applyDiff({'/socket': null}))
             socket.close()
         }
     }, [token, flag])
@@ -57,7 +57,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
 function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
     switch (json['type']) {
         case 'auth.pass': {
-            dispatch(applyDiff({'/socket': undefined}))
+            dispatch(applyDiff({'/socket': socket}))
             break
         }
     }

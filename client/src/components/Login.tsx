@@ -1,6 +1,6 @@
 import {useState} from "react"
 import {useAppDispatch} from "../storeHook"
-import {setToken, setURL, setUsername} from "../stores/gameState"
+import {applyDiff} from "../stores/gameState"
 import {useNavigate} from "react-router-dom"
 
 async function login(server: string, name: string, pwd: string) {
@@ -41,9 +41,9 @@ export default function Login() {
             try {
                 const url = server === '' ? '/manager/' : server
                 const token = await login(url + '/login/', name, pwd)
-                dispatch(setUsername(name))
-                dispatch(setToken(token))
-                dispatch(setURL(url))
+                dispatch(applyDiff({ '/username': name }))
+                dispatch(applyDiff({ '/token': token }))
+                dispatch(applyDiff({ '/url': url }))
                 navi('/game')
             } catch (e) {
                 setMsg(`[${new Date().toLocaleString()}] ${e}`)
