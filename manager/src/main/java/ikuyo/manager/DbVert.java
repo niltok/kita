@@ -8,6 +8,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 
+import java.util.Objects;
+
 import static io.vertx.await.Async.await;
 
 public class DbVert extends AbstractVerticle {
@@ -30,6 +32,10 @@ public class DbVert extends AbstractVerticle {
 
     void startAsync() {
         pool = PgPool.pool(vertx, new PoolOptions());
+        var count = await(pool
+                .query("select * from pg_tables where schemaname = 'public';")
+                .execute()).rowCount();
+        if (!(count == 0 || Objects.equals(System.getenv("DB_MODE"), "reset"))) return;
         await(pool.query(String.join("",
                 cleanDbSql,
                 Universe.createTableSql,

@@ -14,7 +14,6 @@ services:
     image: caddy
     volumes:
       - "./Caddyfile:/etc/caddy/Caddyfile"
-      - "./caddy_data:/data"
       - "./client/dist:/web"
     ports:
       - "8042:80"
@@ -35,6 +34,7 @@ services:
       PGUSER: postgres
       PGDATABASE: postgres
       PGPASSWORD: kita
+      DB_MODE: reset
 
   server:
     image: bellsoft/liberica-openjdk-debian
