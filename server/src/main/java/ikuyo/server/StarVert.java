@@ -16,7 +16,7 @@ public class StarVert extends AbstractVerticle {
     EventBus eb;
     Star star;
     MessageConsumer<JsonObject> starMsgBox, starNone;
-    String nodeId;
+    String nodeId, endpoint;
     @Override
     public void start() throws Exception {
         super.start();
@@ -26,6 +26,7 @@ public class StarVert extends AbstractVerticle {
 
     void startAsync() {
         nodeId = config().getString("nodeId");
+        endpoint = System.getenv("ENDPOINT");
         eb = vertx.eventBus();
         starNone = eb.consumer("star.none");
         starNone.handler(this::starNoneHandler);
@@ -41,6 +42,7 @@ public class StarVert extends AbstractVerticle {
                 // TODO: star = ;
                 starMsgBox = eb.consumer("star." + id);
                 starMsgBox.handler(this::starMsgBoxHandler);
+                msg.reply(JsonObject.of("endpoint", endpoint));
             }
             case "close" -> {
                 starNone.pause();
@@ -52,7 +54,7 @@ public class StarVert extends AbstractVerticle {
         var json = msg.body();
         switch (json.getString("type")) {
             case "ping" -> {
-                msg.reply(JsonObject.of("type", "pong"));
+                msg.reply(JsonObject.of("type", "pong", "endpoint", endpoint));
             }
             case "unload" -> {
                 await(starMsgBox.unregister());

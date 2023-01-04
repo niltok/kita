@@ -39,5 +39,6 @@ public record Star(int index, int universe, double x, double y, double z, Block[
             block text,
             vert_id text
         );
+        insert into star(universe, x, y, z) values (1, 0, 0, 0);
         """;
 }

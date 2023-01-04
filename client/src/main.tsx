@@ -1,10 +1,28 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
+import ReactDOM from 'react-dom'
+import App from './components/App'
 import './index.css'
+import {ErrorBoundary, FallbackProps} from "react-error-boundary";
+import {Provider} from "react-redux";
+import {store} from "./store";
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+function ErrorFallback({error, resetErrorBoundary}: FallbackProps) {
+    return (
+        <div role="alert">
+            <p>Something went wrong:</p>
+            <pre>{error.message}</pre>
+            <button onClick={resetErrorBoundary}>Try again</button>
+        </div>
+    )
+}
+
+ReactDOM.render(
+    <React.StrictMode>
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Provider store={store}>
+                <App/>
+            </Provider>
+        </ErrorBoundary>
+    </React.StrictMode>,
+    document.getElementById('app-root') as HTMLElement
 )

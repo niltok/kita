@@ -8,5 +8,6 @@ public record Universe(int index, int seed, boolean autoExpand) {
             seed int not null default random(),
             auto_expand boolean not null
         );
+        insert into universe(auto_expand) values (false);
         """;
 }

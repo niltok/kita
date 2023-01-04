@@ -3,8 +3,12 @@ package ikuyo.manager;
 import ikuyo.api.User;
 import io.vertx.await.Async;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.impl.clustered.ClusteredMessage;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -22,6 +26,7 @@ public class HttpVert extends AbstractVerticle {
     HttpServer server;
     Router router;
     PgPool pool;
+    EventBus eb;
 
     @Override
     public void start() throws Exception {
@@ -38,10 +43,11 @@ public class HttpVert extends AbstractVerticle {
     }
 
     void startAsync() {
+        eb = vertx.eventBus();
         pool = PgPool.pool(vertx, new PoolOptions());
         server = vertx.createHttpServer();
         router = Router.router(vertx);
-        router.route().handler(BodyHandler.create()).handler(CorsHandler.create());
+        router.route().handler(CorsHandler.create()).handler(BodyHandler.create());
         router.get("/").handler(this::indexPage);
         router.post("/login").handler(this::loginHandler);
         router.get("/endpoint").handler(this::getEndpointHandler);
@@ -75,16 +81,24 @@ public class HttpVert extends AbstractVerticle {
         await(pool.preparedQuery("""
             update "user" set token = $2 where name = $1
             """).execute(Tuple.of(name, token)));
-        await(req.response().addCookie(Cookie.cookie("token", token)).end(token));
+        await(req.response().end(token));
     }
 
     void getEndpointHandler(RoutingContext req) {
-        var token = req.request().getCookie("token").getValue();
+        var token = req.request().getHeader("token");
         var user = User.getUserByToken(pool, token);
         if (user == null) {
             await(req.response().setStatusCode(404).end("no such a user"));
             return;
         }
-        // TODO: look up server by star or load star to a new verticle
+        try {
+            var pingRes = (JsonObject)await(eb.request("star." + user.star(), JsonObject.of(
+                    "type", "ping"), new DeliveryOptions().setSendTimeout(1000))).body();
+            await(req.response().end(pingRes.getString("endpoint")));
+        } catch (Exception e) {
+            var loadRes = (JsonObject)await(eb.request("star.none", JsonObject.of(
+                    "type", "load", "id", user.star()))).body();
+            await(req.response().end(loadRes.getString("endpoint")));
+        }
     }
 }

@@ -1,6 +1,13 @@
 :80 {
+    encode zstd gzip
     root * /web
     file_server
-    reverse_proxy /manager/* manager:8070
-    reverse_proxy /server/* server:8071
+    handle_path /manager/* {
+        rewrite * /{path}
+        reverse_proxy manager:8070
+    }
+    handle_path /server/* {
+        rewrite * /{path}
+        reverse_proxy server:8071
+    }
 }

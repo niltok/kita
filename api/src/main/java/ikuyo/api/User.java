@@ -32,13 +32,14 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
             var rows = await(client.preparedQuery(getByNameSql).execute(Tuple.of(name)));
             return getUser(rows);
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             return null;
         }
     }
 
     //language=PostgreSQL
     static final String getByTokenSql = """
-            select * from "user" where name = $1;
+            select * from "user" where token = $1;
             """;
 
     public static User getUserByToken(SqlClient client, String token) {
@@ -65,8 +66,9 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
                 name text not null unique,
                 pwd text not null,
                 is_admin bool not null,
-                universe int references universe default null,
-                star int references star default null
+                token text not null default '',
+                universe int references universe not null default 1,
+                star int references star not null default 1
             );
             insert into "user"(name, pwd, is_admin) values ('admin', 'admin', true);
             """;
