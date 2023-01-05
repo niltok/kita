@@ -1,6 +1,7 @@
 package ikuyo.server;
 
 import ikuyo.api.Star;
+import ikuyo.utils.AsyncVerticle;
 import io.vertx.await.Async;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -11,20 +12,14 @@ import io.vertx.core.json.JsonObject;
 
 import static io.vertx.await.Async.await;
 
-public class StarVert extends AbstractVerticle {
-    Async async;
+public class StarVert extends AsyncVerticle {
     EventBus eb;
     Star star;
     MessageConsumer<JsonObject> starMsgBox, starNone;
     String nodeId, endpoint;
-    @Override
-    public void start() throws Exception {
-        super.start();
-        async = new Async(vertx);
-        async.run(v -> startAsync());
-    }
 
-    void startAsync() {
+    @Override
+    public void startAsync() {
         nodeId = config().getString("nodeId");
         endpoint = System.getenv("ENDPOINT");
         eb = vertx.eventBus();

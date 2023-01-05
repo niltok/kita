@@ -60,5 +60,13 @@ function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
             dispatch(applyDiff({'/socket': socket}))
             break
         }
+        case 'data.applyDiff': {
+            dispatch(applyDiff(json['diff']))
+            break
+        }
+        case 'data.dispatch': {
+            dispatch(json['action'])
+            break
+        }
     }
 }

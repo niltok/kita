@@ -1,12 +1,9 @@
 package ikuyo.manager;
 
 import ikuyo.api.User;
-import io.vertx.await.Async;
-import io.vertx.core.AbstractVerticle;
+import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.impl.clustered.ClusteredMessage;
-import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -16,33 +13,16 @@ import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
-
 import java.util.UUID;
 
-import static io.vertx.await.Async.await;
-
-public class HttpVert extends AbstractVerticle {
-    Async async;
+public class HttpVert extends AsyncVerticle {
     HttpServer server;
     Router router;
     PgPool pool;
     EventBus eb;
 
     @Override
-    public void start() throws Exception {
-        super.start();
-        async = new Async(vertx);
-        System.out.println(Thread.currentThread().getName());
-        async.run(v -> {
-            System.out.println(Thread.currentThread().getName());
-            vertx.runOnContext(vv -> {
-                System.out.println(Thread.currentThread().getName());
-            });
-            startAsync();
-        });
-    }
-
-    void startAsync() {
+    public void startAsync() {
         eb = vertx.eventBus();
         pool = PgPool.pool(vertx, new PoolOptions());
         server = vertx.createHttpServer();
@@ -74,7 +54,7 @@ public class HttpVert extends AbstractVerticle {
         var pwd = req.request().getHeader("pwd");
         var user = User.getUserByName(pool, name);
         if (user == null || !user.pwd().equals(pwd)) {
-            await(req.response().setStatusCode(404).end("no such a user or password wrong"));
+            await(req.response().setStatusCode(401).end("no such a user or password wrong"));
             return;
         }
         var token = UUID.randomUUID().toString();
@@ -88,7 +68,7 @@ public class HttpVert extends AbstractVerticle {
         var token = req.request().getHeader("token");
         var user = User.getUserByToken(pool, token);
         if (user == null) {
-            await(req.response().setStatusCode(404).end("no such a user"));
+            await(req.response().setStatusCode(401).end("no such a user"));
             return;
         }
         try {
@@ -96,9 +76,14 @@ public class HttpVert extends AbstractVerticle {
                     "type", "ping"), new DeliveryOptions().setSendTimeout(1000))).body();
             await(req.response().end(pingRes.getString("endpoint")));
         } catch (Exception e) {
-            var loadRes = (JsonObject)await(eb.request("star.none", JsonObject.of(
-                    "type", "load", "id", user.star()))).body();
-            await(req.response().end(loadRes.getString("endpoint")));
+            try {
+                var loadRes = (JsonObject) await(eb.request("star.none", JsonObject.of(
+                        "type", "load", "id", user.star()
+                ), new DeliveryOptions().setSendTimeout(1000))).body();
+                await(req.response().end(loadRes.getString("endpoint")));
+            } catch (Exception ex) {
+                await(req.response().setStatusCode(503).end("server is busy"));
+            }
         }
     }
 }

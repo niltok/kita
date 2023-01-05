@@ -1,25 +1,15 @@
 package ikuyo.server;
 
-import io.vertx.await.Async;
-import io.vertx.core.AbstractVerticle;
+import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonObject;
-
 import java.util.UUID;
 
-import static io.vertx.await.Async.await;
-
-public class AppVert extends AbstractVerticle {
-    Async async;
+public class AppVert extends AsyncVerticle {
     String nodeId;
 
     @Override
-    public void start() throws Exception {
-        async = new Async(vertx);
-        async.run(v -> startAsync());
-    }
-
-    private void startAsync() {
+    public void startAsync() {
         nodeId = System.getenv("NODE_ID");
         if (nodeId == null) nodeId = UUID.randomUUID().toString();
         var config = JsonObject.of("nodeId", nodeId);

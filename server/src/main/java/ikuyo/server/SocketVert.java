@@ -1,8 +1,7 @@
 package ikuyo.server;
 
 import ikuyo.api.User;
-import io.vertx.await.Async;
-import io.vertx.core.AbstractVerticle;
+import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -10,22 +9,15 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
+import org.jetbrains.annotations.NotNull;
 
-import static io.vertx.await.Async.await;
-
-public class SocketVert extends AbstractVerticle {
-    Async async;
+public class SocketVert extends AsyncVerticle {
     Router router;
     HttpServer server;
     PgPool pool;
 
     @Override
-    public void start() throws Exception {
-        async = new Async(vertx);
-        async.run(v -> startAsync());
-    }
-
-    private void startAsync() {
+    public void startAsync() {
         pool = PgPool.pool(vertx, new PoolOptions());
         router = Router.router(vertx);
         var sockjsHandler = SockJSHandler.create(vertx);
@@ -40,7 +32,7 @@ public class SocketVert extends AbstractVerticle {
         System.out.println("listening...");
     }
 
-    private void socketHandler(SockJSSocket socket, JsonObject msg) {
+    private void socketHandler(SockJSSocket socket, @NotNull JsonObject msg) {
         switch (msg.getString("type")) {
             case "auth.request" -> {
                 var user = User.getUserByToken(pool, msg.getString("token"));
