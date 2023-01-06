@@ -3,6 +3,7 @@ ARG MODE=prod
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY build.gradle gradle.properties settings.gradle gradlew $APP_HOME/
+RUN chmod a+x gradlew
 COPY gradle $APP_HOME/gradle
 COPY api/build.gradle $APP_HOME/api/
 COPY server/build.gradle $APP_HOME/server/
