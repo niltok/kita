@@ -11,6 +11,7 @@ COPY client/package.json client/package-lock.json $APP_HOME/client/
 
 RUN ./gradlew manager:cache --info --stacktrace -Dmode=${MODE}
 COPY . .
+RUN chmod a+x gradlew
 RUN ./gradlew manager:buildAll --info --stacktrace -Dmode=${MODE}
 
 FROM bellsoft/liberica-openjdk-debian:19

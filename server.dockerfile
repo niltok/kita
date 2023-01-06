@@ -10,6 +10,7 @@ COPY server/build.gradle $APP_HOME/server/
 
 RUN ./gradlew server:cache --info --stacktrace -Dmode=${MODE}
 COPY . .
+RUN chmod a+x gradlew
 RUN ./gradlew server:shadowJar --info --stacktrace -Dmode=${MODE}
 
 FROM bellsoft/liberica-openjdk-debian:19
