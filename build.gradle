@@ -44,6 +44,7 @@ subprojects {
         implementation 'io.vertx:vertx-execute-blocking-incubator:1.0.0-SNAPSHOT'
         implementation 'com.ongres.scram:client:2.1'
         implementation 'com.google.inject:guice:5.1.0'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
         implementation 'org.jetbrains:annotations:23.0.0'
     }
 }

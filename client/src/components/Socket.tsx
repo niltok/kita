@@ -22,7 +22,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
                 reason: e.reason,
                 code: e.code
             })
-            if (e.code < 4000) setTimeout(refresh, 3000)
+            if (e.code < 3000) setTimeout(refresh, 3000)
             else navi('/login')
         }
         socket.onerror = e => {

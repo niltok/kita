@@ -1,15 +1,20 @@
 package ikuyo.api;
 
+import io.vertx.sqlclient.SqlClient;
+import io.vertx.sqlclient.Tuple;
+
+import static io.vertx.await.Async.await;
+
 /**
- * 星球信息
+ * 星球基本信息
  * @param index
  * @param universe
  * @param x
  * @param y
  * @param z -1 ~ 1 (ly)
- * @param blocks
+ * @param starInfo 以文本保存的详细信息（无需索引）
  */
-public record Star(int index, int universe, double x, double y, double z, Block[] blocks, String vertId) {
+public record Star(int index, int universe, double x, double y, double z, StarInfo starInfo, String vertId) {
     /**
      * 用于标注宇宙 auto expand 的边界的星团
      * @param universe
@@ -36,9 +41,20 @@ public record Star(int index, int universe, double x, double y, double z, Block[
             x double precision not null,
             y double precision not null,
             z double precision not null,
-            block text,
+            star_info text not null,
             vert_id text
         );
-        insert into star(universe, x, y, z) values (1, 0, 0, 0);
-        """;
+        insert into star(universe, x, y, z, star_info) values (1, 0, 0, 0, '%s');
+        """.formatted(StarInfo.genStar(0).toString());
+
+    public static Star getStar(SqlClient client, int index) {
+        var row = await(client.preparedQuery(
+                "select * from star where index = $1"
+        ).execute(Tuple.of(index))).iterator().next();
+        return new Star(
+                row.getInteger("index"), row.getInteger("universe"),
+                row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
+                StarInfo.fromJson(row.getString("star_info")),
+                row.getString("vert_id"));
+    }
 }

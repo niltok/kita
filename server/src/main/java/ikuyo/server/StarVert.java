@@ -9,9 +9,13 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
+import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.PoolOptions;
+import io.vertx.sqlclient.Tuple;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.vertx.await.Async.await;
 
@@ -19,15 +23,18 @@ public class StarVert extends AsyncVerticle {
     EventBus eb;
     Star star;
     MessageConsumer<JsonObject> starMsgBox, starNone;
-    String nodeId;
-    long mainLoopId;
+    String nodeId, vertId;
+    long mainLoopId, writeBackId;
+    PgPool pool;
     // 发往这个地址的内容必须序列化为 Buffer 或 String
     Map<Integer, String> socket = new HashMap<>();
 
     @Override
     public void startAsync() {
         nodeId = config().getString("nodeId");
+        vertId = UUID.randomUUID().toString();
         eb = vertx.eventBus();
+        pool = PgPool.pool(vertx, new PoolOptions());
         starNone = eb.consumer("star.none");
         starNone.handler(this::starNoneHandler);
     }
@@ -38,11 +45,15 @@ public class StarVert extends AsyncVerticle {
             case "star.load" -> {
                 starNone.pause();
                 int id = json.getInteger("id");
-                // TODO: star = ; // load star
+                star = Star.getStar(pool, id);
+                await(pool.preparedQuery(
+                        "update star set vert_id = $2 where index = $1"
+                ).execute(Tuple.of(id, vertId)));
                 System.out.println("star." + id + " loaded");
                 starMsgBox = eb.consumer("star." + id);
                 starMsgBox.handler(this::starMsgBoxHandler);
                 mainLoopId = vertx.setPeriodic(1000 / 60, ignore -> mainLoop());
+                writeBackId = vertx.setPeriodic(5000, ignore -> writeBack());
                 msg.reply(JsonObject.of("type", "star.load.success"));
             }
             case "close" -> {
@@ -64,19 +75,38 @@ public class StarVert extends AsyncVerticle {
                 socket.remove(json.getInteger("id"));
             }
             case "star.unload" -> {
-                vertx.cancelTimer(mainLoopId);
-                await(starMsgBox.unregister());
-                starNone.resume();
-                star = null;
-                starMsgBox = null;
+                unload();
                 msg.reply(JsonObject.of("type", "star.unload.success"));
             }
         }
+    }
+
+    private void unload() {
+        vertx.cancelTimer(mainLoopId);
+        vertx.cancelTimer(writeBackId);
+        await(starMsgBox.unregister());
+        starNone.resume();
+        star = null;
+        starMsgBox = null;
     }
 
     void mainLoop() {
         socket.forEach((k, v) -> {
             // eb.send(v, JsonObject.of("type", "ping").toBuffer());
         });
+    }
+
+    void writeBack() {
+        var str = JsonObject.mapFrom(star.starInfo()).toString();
+        try {
+            var success = await(pool.preparedQuery(
+                    "update star set star_info = $1 where index = $2 and vert_id = $3"
+            ).execute(Tuple.of(str, star.index(), vertId))).rowCount() == 1;
+            if (!success) unload();
+        } catch (Exception e) {
+            logger.error(e.getLocalizedMessage());
+            e.printStackTrace();
+            unload();
+        }
     }
 }

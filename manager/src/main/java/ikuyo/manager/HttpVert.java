@@ -105,7 +105,7 @@ public class HttpVert extends AsyncVerticle {
             try {
                 await(eb.request("star.none", JsonObject.of(
                         "type", "star.load", "id", user.star()
-                ), new DeliveryOptions().setSendTimeout(1000)));
+                ), new DeliveryOptions().setSendTimeout(5000)));
                 await(eb.request("star." + user.star(), JsonObject.of(
                         "type", "user.add", "socket", socket, "id", user.id()
                 ), new DeliveryOptions().setSendTimeout(1000)));
