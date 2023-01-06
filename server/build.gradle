@@ -1,14 +1,23 @@
 import java.text.SimpleDateFormat
 
 plugins {
-    id('com.github.johnrengelman.shadow') version('7.1.2')
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 apply {
-    plugin('com.github.johnrengelman.shadow')
+    plugin 'com.github.johnrengelman.shadow'
 }
 
 var buildTime = new SimpleDateFormat("yyyy/M/dd HH:mm:ss").format(new Date())
+
+tasks.register('cache') {
+    doFirst {
+        configurations.forEach {
+            if (it.canBeResolved)
+                it.resolve()
+        }
+    }
+}
 
 shadowJar {
     manifest {

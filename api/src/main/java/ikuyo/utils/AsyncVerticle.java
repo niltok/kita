@@ -2,6 +2,8 @@ package ikuyo.utils;
 
 import io.vertx.await.Async;
 import io.vertx.core.*;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +12,7 @@ import java.util.function.Supplier;
 public abstract class AsyncVerticle implements Verticle {
     protected Vertx vertx;
     protected Context parentContext;
+    protected Logger logger;
     private Async asyncRunner;
 
     @Override
@@ -22,6 +25,7 @@ public abstract class AsyncVerticle implements Verticle {
         this.vertx = vertx;
         asyncRunner = new Async(vertx);
         this.parentContext = context;
+        this.logger = LoggerFactory.getLogger(this.getClass());
     }
 
     public void startAsync() throws Exception {}

@@ -6,7 +6,7 @@ import {useNavigate} from "react-router-dom"
 async function login(server: string, name: string, pwd: string) {
     let url: URL
     try {
-        url = new URL(server, document.URL)
+        url = new URL(server, window.location.href)
     } catch (e) {
         throw "not valid URL"
     }
@@ -21,6 +21,7 @@ async function login(server: string, name: string, pwd: string) {
 }
 
 export default function Login() {
+    const defaultServer = window.location.origin + window.location.pathname
     const [server, setServer] = useState('')
     const [name, setName] = useState('')
     const [pwd, setPwd] = useState('')
@@ -31,7 +32,7 @@ export default function Login() {
     return (<>
         <span style={{fontSize: '2rem', lineHeight: '3rem'}}>Kita! Kita!</span>
         <input type='text' autoComplete='url' value={server}
-                  onChange={e => setServer(e.target.value)} placeholder='服务器(/manager/)'/>
+                  onChange={e => setServer(e.target.value)} placeholder={`服务器(${defaultServer})`}/>
         <input type='text' autoComplete='username' value={name}
                   onChange={e => setName(e.target.value)} placeholder='用户名'/>
         <input type='password' value={pwd} onChange={e => setPwd(e.target.value)} placeholder='密码'/>
@@ -39,8 +40,8 @@ export default function Login() {
         <button onClick={async e => {
             setButtonLock(true)
             try {
-                const url = server === '' ? '/manager/' : server
-                const token = await login(url + '/login/', name, pwd)
+                const url = server || defaultServer
+                const token = await login(url + '/login', name, pwd)
                 dispatch(applyDiff({ '/username': name }))
                 dispatch(applyDiff({ '/token': token }))
                 dispatch(applyDiff({ '/url': url }))

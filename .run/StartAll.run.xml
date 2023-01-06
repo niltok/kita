@@ -4,12 +4,11 @@
       <settings>
         <option name="envFilePath" value="" />
         <option name="sourceFilePath" value="docker-compose.yml" />
+        <option name="upForceRecreate" value="true" />
       </settings>
     </deployment>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="kita:manager [shadowJar]" run_configuration_type="GradleRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="kita:server [shadowJar]" run_configuration_type="GradleRunConfiguration" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="kita:client [build]" run_configuration_type="js.build_tools.npm" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="kita [jarAll]" run_configuration_type="GradleRunConfiguration" />
     </method>
   </configuration>
 </component>

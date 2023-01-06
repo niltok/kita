@@ -13,7 +13,6 @@ public class AppVert extends AsyncVerticle {
         nodeId = System.getenv("NODE_ID");
         if (nodeId == null) nodeId = UUID.randomUUID().toString();
         var config = JsonObject.of("nodeId", nodeId);
-        await(vertx.deployVerticle(SocketVert.class.getName()));
         await(vertx.deployVerticle(StarVert.class, new DeploymentOptions()
                 .setWorker(true)
                 .setConfig(config)

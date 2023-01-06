@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="BuildAll" type="CompoundRunConfigurationType">
-    <toRun name="kita:manager [shadowJar]" type="GradleRunConfiguration" />
-    <toRun name="kita:server [shadowJar]" type="GradleRunConfiguration" />
-    <toRun name="kita:client [build]" type="js.build_tools.npm" />
-    <method v="2" />
-  </configuration>
-</component>

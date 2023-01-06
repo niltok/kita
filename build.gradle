@@ -1,22 +1,25 @@
 allprojects {
     group 'ikuyo'
     version 'rolling'
+    project.ext {
+        mode = System.getProperty('mode') ?: 'dev'
+    }
+}
+
+subprojects {
     apply {
         plugin 'java'
     }
     sourceCompatibility = JavaVersion.VERSION_19
     targetCompatibility = JavaVersion.VERSION_19
-}
-
-subprojects {
     repositories {
+        mavenCentral()
         maven {
             url 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
         }
         maven {
             url 'https://plugins.gradle.org/m2/'
         }
-        mavenCentral()
     }
 
     tasks {
@@ -34,8 +37,7 @@ subprojects {
     }
 
     dependencies {
-        implementation "io.vertx:vertx-core:4.3.7"
-        implementation 'io.vertx:vertx-web:4.3.7'
+        implementation 'io.vertx:vertx-core:4.3.7'
         implementation 'io.vertx:vertx-pg-client:4.3.7'
         implementation 'io.vertx:vertx-hazelcast:4.3.6'
         implementation 'io.vertx:vertx-async-await-incubator:1.0.0-SNAPSHOT'
@@ -44,4 +46,8 @@ subprojects {
         implementation 'com.google.inject:guice:5.1.0'
         implementation 'org.jetbrains:annotations:23.0.0'
     }
+}
+
+tasks.register('jarAll') {
+    dependsOn ':manager:buildAll', ':server:shadowJar'
 }

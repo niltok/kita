@@ -6,21 +6,13 @@ import {useNavigate} from "react-router-dom";
 import {AppDispatch} from "../store";
 
 export default function Socket(prop: {children?: JSX.Element}) {
-    const { token, url, socket } = useAppSelector(selectGameState)
+    const { token, url } = useAppSelector(selectGameState)
     const dispatch = useAppDispatch()
     const navi = useNavigate()
     const [flag, refresh] = useRefresh()
     useAsyncEffect(async () => {
         if (!url || !token) return
-        const endpoint = await fetch(url + '/endpoint', {
-            headers: { token }
-        })
-        if (!endpoint.ok) {
-            console.error(endpoint)
-            navi('/login')
-            return
-        }
-        const socket = new SockJS(await endpoint.text())
+        const socket = new SockJS(url + '/socket')
         socket.onmessage = e => {
             onMsg(socket, JSON.parse(e.data), dispatch)
         }
@@ -30,7 +22,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
                 reason: e.reason,
                 code: e.code
             })
-            if (e.code < 4000) refresh()
+            if (e.code < 4000) setTimeout(refresh, 3000)
             else navi('/login')
         }
         socket.onerror = e => {

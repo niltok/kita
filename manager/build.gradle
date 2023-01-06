@@ -1,11 +1,50 @@
 import java.text.SimpleDateFormat
 
 plugins {
-    id('com.github.johnrengelman.shadow') version('7.1.2')
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id "com.github.node-gradle.node" version "3.5.1"
 }
 
 apply {
-    plugin('com.github.johnrengelman.shadow')
+    plugin 'com.github.johnrengelman.shadow'
+}
+
+node {
+    download = mode == 'prod'
+    version = '18.13.0'
+    nodeProjectDir.set(file('../client'))
+}
+
+tasks.register('clientBuild', NpmTask) {
+    inputs.files(fileTree('../client/node_modules'))
+    inputs.files(fileTree('../client/src'))
+    inputs.file('../client/package.json')
+    inputs.file('../client/index.html')
+    inputs.file('../client/vite.config.ts')
+
+    outputs.dir('../client/dist')
+
+    dependsOn ':manager:npmInstall'
+    args = mode == 'dev' ? ['run', 'dev'] : ['run', 'build']
+}
+
+tasks.register('buildAll') {
+    dependsOn ':manager:shadowJar', ':manager:clientBuild'
+}
+
+tasks.register('cache') {
+    doFirst {
+        configurations.forEach {
+            if (it.canBeResolved)
+                it.resolve()
+        }
+    }
+    inputs.file('../client/package.json')
+    inputs.file('../client/package-lock.json')
+
+    outputs.dir('../client/node_modules')
+
+    dependsOn ':manager:npmInstall'
 }
 
 var buildTime = new SimpleDateFormat("yyyy/M/dd HH:mm:ss").format(new Date())
@@ -22,5 +61,6 @@ shadowJar {
 
 dependencies {
     implementation project(':api')
+    implementation 'io.vertx:vertx-web:4.3.7'
 }
 

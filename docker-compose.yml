@@ -1,34 +1,26 @@
-version: '3.1'
+version: '3.6'
 
 services:
   psql:
     image: postgres
     volumes:
-      - "./pgdata:/var/lib/postgresql/data"
+      - ./pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: kita
     ports:
       - "5432:5432"
 
-  caddy:
-    image: caddy
-    volumes:
-      - "./Caddyfile:/etc/caddy/Caddyfile"
-      - "./client/dist:/web"
-    ports:
-      - "8042:80"
-    links:
-      - "manager:manager"
-      - "server:server"
-
   manager:
-    image: bellsoft/liberica-openjdk-debian
+    image: bellsoft/liberica-openjdk-debian:19
     volumes:
-      - "./manager/build/libs:/app"
-    working_dir: "/app"
-    command: ["java", "--enable-preview", "-jar", "manager-rolling-all.jar", "-cluster"]
+      - ./manager/build/libs:/usr/app
+      - ./client/dist:/usr/app/webroot
+    ports:
+      - "8070:8070"
+    working_dir: /usr/app
+    command: [java, --enable-preview, -jar, manager-rolling-all.jar, -cluster]
     links:
-      - "psql:psql"
+      - psql:psql
     environment:
       PGHOST: psql
       PGUSER: postgres
@@ -37,17 +29,17 @@ services:
       DB_MODE: reset
 
   server:
-    image: bellsoft/liberica-openjdk-debian
+    image: bellsoft/liberica-openjdk-debian:19
     volumes:
-      - "./server/build/libs:/app"
-    working_dir: "/app"
-    command: ["java", "--enable-preview", "-jar", "server-rolling-all.jar", "-cluster"]
+      - ./server/build/libs:/usr/app
+    working_dir: /usr/app
+    command: [java, --enable-preview, -jar, server-rolling-all.jar, -cluster]
     links:
-      - "psql:psql"
-      - "manager:manager"
+      - psql:psql
+    depends_on:
+      - manager
     environment:
       PGHOST: psql
       PGUSER: postgres
       PGDATABASE: postgres
       PGPASSWORD: kita
-      ENDPOINT: /server/
