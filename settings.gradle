@@ -1,3 +1,4 @@
 rootProject.name = 'kita'
 include 'api', 'manager', 'server'
+include 'bundle'
 

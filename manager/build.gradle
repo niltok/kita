@@ -1,18 +1,17 @@
-import java.text.SimpleDateFormat
-
 plugins {
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
-    id "com.github.node-gradle.node" version "3.5.1"
-}
-
-apply {
-    plugin 'com.github.johnrengelman.shadow'
+    id 'com.github.node-gradle.node' version '3.5.1'
 }
 
 node {
     download = mode == 'prod'
     version = '18.13.0'
     nodeProjectDir.set(file('../client'))
+}
+
+tasks.register('clientPublic', Copy) {
+    from(file('../client/public'))
+    into('../client/dist/public')
+    dependsOn ':manager:clientBuild'
 }
 
 tasks.register('clientBuild', NpmTask) {
@@ -47,14 +46,16 @@ tasks.register('cache') {
     dependsOn ':manager:npmInstall'
 }
 
-var buildTime = new SimpleDateFormat("yyyy/M/dd HH:mm:ss").format(new Date())
-
 shadowJar {
+    dependsOn 'clientPublic'
+    from(fileTree('../client/dist')) {
+        into '/java/main/webroot'
+    }
     manifest {
         attributes(
                 'Main-Class': 'io.vertx.core.Launcher',
                 'Main-Verticle': 'ikuyo.manager.AppVert',
-                'Build-Time': buildTime
+                'Build-Time': project.ext.buildTime
         )
     }
 }

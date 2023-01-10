@@ -1,0 +1,6 @@
+:80
+
+reverse_proxy /* {
+    to manager:8070 bundle:8070
+    lb_policy round_robin
+}

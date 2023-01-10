@@ -1,0 +1,29 @@
+version: '3.6'
+
+services:
+  psql:
+    image: postgres
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: kita
+    ports:
+      - "5432:5432"
+
+  bundle:
+    image: bellsoft/liberica-openjdk-debian:19
+    volumes:
+      - ./bundle/build/libs:/usr/app
+    working_dir: /usr/app
+    command: [java, --enable-preview, '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005', -jar, bundle-rolling-all.jar]
+    ports:
+      - "8070:8070"
+      - "5005:5005"
+    links:
+      - psql:psql
+    environment:
+      PGHOST: psql
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: kita
+      DB_MODE: reset

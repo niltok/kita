@@ -8,14 +8,16 @@ COPY gradle $APP_HOME/gradle
 COPY api/build.gradle $APP_HOME/api/
 COPY manager/build.gradle $APP_HOME/manager/
 COPY client/package.json client/package-lock.json $APP_HOME/client/
+COPY server/build.gradle $APP_HOME/server/
+COPY bundle/build.gradle $APP_HOME/bundle/build.gradle
 
-RUN ./gradlew manager:cache --info --stacktrace -Dmode=${MODE}
+RUN ./gradlew bundle:cache --info --stacktrace -Dmode=${MODE}
 COPY . .
 RUN chmod a+x gradlew
-RUN ./gradlew manager:buildAll --info --stacktrace -Dmode=${MODE}
+RUN ./gradlew bundle:shadowJar --info --stacktrace -Dmode=${MODE}
 
 FROM bellsoft/liberica-openjdk-debian:19
-ENV ARTIFACT_NAME=manager-rolling-all.jar
+ENV ARTIFACT_NAME=bundle-rolling-all.jar
 ENV APP_HOME=/usr/app/
 
 WORKDIR $APP_HOME

@@ -3,12 +3,12 @@
     <deployment type="docker-compose.yml">
       <settings>
         <option name="envFilePath" value="" />
-        <option name="sourceFilePath" value="docker-compose.yml" />
-        <option name="upForceRecreate" value="true" />
+        <option name="sourceFilePath" value="dev.docker-compose.yml" />
+        <option name="upDetach" value="false" />
       </settings>
     </deployment>
     <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="kita [jarAll]" run_configuration_type="GradleRunConfiguration" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="jarAll" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="--stacktrace" />
     </method>
   </configuration>
 </component>

@@ -14,6 +14,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -55,9 +56,8 @@ public class HttpVert extends AsyncVerticle {
                                 .setLocalWriteHandler(false))
                         .socketHandler(this::handleSocket));
         // == do not edit end ==
-        router.get("/").handler(req -> req.reroute("/index.html"));
         router.post("/login").handler(this::loginHandler);
-        router.route().handler(StaticHandler.create(System.getenv("STATIC_PATH")));
+        router.route().handler(StaticHandler.create());
         server.requestHandler(router);
         await(server.listen(8070));
         System.out.println("listening...");

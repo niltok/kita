@@ -1,3 +1,9 @@
+dependencies {
+    implementation project(':api')
+    implementation project(':manager')
+    implementation project(':server')
+}
+
 tasks.register('cache') {
     doFirst {
         configurations.forEach {
@@ -11,13 +17,8 @@ shadowJar {
     manifest {
         attributes(
                 'Main-Class': 'io.vertx.core.Launcher',
-                'Main-Verticle': 'ikuyo.server.AppVert',
+                'Main-Verticle': 'ikuyo.BundleVert',
                 'Build-Time': project.ext.buildTime
         )
     }
 }
-
-dependencies {
-    implementation project(':api')
-}
-

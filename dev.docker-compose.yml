@@ -1,6 +1,13 @@
 version: '3.6'
 
 services:
+  caddy:
+    image: caddy
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - "8070:80"
+
   psql:
     image: postgres
     volumes:
@@ -14,9 +21,6 @@ services:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
       - ./manager/build/libs:/usr/app
-      - ./client/dist:/usr/app/webroot
-    ports:
-      - "8070:8070"
     working_dir: /usr/app
     command: [java, --enable-preview, -jar, manager-rolling-all.jar, -cluster]
     links:
@@ -36,8 +40,20 @@ services:
     command: [java, --enable-preview, -jar, server-rolling-all.jar, -cluster]
     links:
       - psql:psql
-    depends_on:
-      - manager
+    environment:
+      PGHOST: psql
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: kita
+
+  bundle:
+    image: bellsoft/liberica-openjdk-debian:19
+    volumes:
+      - ./bundle/build/libs:/usr/app
+    working_dir: /usr/app
+    command: [java, --enable-preview, -jar, bundle-rolling-all.jar, -cluster]
+    links:
+      - psql:psql
     environment:
       PGHOST: psql
       PGUSER: postgres
