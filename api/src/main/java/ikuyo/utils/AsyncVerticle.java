@@ -9,19 +9,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class AsyncVerticle implements Verticle {
+public abstract class AsyncVerticle implements Verticle, AsyncHelper {
     protected Vertx vertx;
     protected Context parentContext;
     protected Logger logger;
     private Async asyncRunner;
 
     @Override
-    public Vertx getVertx() {
+    public final Vertx getVertx() {
         return vertx;
     }
 
     @Override
-    public void init(Vertx vertx, Context context) {
+    public final void init(Vertx vertx, Context context) {
         this.vertx = vertx;
         asyncRunner = new Async(vertx);
         this.parentContext = context;
@@ -32,7 +32,7 @@ public abstract class AsyncVerticle implements Verticle {
     public void stopAsync() throws Exception {}
 
     @Override
-    public void start(Promise<Void> startPromise) {
+    public final void start(Promise<Void> startPromise) {
         asyncRunner.run(v -> {
             try {
                 startAsync();
@@ -44,7 +44,7 @@ public abstract class AsyncVerticle implements Verticle {
     }
 
     @Override
-    public void stop(Promise<Void> stopPromise) {
+    public final void stop(Promise<Void> stopPromise) {
         asyncRunner.run(v -> {
             try {
                 stopAsync();
@@ -55,27 +55,8 @@ public abstract class AsyncVerticle implements Verticle {
         });
     }
 
-    public <T> Future<T> async(Supplier<T> task) {
-        return async(task, vertx.getOrCreateContext());
-    }
-
-    public <T> T await(Future<T> future) {
-        return Async.await(future);
-    }
-
-    public JsonObject config() {
+    public final JsonObject config() {
         return parentContext.config();
     }
 
-    public static <T> Future<T> async(Supplier<T> task, @NotNull Context context) {
-        Promise<T> promise = Promise.promise();
-        context.runOnContext(v -> {
-            try {
-                promise.complete(task.get());
-            } catch (Throwable e) {
-                promise.fail(e);
-            }
-        });
-        return promise.future();
-    }
 }
