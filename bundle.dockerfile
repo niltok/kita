@@ -16,7 +16,7 @@ COPY . .
 RUN chmod a+x gradlew
 RUN ./gradlew bundle:shadowJar --info --stacktrace -Dmode=${MODE}
 
-FROM bellsoft/liberica-openjdk-debian:19
+FROM bellsoft/liberica-openjre-alpine:19
 ENV ARTIFACT_NAME=bundle-rolling-all.jar
 ENV APP_HOME=/usr/app/
 

@@ -14,7 +14,7 @@ COPY . .
 RUN chmod a+x gradlew
 RUN ./gradlew manager:buildAll --info --stacktrace -Dmode=${MODE}
 
-FROM bellsoft/liberica-openjdk-debian:19
+FROM bellsoft/liberica-openjre-alpine:19
 ENV ARTIFACT_NAME=manager-rolling-all.jar
 ENV APP_HOME=/usr/app/
 
