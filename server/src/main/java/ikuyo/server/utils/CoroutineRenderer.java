@@ -8,12 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Renderer with async task support
+/** Similar to Unity3d's StartCoroutine support
  */
-public class TaskRenderer extends AbstractRenderer {
-    Set<AsyncTask> asyncTasks;
-    public class AsyncTask {
+public class CoroutineRenderer extends AbstractRenderer {
+    Set<Coroutine> coroutines;
+    public class Coroutine {
         Enumerator<Void, Void> enumerator;
         public class Context {
             Enumerator<Void, Void>.Context eCtx;
@@ -25,36 +24,34 @@ public class TaskRenderer extends AbstractRenderer {
                 eCtx.yield(null);
             }
         }
-        public AsyncTask(Handler<Context> task) {
+        public Coroutine(Handler<Context> task) {
             //noinspection unchecked
             enumerator = new Enumerator<>(ctx -> task.handle(new Context(ctx)));
         }
     }
-    public final void addTask(Handler<AsyncTask.Context> task) {
-        var asyncTask = new AsyncTask(task);
-        asyncTasks.add(asyncTask);
+    public final void startCoroutine(Handler<Coroutine.Context> task) {
+        var coroutine = new Coroutine(task);
+        coroutines.add(coroutine);
         async(() -> {
-            await(asyncTask.enumerator.completeFuture());
-            asyncTasks.remove(asyncTask);
+            await(coroutine.enumerator.completeFuture());
+            coroutines.remove(coroutine);
         });
-        await(asyncTask.enumerator.nextFuture());
+        await(coroutine.enumerator.nextFuture());
     }
 
     @Override
     public void init(Context context) {
         super.init(context);
-        asyncTasks = new HashSet<>();
+        coroutines = new HashSet<>();
     }
 
-    /**
-     * do not forget call super.render(context)
-     */
+    /** do not forget call super.render(context) to render coroutines */
     @Override
     public void render() {
-        await(CompositeFuture.all(asyncTasks.stream().map(task ->
+        await(CompositeFuture.all(coroutines.stream().map(coroutine ->
                 async(() -> {
-                    task.enumerator.next(null);
-                    await(task.enumerator.nextFuture());
+                    coroutine.enumerator.next(null);
+                    await(coroutine.enumerator.nextFuture());
                 })
         ).collect(Collectors.toList())));
     }

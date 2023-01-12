@@ -5,7 +5,6 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
-import java.util.UUID;
 
 public class AppVert extends AsyncVerticle {
     EventBus eb;
@@ -19,7 +18,7 @@ public class AppVert extends AsyncVerticle {
             switch (json.getString("type")) {
                 case "star.load" -> {
                     var config = JsonObject.of("id", json.getInteger("id"));
-                    await(vertx.deployVerticle(StarVert.class, new DeploymentOptions()
+                    await(vertx.deployVerticle(RenderVert.class, new DeploymentOptions()
                             .setWorker(true)
                             .setConfig(config)));
                     msg.reply(JsonObject.of("type", "star.load.success"));

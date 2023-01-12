@@ -14,11 +14,10 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static io.vertx.await.Async.await;
 
-public class StarVert extends AsyncVerticle {
+public class RenderVert extends AsyncVerticle {
     final double MaxFps = 60;
     EventBus eb;
     Star star;
