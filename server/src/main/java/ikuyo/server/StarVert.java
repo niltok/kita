@@ -22,46 +22,39 @@ public class StarVert extends AsyncVerticle {
     final double MaxFps = 60;
     EventBus eb;
     Star star;
-    MessageConsumer<JsonObject> starMsgBox, starNone;
-    String nodeId, vertId;
-    long writeBackId, frameTime;
+    MessageConsumer<JsonObject> starMsgBox;
+    long writeBackId, mainLoopId, frameTime, prevTime, deltaTime;
     PgPool pool;
-    // 发往这个地址的内容必须序列化为 Buffer 或 String
-    Map<Integer, String> socket = new HashMap<>();
     Renderer mainRenderer = new CompositeRenderer();
+    /** 发往这个地址的内容必须序列化为 Buffer 或 String */
+    Map<Integer, String> socket = new HashMap<>();
 
     @Override
     public void startAsync() {
-        nodeId = config().getString("nodeId");
-        vertId = UUID.randomUUID().toString();
         eb = vertx.eventBus();
         pool = PgPool.pool(vertx, new PoolOptions());
-        starNone = eb.consumer("star.none");
-        starNone.handler(this::starNoneHandler);
+        loadStar(config().getInteger("id"));
     }
 
-    private void starNoneHandler(Message<JsonObject> msg) {
-        var json = msg.body();
-        switch (json.getString("type")) {
-            case "star.load" -> {
-                starNone.pause();
-                int id = json.getInteger("id");
-                star = Star.getStar(pool, id);
-                await(pool.preparedQuery(
-                        "update star set vert_id = $2 where index = $1"
-                ).execute(Tuple.of(id, vertId)));
-                mainRenderer.init(new Renderer.Context(star));
-                System.out.println("star." + id + " loaded");
-                starMsgBox = eb.consumer("star." + id);
-                starMsgBox.handler(this::starMsgBoxHandler);
-                vertx.runOnContext(v -> mainLoop());
-                writeBackId = vertx.setPeriodic(5000, ignore -> writeBack());
-                msg.reply(JsonObject.of("type", "star.load.success"));
-            }
-            case "close" -> {
-                starNone.pause();
-            }
-        }
+    @Override
+    public void stopAsync() throws Exception {
+        vertx.cancelTimer(writeBackId);
+        vertx.cancelTimer(mainLoopId);
+        await(starMsgBox.unregister());
+    }
+
+    private void loadStar(int id) {
+        star = Star.getStar(pool, id);
+        await(pool.preparedQuery(
+                "update star set vert_id = $2 where index = $1"
+        ).execute(Tuple.of(id, parentContext.deploymentID())));
+        mainRenderer.init(new Renderer.Context(star));
+        logger.info("star." + id + " loaded");
+        starMsgBox = eb.consumer("star." + id);
+        starMsgBox.handler(this::starMsgBoxHandler);
+        prevTime = System.nanoTime();
+        mainLoopId = vertx.setTimer(0, v -> mainLoop());
+        writeBackId = vertx.setPeriodic(5000, ignore -> writeBack());
     }
 
     private void starMsgBoxHandler(Message<JsonObject> msg) {
@@ -76,30 +69,21 @@ public class StarVert extends AsyncVerticle {
             case "user.disconnect" -> {
                 socket.remove(json.getInteger("id"));
             }
-            case "star.unload" -> {
-                unload();
-                msg.reply(JsonObject.of("type", "star.unload.success"));
-            }
         }
-    }
-
-    private void unload() {
-        vertx.cancelTimer(writeBackId);
-        await(starMsgBox.unregister());
-        starNone.resume();
-        star = null;
-        starMsgBox = null;
     }
 
     void mainLoop() {
         try {
             var startTime = System.nanoTime();
+            deltaTime = startTime - prevTime;
+            prevTime = startTime;
             mainRenderer.render();
             socket.forEach((k, v) -> {
                 // eb.send(v, JsonObject.of("type", "ping").toBuffer());
             });
+            System.gc();
             frameTime = System.nanoTime() - startTime;
-            vertx.setTimer(Math.max(0, (long)(1000000 / MaxFps) - frameTime) / 1000,
+            mainLoopId = vertx.setTimer(Math.max(0, (long)(1000000 / MaxFps) - frameTime) / 1000,
                     v -> mainLoop());
         } catch (Exception e) { // meet unloaded star or stop buggy logic
             if (star == null) return;
@@ -108,7 +92,12 @@ public class StarVert extends AsyncVerticle {
                     "msg", e.getLocalizedMessage()));
             e.printStackTrace();
         }
-        System.gc();
+        if (logger.isTraceEnabled())
+            logger.trace(JsonObject.of(
+                "type", "frame.render.end",
+                "starId", star.index(),
+                "frameTime", frameTime,
+                "deltaTime", deltaTime));
     }
 
     void writeBack() {
@@ -116,12 +105,12 @@ public class StarVert extends AsyncVerticle {
         try {
             var success = await(pool.preparedQuery(
                     "update star set star_info = $1 where index = $2 and vert_id = $3"
-            ).execute(Tuple.of(str, star.index(), vertId))).rowCount() == 1;
-            if (!success) unload();
+            ).execute(Tuple.of(str, star.index(), parentContext.deploymentID()))).rowCount() == 1;
+            if (!success) vertx.undeploy(parentContext.deploymentID());
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage());
             e.printStackTrace();
-            unload();
+            vertx.undeploy(parentContext.deploymentID());
         }
     }
 }

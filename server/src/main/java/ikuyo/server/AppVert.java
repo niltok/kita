@@ -2,20 +2,29 @@ package ikuyo.server;
 
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import java.util.UUID;
 
 public class AppVert extends AsyncVerticle {
-    String nodeId;
+    EventBus eb;
+    MessageConsumer<JsonObject> starNone;
 
     @Override
     public void startAsync() {
-        nodeId = System.getenv("NODE_ID");
-        if (nodeId == null) nodeId = UUID.randomUUID().toString();
-        var config = JsonObject.of("nodeId", nodeId);
-        await(vertx.deployVerticle(StarVert.class, new DeploymentOptions()
-                .setWorker(true)
-                .setConfig(config)
-                .setInstances(100)));
+        eb = vertx.eventBus();
+        starNone = eb.consumer("star.none", msg -> {
+            var json = msg.body();
+            switch (json.getString("type")) {
+                case "star.load" -> {
+                    var config = JsonObject.of("id", json.getInteger("id"));
+                    await(vertx.deployVerticle(StarVert.class, new DeploymentOptions()
+                            .setWorker(true)
+                            .setConfig(config)));
+                    msg.reply(JsonObject.of("type", "star.load.success"));
+                }
+            }
+        });
     }
 }
