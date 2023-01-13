@@ -21,8 +21,9 @@ services:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
       - ./manager/build/libs:/usr/app
+      - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [java, --enable-preview, -jar, manager-rolling-all.jar, -cluster]
+    command: [sh, startJvm.sh, "", manager-rolling-all.jar;;-cluster]
     links:
       - psql:psql
     environment:
@@ -36,8 +37,9 @@ services:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
       - ./server/build/libs:/usr/app
+      - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [java, --enable-preview, -jar, server-rolling-all.jar, -cluster]
+    command: [sh, startJvm.sh, "", server-rolling-all.jar;;-cluster]
     links:
       - psql:psql
     environment:
@@ -50,8 +52,9 @@ services:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
       - ./bundle/build/libs:/usr/app
+      - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [java, --enable-preview, -jar, bundle-rolling-all.jar, -cluster]
+    command: [sh, startJvm.sh, "", bundle-rolling-all.jar;;-cluster]
     links:
       - psql:psql
     environment:

@@ -1,13 +1,13 @@
 package ikuyo.server.utils;
 
-public class AbstractRenderer implements Renderer {
+public class AbstractBehavior implements Behavior {
     public Context context;
 
     @Override
-    public void init(Context context) {
+    public void start(Context context) {
         this.context = context;
     }
 
     @Override
-    public void render() {}
+    public void update() {}
 }

@@ -11,14 +11,14 @@ public class AppVert extends AsyncVerticle {
     MessageConsumer<JsonObject> starNone;
 
     @Override
-    public void startAsync() {
+    public void start() {
         eb = vertx.eventBus();
         starNone = eb.consumer("star.none", msg -> {
             var json = msg.body();
             switch (json.getString("type")) {
                 case "star.load" -> {
                     var config = JsonObject.of("id", json.getInteger("id"));
-                    await(vertx.deployVerticle(RenderVert.class, new DeploymentOptions()
+                    await(vertx.deployVerticle(UpdateVert.class, new DeploymentOptions()
                             .setWorker(true)
                             .setConfig(config)));
                     msg.reply(JsonObject.of("type", "star.load.success"));

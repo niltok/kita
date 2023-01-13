@@ -7,9 +7,13 @@ export interface GameState {
     username?: string | null,
     url?: string | null,
     socket?: WebSocket | null
+    page: "load" | "map"
+    mapData?: object | null
 }
 
-const initialState = {} as GameState
+const initialState = {
+    page: "load"
+} as GameState
 
 export const gameStateSlicer = createSlice({
     name: 'gameState',

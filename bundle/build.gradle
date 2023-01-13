@@ -14,6 +14,10 @@ tasks.register('cache') {
 }
 
 shadowJar {
+    dependsOn ':manager:clientPublic'
+    from(fileTree('../client/dist')) {
+        into 'webroot'
+    }
     manifest {
         attributes(
                 'Main-Class': 'io.vertx.core.Launcher',

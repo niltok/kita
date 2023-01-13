@@ -47,9 +47,9 @@ tasks.register('cache') {
 }
 
 shadowJar {
-    dependsOn 'clientPublic'
+    dependsOn ':manager:clientPublic'
     from(fileTree('../client/dist')) {
-        into '/java/main/webroot'
+        into 'webroot'
     }
     manifest {
         attributes(

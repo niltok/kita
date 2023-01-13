@@ -4,24 +4,30 @@ import ikuyo.utils.Enumerator;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Handler;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /** Similar to Unity3d's StartCoroutine support
  */
-public class CoroutineRenderer extends AbstractRenderer {
+public class CoroutineBehavior extends AbstractBehavior {
     Set<Coroutine> coroutines;
     public class Coroutine {
         Enumerator<Void, Void> enumerator;
         public class Context {
             Enumerator<Void, Void>.Context eCtx;
-            public Renderer.Context renderContext = context;
+            public Behavior.Context renderContext = context;
             Context(Enumerator<Void, Void>.Context eCtx) {
                 this.eCtx = eCtx;
             }
             public void nextFrame() {
                 eCtx.yield(null);
+            }
+            /** Careful use it, every frame should be computed exactly most of the time */
+            public void waitTime(Duration duration) {
+                var fut = delay(duration);
+                while (!fut.isComplete()) eCtx.yield(null);
             }
         }
         public Coroutine(Handler<Context> task) {
@@ -40,14 +46,14 @@ public class CoroutineRenderer extends AbstractRenderer {
     }
 
     @Override
-    public void init(Context context) {
-        super.init(context);
+    public void start(Context context) {
+        super.start(context);
         coroutines = new HashSet<>();
     }
 
     /** do not forget call super.render(context) to render coroutines */
     @Override
-    public void render() {
+    public void update() {
         await(CompositeFuture.all(coroutines.stream().map(coroutine ->
                 async(() -> {
                     coroutine.enumerator.next(null);

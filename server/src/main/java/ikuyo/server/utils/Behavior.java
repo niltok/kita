@@ -3,8 +3,8 @@ package ikuyo.server.utils;
 import ikuyo.api.Star;
 import ikuyo.utils.AsyncHelper;
 
-public interface Renderer extends AsyncHelper {
+public interface Behavior extends AsyncHelper {
     record Context(Star star) {}
-    void init(Context context);
-    void render();
+    void start(Context context);
+    void update();
 }

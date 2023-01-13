@@ -4,7 +4,7 @@
       <settings>
         <option name="envFilePath" value="" />
         <option name="sourceFilePath" value="dev.docker-compose.yml" />
-        <option name="upDetach" value="false" />
+        <option name="upForceRecreate" value="true" />
       </settings>
     </deployment>
     <method v="2">

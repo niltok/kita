@@ -22,6 +22,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
                 reason: e.reason,
                 code: e.code
             })
+            dispatch(applyDiff({'/socket': null}))
             if (e.code < 3000) setTimeout(refresh, 3000)
             else navi('/login')
         }
@@ -39,7 +40,6 @@ export default function Socket(prop: {children?: JSX.Element}) {
             }))
         }
         return () => {
-            dispatch(applyDiff({'/socket': null}))
             socket.close()
         }
     }, [token, flag])
@@ -52,11 +52,11 @@ function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
             dispatch(applyDiff({'/socket': socket}))
             break
         }
-        case 'data.applyDiff': {
+        case 'state.applyDiff': {
             dispatch(applyDiff(json['diff']))
             break
         }
-        case 'data.dispatch': {
+        case 'state.dispatch': {
             dispatch(json['action'])
             break
         }

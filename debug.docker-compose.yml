@@ -14,8 +14,11 @@ services:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
       - ./bundle/build/libs:/usr/app
+      - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [java, --enable-preview, '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005', -jar, bundle-rolling-all.jar]
+    command: [sh, startJvm.sh,
+              "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
+              bundle-rolling-all.jar]
     ports:
       - "8070:8070"
       - "5005:5005"

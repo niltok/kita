@@ -20,7 +20,7 @@ public class DbVert extends AsyncVerticle {
             """;
 
     @Override
-    public void startAsync() {
+    public void start() {
         pool = PgPool.pool(vertx, new PoolOptions());
         var count = await(pool
                 .query("select * from pg_tables where schemaname = 'public';")

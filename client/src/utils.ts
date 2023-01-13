@@ -12,7 +12,7 @@ export type FlatDiff = {
 export function applyFlatDiff(obj: object, diff: FlatDiff) {
     for (const ptr in diff) {
         const val = diff[ptr]
-        if (val === undefined) pointer.remove(obj, ptr)
+        if (val === undefined || val === null) pointer.remove(obj, ptr)
         else pointer(obj, ptr, diff[ptr])
     }
 }
