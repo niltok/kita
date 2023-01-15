@@ -14,9 +14,6 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static io.vertx.await.Async.await;
 
 public class UpdateVert extends AsyncVerticle {
@@ -53,7 +50,7 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     private void loadStar(int id) {
-        star = Star.getStar(pool, id);
+        star = Star.get(pool, id);
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
@@ -109,11 +106,11 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     void writeBack() {
-        var str = JsonObject.mapFrom(star.starInfo()).toString();
         try {
+            var buf = JsonObject.mapFrom(star.starInfo()).toBuffer();
             var success = await(pool.preparedQuery(
                     "update star set star_info = $1 where index = $2 and vert_id = $3;"
-            ).execute(Tuple.of(str, star.index(), context.deploymentID()))).rowCount() == 1;
+            ).execute(Tuple.of(buf, star.index(), context.deploymentID()))).rowCount() == 1;
             if (!success) vertx.undeploy(deploymentID());
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage());

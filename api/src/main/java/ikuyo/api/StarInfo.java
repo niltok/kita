@@ -1,5 +1,6 @@
 package ikuyo.api;
 
+import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
@@ -15,7 +16,11 @@ public class StarInfo {
         return toJson().toString();
     }
 
-    public static StarInfo genStar(int seed) {
+    public Buffer toBuffer() {
+        return DataStatic.gzipEncode(toJson().toBuffer());
+    }
+
+    public static StarInfo gen(int seed) {
         var info = new StarInfo();
         info.blocks = new Block[100];
         for (var i = 0; i < 100; i++) {
@@ -30,7 +35,7 @@ public class StarInfo {
     }
 
     public static StarInfo fromJson(Buffer buffer) {
-        return fromJson(new JsonObject(buffer));
+        return fromJson(new JsonObject(DataStatic.gzipDecode(buffer)));
     }
 
     public static StarInfo fromJson(JsonObject json) {

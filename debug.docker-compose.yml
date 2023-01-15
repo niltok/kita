@@ -29,4 +29,4 @@ services:
       PGUSER: postgres
       PGDATABASE: postgres
       PGPASSWORD: kita
-      DB_MODE: reset
+      DB_RESET: always

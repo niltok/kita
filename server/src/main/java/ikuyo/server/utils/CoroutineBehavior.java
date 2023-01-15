@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static ikuyo.utils.AsyncStatic.delay;
+
 /** Similar to Unity3d's StartCoroutine support
  */
 public class CoroutineBehavior extends AbstractBehavior {

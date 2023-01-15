@@ -4,19 +4,14 @@ import ikuyo.api.User;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.file.impl.FileResolverImpl;
-import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.FileSystemAccess;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -26,10 +21,8 @@ import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 public class HttpVert extends AsyncVerticle {
@@ -87,7 +80,7 @@ public class HttpVert extends AsyncVerticle {
     void loginHandler(RoutingContext req) {
         var name = req.request().getHeader("name");
         var pwd = req.request().getHeader("pwd");
-        var user = User.getUserByName(pool, name);
+        var user = User.getByName(pool, name);
         if (user == null || !user.pwd().equals(pwd)) {
             await(req.response().setStatusCode(401).end("no such a user or password wrong"));
             return;
@@ -121,7 +114,7 @@ public class HttpVert extends AsyncVerticle {
     private void socketHandler(SockJSSocket socket, @NotNull JsonObject msg) {
         switch (msg.getString("type")) {
             case "auth.request" -> {
-                var user = User.getUserByToken(pool, msg.getString("token"));
+                var user = User.getByToken(pool, msg.getString("token"));
                 if (user == null) {
                     socket.close(4000, "auth.failed");
                     return;
@@ -130,8 +123,11 @@ public class HttpVert extends AsyncVerticle {
                 socketCache.put(socket.writeHandlerID(), user);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
-            case "user.operate.map" ->
-                    eb.send(socketAddress(socket), msg);
+            case "user.operate.map", "state.map.require" ->
+                    eb.send(socketAddress(socket), JsonObject.of(
+                            "socket", socket.writeHandlerID(),
+                            "userId", socketCache.get(socket.writeHandlerID()).id(),
+                            "msg", msg));
         }
     }
 

@@ -4,7 +4,6 @@ import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
-import org.jetbrains.annotations.NotNull;
 
 import static io.vertx.await.Async.await;
 
@@ -27,7 +26,7 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
             select * from "user" where name = $1;
             """;
 
-    public static User getUserByName(SqlClient client, String name) {
+    public static User getByName(SqlClient client, String name) {
         try {
             var rows = await(client.preparedQuery(getByNameSql).execute(Tuple.of(name)));
             return getUser(rows);
@@ -42,7 +41,7 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
             select * from "user" where token = $1;
             """;
 
-    public static User getUserByToken(SqlClient client, String token) {
+    public static User getByToken(SqlClient client, String token) {
         try {
             var rows = await(client.preparedQuery(getByTokenSql).execute(Tuple.of(token)));
             return getUser(rows);
@@ -51,7 +50,8 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
         }
     }
 
-    private static @NotNull User getUser(RowSet<Row> rows) {
+    private static User getUser(RowSet<Row> rows) {
+        if (rows.rowCount() == 0) return null;
         var row = rows.iterator().next();
         return new User(row.getInteger("id"), row.getString("name"),
                 row.getString("pwd"), row.getBoolean("is_admin"),

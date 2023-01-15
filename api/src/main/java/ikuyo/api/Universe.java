@@ -13,12 +13,18 @@ public record Universe(int index, int seed, boolean autoExpand) {
             seed int not null default random(),
             auto_expand boolean not null
         );
-        insert into universe(auto_expand) values (false);
+        insert into universe(auto_expand) values (true);
         """;
 
-    public static boolean isAutoExpand(SqlClient client, int index) {
-        return await(client.preparedQuery(
-                "select * from universe where index = $1 and auto_expand = true"
-        ).execute(Tuple.of(index))).rowCount() == 1;
+    public static Universe get(SqlClient client, int index) {
+        var rows = await(client.preparedQuery(
+                "select * from universe where index = $1"
+        ).execute(Tuple.of(index)));
+        if (rows.rowCount() == 0) return null;
+        var row = rows.iterator().next();
+        return new Universe(
+                row.getInteger("index"),
+                row.getInteger("seed"),
+                row.getBoolean("auto_expand"));
     }
 }

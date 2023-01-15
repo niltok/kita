@@ -6,7 +6,6 @@ import ikuyo.api.User;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
-import java.util.Objects;
 
 public class DbVert extends AsyncVerticle {
     PgPool pool;
@@ -22,15 +21,30 @@ public class DbVert extends AsyncVerticle {
     @Override
     public void start() {
         pool = PgPool.pool(vertx, new PoolOptions());
-        var count = await(pool
-                .query("select * from pg_tables where schemaname = 'public';")
-                .execute()).rowCount();
-        if (!(count == 0 || Objects.equals(System.getenv("DB_MODE"), "reset"))) return;
+        resetDB();
+    }
+
+    private void resetDB() {
+        var resetMode = System.getenv("DB_RESET");
+        switch (resetMode) {
+            case "empty" -> {
+                var count = await(pool
+                        .query("select * from pg_tables where schemaname = 'public';")
+                        .execute()).rowCount();
+                if (count != 0) return;
+                // break & reset
+            }
+            case "always" -> {} // break & reset
+            case null, default -> { return; } // never reset
+        }
         await(pool.query(String.join("",
                 cleanDbSql,
                 Universe.createTableSql,
                 Star.StarGroup.createTableSql,
-                Star.createTableSql,
+                Star.createTableSql
+        )).execute());
+        Star.query(pool, 1, 0, 0, 0, 0);
+        await(pool.query(String.join("",
                 User.createTableSql
         )).execute());
     }

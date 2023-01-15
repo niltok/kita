@@ -12,22 +12,11 @@ import java.util.function.Supplier;
 
 public interface AsyncHelper {
     default <T> Future<T> async(Supplier<T> task) {
-        Promise<T> promise = Promise.promise();
-        Vertx.currentContext().runOnContext(v -> {
-            try {
-                promise.complete(task.get());
-            } catch (Throwable e) {
-                promise.fail(e);
-            }
-        });
-        return promise.future();
+        return AsyncStatic.async(task);
     }
 
     default Future<Void> async(Runnable task) {
-        return async(() -> {
-            task.run();
-            return null;
-        });
+        return AsyncStatic.async(task);
     }
 
     default <T> T await(Future<T> future) {
@@ -35,16 +24,6 @@ public interface AsyncHelper {
     }
 
     default <T> T await(Future<T> future, Duration timeout) {
-        return await(CompositeFuture.any(future, delay(timeout))).resultAt(0);
-    }
-
-    default Future<Void> delay(Duration timeout) {
-        return async(() -> {
-            try {
-                Thread.sleep(timeout);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return AsyncStatic.await(future, timeout);
     }
 }

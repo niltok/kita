@@ -31,7 +31,7 @@ services:
       PGUSER: postgres
       PGDATABASE: postgres
       PGPASSWORD: kita
-      DB_MODE: reset
+      DB_RESET: always
 
   server:
     image: bellsoft/liberica-openjdk-debian:19
