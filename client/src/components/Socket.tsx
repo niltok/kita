@@ -1,9 +1,11 @@
 import {useAppDispatch, useAppSelector} from "../storeHook"
-import {applyDiff, selectGameState} from "../stores/gameState"
+import {diffGame, selectGameState} from "../stores/gameState"
 import SockJS from "sockjs-client"
 import {useAsyncEffect, useRefresh} from "../utils"
 import {useNavigate} from "react-router-dom";
 import {AppDispatch} from "../store";
+import {sendSocket$} from "../dbus";
+import {Subscription} from "rxjs";
 
 export default function Socket(prop: {children?: JSX.Element}) {
     const { token, url } = useAppSelector(selectGameState)
@@ -13,16 +15,18 @@ export default function Socket(prop: {children?: JSX.Element}) {
     useAsyncEffect(async () => {
         if (!url || !token) return
         const socket = new SockJS(url + '/socket')
+        let subscribe: Subscription | null = null
         socket.onmessage = e => {
             onMsg(socket, JSON.parse(e.data), dispatch)
         }
         socket.onclose = e => {
+            if (subscribe != null) subscribe.unsubscribe()
             console.warn({
                 warn: "socket closed",
                 reason: e.reason,
                 code: e.code
             })
-            dispatch(applyDiff({'/socket': null}))
+            dispatch(diffGame({'/socket': null}))
             if (e.code < 3000) setTimeout(refresh, 3000)
             else navi('/login')
         }
@@ -38,6 +42,11 @@ export default function Socket(prop: {children?: JSX.Element}) {
                 type: "auth.request",
                 token
             }))
+            subscribe = sendSocket$.subscribe({
+                next(msg) {
+                    socket.send(JSON.stringify(msg))
+                }
+            })
         }
         return () => {
             socket.close()
@@ -49,15 +58,14 @@ export default function Socket(prop: {children?: JSX.Element}) {
 function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
     switch (json['type']) {
         case 'auth.pass': {
-            dispatch(applyDiff({'/socket': socket}))
-            break
-        }
-        case 'state.applyDiff': {
-            dispatch(applyDiff(json['diff']))
+            dispatch(diffGame({'/socket': socket}))
             break
         }
         case 'state.dispatch': {
-            dispatch(json['action'])
+            dispatch({
+                type: json.action,
+                payload: json.payload
+            })
             break
         }
     }

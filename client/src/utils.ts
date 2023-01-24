@@ -1,20 +1,8 @@
-import pointer from 'json-pointer'
 import {useEffect, useState} from "react";
+import {Observable} from "rxjs";
 
 export const delay = (time: number) => {
     return new Promise(resolve => setTimeout(resolve, time))
-}
-
-export type FlatDiff = {
-    [key: string]: any
-}
-
-export function applyFlatDiff(obj: object, diff: FlatDiff) {
-    for (const ptr in diff) {
-        const val = diff[ptr]
-        if (val === undefined || val === null) pointer.remove(obj, ptr)
-        else pointer(obj, ptr, diff[ptr])
-    }
 }
 
 export function useAsyncEffect(effect: () => Promise<void | (() => void)>, dependencies?: any[]) {
@@ -27,4 +15,17 @@ export function useAsyncEffect(effect: () => Promise<void | (() => void)>, depen
 export function useRefresh(): [boolean, () => void] {
     const [flag, setFlag] = useState(false)
     return [flag, () => setFlag(flag => !flag)]
+}
+
+export function useObservable<T>(obs: Observable<T>, init: T): T {
+    const [value, setValue] = useState(init)
+    useEffect(() => {
+        const sub = obs.subscribe({
+            next(val) {
+                setValue(val)
+            }
+        });
+        return () => sub.unsubscribe()
+    })
+    return value
 }

@@ -18,7 +18,9 @@
     "@inlet/react-pixi": "^6.8.0",
     "@pixi/assets": "^6.5.8",
     "json-pointer": "^0.6.2",
-    "sockjs-client": "^1.6.1"
+    "sockjs-client": "^1.6.1",
+    "immutable": "^4.2.2",
+    "rxjs": "^7.8.0"
   },
   "devDependencies": {
     "@types/react": "^17.0.1",

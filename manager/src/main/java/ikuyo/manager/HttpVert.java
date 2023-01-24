@@ -2,6 +2,8 @@ package ikuyo.manager;
 
 import ikuyo.api.User;
 import ikuyo.utils.AsyncVerticle;
+import io.netty.handler.codec.compression.CompressionOptions;
+import io.netty.handler.codec.compression.GzipOptions;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServer;
@@ -36,7 +38,8 @@ public class HttpVert extends AsyncVerticle {
     public void start() {
         eb = vertx.eventBus();
         pool = PgPool.pool(vertx, new PoolOptions());
-        server = vertx.createHttpServer(new HttpServerOptions().setLogActivity(true));
+        server = vertx.createHttpServer(new HttpServerOptions()
+                .setLogActivity(true).setCompressionSupported(true));
         router = Router.router(vertx);
         router.allowForward(AllowForwardHeaders.ALL);
         // sockjs handler 前面不能加任何 async handler 所以别改这段代码

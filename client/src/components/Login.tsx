@@ -1,6 +1,6 @@
 import {useState} from "react"
 import {useAppDispatch} from "../storeHook"
-import {applyDiff} from "../stores/gameState"
+import {diffGame} from "../stores/gameState"
 import {useNavigate} from "react-router-dom"
 
 async function login(server: string, name: string, pwd: string) {
@@ -42,9 +42,9 @@ export default function Login() {
             try {
                 const url = server || defaultServer
                 const token = await login(url + '/login', name, pwd)
-                dispatch(applyDiff({ '/username': name }))
-                dispatch(applyDiff({ '/token': token }))
-                dispatch(applyDiff({ '/url': url }))
+                dispatch(diffGame({ '/username': name }))
+                dispatch(diffGame({ '/token': token }))
+                dispatch(diffGame({ '/url': url }))
                 navi('/game')
             } catch (e) {
                 setMsg(`[${new Date().toLocaleString()}] ${e}`)

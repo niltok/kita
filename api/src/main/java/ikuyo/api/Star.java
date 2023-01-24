@@ -45,7 +45,6 @@ public record Star(int index, int universe, double x, double y, double z, StarIn
             var rand = new Random(Hashing.goodFastHash(128).newHasher()
                     .putInt(universe).putInt(posX).putInt(posY).putInt(seed).hash().asLong());
             var fs = new LinkedList<Future>();
-            RandomGenerator.getDefault();
             for (int i = 0; i < starNumAvg + starNumDelta * rand.nextGaussian(); i++) {
                 fs.add(async(() -> Star.insert(client, universe,
                         (posX + rand.nextDouble()) * 100 - 50,

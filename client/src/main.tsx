@@ -2,9 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './components/App'
 import './index.css'
-import {ErrorBoundary, FallbackProps} from "react-error-boundary";
-import {Provider} from "react-redux";
-import {store} from "./store";
+import {ErrorBoundary, FallbackProps} from "react-error-boundary"
+import {Provider} from "react-redux"
+import {store} from "./store"
+import {enableMapSet} from 'immer'
 
 function ErrorFallback({error, resetErrorBoundary}: FallbackProps) {
     return (
@@ -15,6 +16,8 @@ function ErrorFallback({error, resetErrorBoundary}: FallbackProps) {
         </div>
     )
 }
+
+//enableMapSet()
 
 ReactDOM.render(
     <React.StrictMode>

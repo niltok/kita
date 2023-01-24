@@ -1,5 +1,7 @@
 package ikuyo.server;
 
+import com.google.common.hash.Hashing;
+import ikuyo.api.Drawable;
 import ikuyo.api.Star;
 import ikuyo.server.utils.CompositeBehavior;
 import ikuyo.server.utils.Behavior;
@@ -13,6 +15,13 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static io.vertx.await.Async.await;
 
@@ -85,7 +94,7 @@ public class UpdateVert extends AsyncVerticle {
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
-                    "content", JsonObject.mapFrom(star)));
+                    "drawables", JsonObject.mapFrom(render())));
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),
@@ -105,9 +114,24 @@ public class UpdateVert extends AsyncVerticle {
                 "deltaTime", deltaTime / 1000_000.0));
     }
 
+    JsonObject render() {
+        var drawables = new ArrayList<Drawable>();
+        for (var i = 0; i < star.starInfo().blocks.length; i++) {
+            var block = star.starInfo().blocks[i];
+            var d = new Drawable.Sprite();
+            d.type = "block-%d".formatted(block.id);
+            drawables.add(d);
+        }
+        return new JsonObject(drawables.stream().map(JsonObject::mapFrom).collect(Collectors.toMap(
+                json -> String.valueOf(json.hashCode()),
+                Function.identity(),
+                (s, a) -> s
+        )));
+    }
+
     void writeBack() {
         try {
-            var buf = JsonObject.mapFrom(star.starInfo()).toBuffer();
+            var buf = star.starInfo().toBuffer();
             var success = await(pool.preparedQuery(
                     "update star set star_info = $1 where index = $2 and vert_id = $3;"
             ).execute(Tuple.of(buf, star.index(), context.deploymentID()))).rowCount() == 1;
