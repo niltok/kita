@@ -7,7 +7,7 @@ import {Provider} from "react-redux"
 import {store} from "./store"
 import {enableMapSet} from 'immer'
 
-function ErrorFallback({error, resetErrorBoundary}: FallbackProps) {
+export function ErrorFallback({error, resetErrorBoundary}: FallbackProps) {
     return (
         <div role="alert">
             <p>Something went wrong:</p>

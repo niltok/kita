@@ -119,7 +119,8 @@ public class UpdateVert extends AsyncVerticle {
         for (var i = 0; i < star.starInfo().blocks.length; i++) {
             var block = star.starInfo().blocks[i];
             var d = new Drawable.Sprite();
-            d.type = "block-%d".formatted(block.id);
+            d.bundle = "blocks";
+            d.asset = String.valueOf(block.id);
             drawables.add(d);
         }
         return new JsonObject(drawables.stream().map(JsonObject::mapFrom).collect(Collectors.toMap(

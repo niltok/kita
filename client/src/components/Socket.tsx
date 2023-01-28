@@ -2,15 +2,13 @@ import {useAppDispatch, useAppSelector} from "../storeHook"
 import {diffGame, selectGameState} from "../stores/gameState"
 import SockJS from "sockjs-client"
 import {useAsyncEffect, useRefresh} from "../utils"
-import {useNavigate} from "react-router-dom";
-import {AppDispatch} from "../store";
-import {sendSocket$} from "../dbus";
-import {Subscription} from "rxjs";
+import {AppDispatch} from "../store"
+import {sendSocket$, setPage$} from "../dbus"
+import {Subscription} from "rxjs"
 
 export default function Socket(prop: {children?: JSX.Element}) {
     const { token, url } = useAppSelector(selectGameState)
     const dispatch = useAppDispatch()
-    const navi = useNavigate()
     const [flag, refresh] = useRefresh()
     useAsyncEffect(async () => {
         if (!url || !token) return
@@ -28,7 +26,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
             })
             dispatch(diffGame({'/socket': null}))
             if (e.code < 3000) setTimeout(refresh, 3000)
-            else navi('/login')
+            else setPage$.next('login')
         }
         socket.onerror = e => {
             console.error({

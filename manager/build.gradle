@@ -8,12 +8,6 @@ node {
     nodeProjectDir.set(file('../client'))
 }
 
-tasks.register('clientPublic', Copy) {
-    from(file('../client/public'))
-    into('../client/dist/public')
-    dependsOn ':manager:clientBuild'
-}
-
 tasks.register('clientBuild', NpmTask) {
     inputs.files(fileTree('../client/node_modules'))
     inputs.files(fileTree('../client/src'))
@@ -47,7 +41,7 @@ tasks.register('cache') {
 }
 
 shadowJar {
-    dependsOn ':manager:clientPublic'
+    dependsOn ':manager:clientBuild'
     from(fileTree('../client/dist')) {
         into 'webroot'
     }

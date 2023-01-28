@@ -7,7 +7,8 @@ export interface GameState {
     username: string | null,
     url: string | null,
     socket: WebSocket | null
-    page: "load" | "map"
+    page: "load" | "star"
+    assets: any
 }
 
 const initialState: GameState = {
@@ -16,6 +17,7 @@ const initialState: GameState = {
     url: null,
     socket: null,
     page: "load",
+    assets: {}
 }
 
 function applyFlatDiff(obj: object, diff: { [key: string]: any }) {
@@ -33,8 +35,11 @@ export const gameStateSlicer = createSlice({
         diffGame(state, action: PayloadAction<{ [key: string]: any }>) {
             applyFlatDiff(state, action.payload)
         },
+        addAssets(state, action: PayloadAction<{ name: string, bundle: any }>) {
+            state.assets[action.payload.name] = action.payload.bundle
+        }
     }
 })
 
-export const {diffGame} = gameStateSlicer.actions
+export const {diffGame, addAssets} = gameStateSlicer.actions
 export const selectGameState = (state: RootState) => state.gameState

@@ -1,7 +1,7 @@
 import {useState} from "react"
 import {useAppDispatch} from "../storeHook"
 import {diffGame} from "../stores/gameState"
-import {useNavigate} from "react-router-dom"
+import {setPage$} from "../dbus";
 
 async function login(server: string, name: string, pwd: string) {
     let url: URL
@@ -28,7 +28,6 @@ export default function Login() {
     const [buttonLock, setButtonLock] = useState(false)
     const [msg, setMsg] = useState('')
     const dispatch = useAppDispatch()
-    const navi = useNavigate()
     return (<>
         <span style={{fontSize: '2rem', lineHeight: '3rem'}}>Kita! Kita!</span>
         <input type='text' autoComplete='url' value={server}
@@ -45,7 +44,7 @@ export default function Login() {
                 dispatch(diffGame({ '/username': name }))
                 dispatch(diffGame({ '/token': token }))
                 dispatch(diffGame({ '/url': url }))
-                navi('/game')
+                setPage$.next('game')
             } catch (e) {
                 setMsg(`[${new Date().toLocaleString()}] ${e}`)
             }

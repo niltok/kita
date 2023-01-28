@@ -1,21 +1,26 @@
-import { useEffect } from "react"
+import {useEffect} from "react"
 import './Loading.css'
-import {Assets, ResolverManifest} from '@pixi/assets'
-import {delay} from "../utils";
-import {useNavigate} from "react-router-dom";
-
-const manifest: ResolverManifest = {
-    bundles: []
-}
+import {Assets} from '@pixi/assets'
+import {delay} from "../utils"
+import {useAppDispatch} from "../storeHook"
+import {addAssets} from "../stores/gameState"
+import {manifest} from "../manifest"
+import {setPage$} from "../dbus";
 
 export default function Loading() {
-    const navi = useNavigate()
+    const dispatch = useAppDispatch()
     useEffect(() => {
         (async () => {
             await Assets.init({manifest})
-            await Assets.backgroundLoadBundle(manifest.bundles.map(b => b.name))
+            await Promise.all(manifest.bundles.map(async bundle => {
+                const assets = await Assets.loadBundle(bundle.name)
+                dispatch(addAssets({
+                    name: bundle.name,
+                    bundle: assets
+                }))
+            }))
             await delay(2000)
-            navi('/login')
+            setPage$.next('login')
         })()
     }, [])
     return (

@@ -1,17 +1,16 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit"
-import {Drawables} from "../types/Drawables"
+import {Drawable} from "../types/Drawable"
 import {sendSocket$} from "../dbus"
 
 type MsgMeta = { target: string, seq: number }
 type DiffMsg<T> = MsgMeta & { diff: { [key: string]: T } }
 type SetMsg<T> = MsgMeta & { data: { [key: string]: T } }
-type SeqData<T> = { seq: number, data: { [key: string]: T }, requester: () => void }
+type SeqData<T> = { seq: number, data: { [key: string]: T } }
 
-function genSeq<T>(requester: () => void): SeqData<T> {
+function genSeq<T>(): SeqData<T> {
     return {
         seq: 0,
-        data: {},
-        requester
+        data: {}
     }
 }
 
@@ -20,17 +19,18 @@ export interface SeqState<T> { [key: string]: SeqData<T> }
 export const seqStateSlicer = createSlice({
     name: 'seqState',
     initialState: {
-        mapDrawables: genSeq<Drawables>(() => {
-            sendSocket$.next({ type: "state.map.require" })
-        })
-    } as SeqState<Drawables>,
+        starDrawables: genSeq<Drawable>()
+    } as SeqState<Drawable>,
     reducers: {
         diffSeq(state, action: PayloadAction<MsgMeta>) {
-            const data = state[action.payload.target], diff = action.payload as DiffMsg<Drawables>
+            if (!state[action.payload.target]) {
+                state[action.payload.target] = genSeq<Drawable>()
+            }
+            const data = state[action.payload.target], diff = action.payload as DiffMsg<Drawable>
             if (data.seq >= diff.seq) return // equiv this.seq + 1 > diff.seq
             if (data.seq + 1 < diff.seq) {
                 data.seq = 2 << 31
-                data.requester()
+                sendSocket$.next({ type: "state.seq.require", target: diff.target })
                 return
             }
             // this.seq + 1 == diff.seq
@@ -46,7 +46,7 @@ export const seqStateSlicer = createSlice({
             }
         },
         setSeq(state, action: PayloadAction<MsgMeta>) {
-            const data = state[action.payload.target], msg = action.payload as SetMsg<Drawables>
+            const data = state[action.payload.target], msg = action.payload as SetMsg<Drawable>
             data.seq = msg.seq
             data.data = msg.data
         }

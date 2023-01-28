@@ -1,27 +1,17 @@
 import './App.css'
 import Loading from "./Loading"
-import {Counter} from "./Counter";
-import {createMemoryRouter, RouterProvider, useNavigate} from "react-router-dom"
+import {Counter} from "./Counter"
 import Login from "./Login"
-import Socket from "./Socket";
-
-const router = createMemoryRouter([
-    {
-        path: 'load',
-        element: <Loading/>
-    },
-    {
-        path: 'login',
-        element: <Login/>
-    },
-    {
-        path: 'game',
-        element: <Socket></Socket>
-    }
-], {
-    initialEntries: ["/load"]
-})
+import {Game} from "./Game"
+import {useObservable} from "../utils"
+import {setPage$} from "../dbus"
 
 export default function App() {
-    return (<RouterProvider router={router} fallbackElement={<Counter/>}/>)
+    const page = useObservable(setPage$, 'load')
+    switch (page) {
+        case 'load': return <Loading/>
+        case 'login': return <Login/>
+        case 'game': return <Game/>
+        default: return <Counter/>
+    }
 }

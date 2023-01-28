@@ -6,8 +6,7 @@ import io.netty.handler.codec.compression.CompressionOptions;
 import io.netty.handler.codec.compression.GzipOptions;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Router;
@@ -45,8 +44,8 @@ public class HttpVert extends AsyncVerticle {
         // sockjs handler 前面不能加任何 async handler 所以别改这段代码
         // == do not edit start ==
         router.route()
-                .handler(CorsHandler.create())
-                .handler(BodyHandler.create());
+                .handler(BodyHandler.create())
+                .handler(HttpVert::CorsHandler);
         router.route("/socket/*").subRouter(
                 SockJSHandler.create(vertx,
                         new SockJSHandlerOptions()
@@ -126,16 +125,41 @@ public class HttpVert extends AsyncVerticle {
                 socketCache.put(socket.writeHandlerID(), user);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
-            case "user.operate.map", "state.map.require" ->
+            case "user.operate.map", "state.star.require" ->
                     eb.send(socketAddress(socket), JsonObject.of(
+                            "type", msg.getString("type"),
                             "socket", socket.writeHandlerID(),
                             "userId", socketCache.get(socket.writeHandlerID()).id(),
                             "msg", msg));
+            case "state.seq.require" -> {
+                switch (msg.getString("target")) {
+                    case "starDrawables" ->
+                            eb.send(socketAddress(socket), JsonObject.of(
+                                    "type", msg.getString("type"),
+                                    "socket", socket.writeHandlerID(),
+                                    "userId", socketCache.get(socket.writeHandlerID()).id(),
+                                    "msg", msg));
+                    default -> {}
+                }
+            }
         }
     }
 
     @NotNull
     private String socketAddress(SockJSSocket socket) {
         return "star." + socketCache.get(socket.writeHandlerID()).star();
+    }
+
+    public static void CorsHandler(RoutingContext ctx) {
+        var request = ctx.request();
+        var origin = request.getHeader(HttpHeaders.ORIGIN);
+        if (origin == null) origin = "*";
+        var response = ctx.response();
+        response.putHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+        response.putHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*");
+        response.putHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        response.putHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*");
+        if (request.method() == HttpMethod.OPTIONS) response.setStatusCode(204).end();
+        else ctx.next();
     }
 }

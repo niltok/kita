@@ -14,7 +14,7 @@ tasks.register('cache') {
 }
 
 shadowJar {
-    dependsOn ':manager:clientPublic'
+    dependsOn ':manager:clientBuild'
     from(fileTree('../client/dist')) {
         into 'webroot'
     }

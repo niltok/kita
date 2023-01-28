@@ -15,7 +15,7 @@ public class MessageVert extends AsyncVerticle {
     int starId;
     String updaterId;
     MessageConsumer<JsonObject> starEvents, vertEvents;
-    MsgDiffer msgDiffer = new MsgDiffer("mapDrawables");
+    MsgDiffer msgDiffer = new MsgDiffer("starDrawables");
     /** 发往这个地址的内容必须序列化为 Buffer 或 String */
     Map<Integer, String> socket = new HashMap<>();
 
@@ -43,7 +43,7 @@ public class MessageVert extends AsyncVerticle {
                     eb.send(updaterId, JsonObject.of("type", "undeploy"));
             }
             case "user.operate.map" -> {}
-            case "state.map.require" -> {
+            case "state.seq.require" -> {
                 eb.send(json.getString("socket"), msgDiffer.prev());
             }
         }

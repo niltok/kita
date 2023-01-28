@@ -6,7 +6,10 @@ export const store = configureStore({
     reducer: {
         gameState: gameStateSlicer.reducer,
         seqState: seqStateSlicer.reducer
-    }
+    },
+    middleware: getDefaultMiddleware => getDefaultMiddleware({
+        serializableCheck: false
+    })
 })
 
 export type RootState = ReturnType<typeof store.getState>
