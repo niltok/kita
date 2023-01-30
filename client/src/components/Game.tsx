@@ -3,5 +3,5 @@ import {Stage} from "./Stage";
 import {Star} from "./Star";
 
 export function Game() {
-    return <Socket><Stage><Star/></Stage></Socket>;
+    return <Socket><Stage><Star/></Stage></Socket>
 }

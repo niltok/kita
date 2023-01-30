@@ -1,10 +1,13 @@
 package ikuyo.server;
 
-import com.google.common.hash.Hashing;
-import ikuyo.api.Drawable;
 import ikuyo.api.Star;
-import ikuyo.server.utils.CompositeBehavior;
-import ikuyo.server.utils.Behavior;
+import ikuyo.api.StarInfo;
+import ikuyo.server.api.Renderer;
+import ikuyo.server.behaviors.CompositeBehavior;
+import ikuyo.server.api.Behavior;
+import ikuyo.server.renderers.CameraRenderer;
+import ikuyo.server.renderers.CompositeRenderer;
+import ikuyo.server.renderers.DrawableRenderer;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -15,13 +18,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static io.vertx.await.Async.await;
 
@@ -34,6 +30,12 @@ public class UpdateVert extends AsyncVerticle {
     String msgVertId;
     PgPool pool;
     Behavior mainBehavior = new CompositeBehavior();
+    Renderer commonSeqRenderer = new CompositeRenderer(
+            new DrawableRenderer().withName("starDrawables")
+    );
+    Renderer specialRenderer = new CompositeRenderer(
+            new CameraRenderer()
+    );
 
     @Override
     public void start() {
@@ -53,6 +55,7 @@ public class UpdateVert extends AsyncVerticle {
         await(CompositeFuture.all(
                 vertEvents.unregister(),
                 vertx.undeploy(msgVertId),
+                async(this::tryWriteBack),
                 pool.preparedQuery("update star set vert_id = null where vert_id = $1;")
                         .execute(Tuple.of(deploymentID()))
                         .compose(rows -> pool.close())));
@@ -78,8 +81,21 @@ public class UpdateVert extends AsyncVerticle {
     private void vertEventsHandler(Message<JsonObject> msg) {
         var json = msg.body();
         switch (json.getString("type")) {
-            case "undeploy" -> {
+            case "vert.undeploy" -> {
                 vertx.undeploy(deploymentID());
+            }
+            case "user.add" -> {
+                var id = json.getInteger("id");
+                var users = star.starInfo().starUsers;
+                if (users.get(id) == null) users.put(id, new StarInfo.StarUserInfo());
+                users.get(id).online = true;
+                msg.reply(JsonObject.of("type", "success"));
+            }
+            case "user.disconnect" -> {
+                var id = json.getInteger("id");
+                var users = star.starInfo().starUsers;
+                users.get(id).online = false;
+                msg.reply(JsonObject.of("type", "success"));
             }
         }
     }
@@ -94,17 +110,18 @@ public class UpdateVert extends AsyncVerticle {
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
-                    "drawables", JsonObject.mapFrom(render())));
+                    "commonSeq", commonSeqRenderer.render(star),
+                    "special", specialRenderer.render(star)));
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),
                     v -> mainLoop());
-        } catch (Exception e) { // meet unloaded star or stop buggy logic
-            if (star == null) return;
+        } catch (Exception e) { // stop buggy logic
             logger.error(JsonObject.of(
                     "star.id", star.index(),
                     "msg", e.getLocalizedMessage()));
             e.printStackTrace();
+            vertx.undeploy(deploymentID());
         }
         if (logger.isTraceEnabled())
             logger.trace(JsonObject.of(
@@ -114,33 +131,20 @@ public class UpdateVert extends AsyncVerticle {
                 "deltaTime", deltaTime / 1000_000.0));
     }
 
-    JsonObject render() {
-        var drawables = new ArrayList<Drawable>();
-        for (var i = 0; i < star.starInfo().blocks.length; i++) {
-            var block = star.starInfo().blocks[i];
-            var d = new Drawable.Sprite();
-            d.bundle = "blocks";
-            d.asset = String.valueOf(block.id);
-            drawables.add(d);
-        }
-        return new JsonObject(drawables.stream().map(JsonObject::mapFrom).collect(Collectors.toMap(
-                json -> String.valueOf(json.hashCode()),
-                Function.identity(),
-                (s, a) -> s
-        )));
+    void writeBack() {
+        if (!tryWriteBack()) vertx.undeploy(deploymentID());
     }
 
-    void writeBack() {
+    private boolean tryWriteBack() {
         try {
             var buf = star.starInfo().toBuffer();
-            var success = await(pool.preparedQuery(
+            return await(pool.preparedQuery(
                     "update star set star_info = $1 where index = $2 and vert_id = $3;"
             ).execute(Tuple.of(buf, star.index(), context.deploymentID()))).rowCount() == 1;
-            if (!success) vertx.undeploy(deploymentID());
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage());
             e.printStackTrace();
-            vertx.undeploy(deploymentID());
+            return false;
         }
     }
 }

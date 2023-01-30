@@ -125,12 +125,6 @@ public class HttpVert extends AsyncVerticle {
                 socketCache.put(socket.writeHandlerID(), user);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
-            case "user.operate.map", "state.star.require" ->
-                    eb.send(socketAddress(socket), JsonObject.of(
-                            "type", msg.getString("type"),
-                            "socket", socket.writeHandlerID(),
-                            "userId", socketCache.get(socket.writeHandlerID()).id(),
-                            "msg", msg));
             case "state.seq.require" -> {
                 switch (msg.getString("target")) {
                     case "starDrawables" ->
@@ -141,6 +135,13 @@ public class HttpVert extends AsyncVerticle {
                                     "msg", msg));
                     default -> {}
                 }
+            }
+            default -> {
+                eb.send(socketAddress(socket), JsonObject.of(
+                        "type", "user.message",
+                        "socket", socket.writeHandlerID(),
+                        "userId", socketCache.get(socket.writeHandlerID()).id(),
+                        "msg", msg));
             }
         }
     }

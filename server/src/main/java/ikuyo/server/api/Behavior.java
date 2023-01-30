@@ -1,4 +1,4 @@
-package ikuyo.server.utils;
+package ikuyo.server.api;
 
 import ikuyo.api.Star;
 import ikuyo.utils.AsyncHelper;

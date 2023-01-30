@@ -1,5 +1,6 @@
-package ikuyo.server.utils;
+package ikuyo.server.behaviors;
 
+import ikuyo.server.api.Behavior;
 import ikuyo.utils.Enumerator;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Handler;
@@ -53,7 +54,7 @@ public class CoroutineBehavior extends AbstractBehavior {
         coroutines = new HashSet<>();
     }
 
-    /** do not forget call super.render(context) to render coroutines */
+    /** do not forget call super.render(context) to render coroutines when overriding this method */
     @Override
     public void update() {
         await(CompositeFuture.all(coroutines.stream().map(coroutine ->

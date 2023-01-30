@@ -41,9 +41,16 @@ export default function Login() {
             try {
                 const url = server || defaultServer
                 const token = await login(url + '/login', name, pwd)
-                dispatch(diffGame({ '/username': name }))
-                dispatch(diffGame({ '/token': token }))
-                dispatch(diffGame({ '/url': url }))
+                dispatch(diffGame({
+                    server: {
+                        username: name,
+                        token,
+                        url
+                    },
+                    connection: {
+                        state: 'connecting'
+                    }
+                }))
                 setPage$.next('game')
             } catch (e) {
                 setMsg(`[${new Date().toLocaleString()}] ${e}`)

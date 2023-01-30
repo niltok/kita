@@ -4,8 +4,12 @@ import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class StarInfo {
     public Block[] blocks;
+    public Map<Integer, StarUserInfo> starUsers;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -27,6 +31,7 @@ public class StarInfo {
             info.blocks[i] = new Block.Normal();
             info.blocks[i].id = 0;
         }
+        info.starUsers = new HashMap<>();
         return info;
     }
 
@@ -40,5 +45,16 @@ public class StarInfo {
 
     public static StarInfo fromJson(JsonObject json) {
         return json.mapTo(StarInfo.class);
+    }
+
+    public static class StarUserInfo {
+        public double x, y;
+        public boolean online;
+        public StarUserInfo() {}
+        public StarUserInfo(double x, double y) {
+            this.x = x;
+            this.y = y;
+            online = true;
+        }
     }
 }

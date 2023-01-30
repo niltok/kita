@@ -1,4 +1,6 @@
-package ikuyo.server.utils;
+package ikuyo.server.behaviors;
+
+import ikuyo.server.api.Behavior;
 
 public class AbstractBehavior implements Behavior {
     public Context context;

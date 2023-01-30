@@ -7,11 +7,12 @@ import {sendSocket$, setPage$} from "../dbus"
 import {Subscription} from "rxjs"
 
 export default function Socket(prop: {children?: JSX.Element}) {
-    const { token, url } = useAppSelector(selectGameState)
+    const { server } = useAppSelector(selectGameState)
     const dispatch = useAppDispatch()
     const [flag, refresh] = useRefresh()
     useAsyncEffect(async () => {
-        if (!url || !token) return
+        if (!server) return
+        const { token, url } = server
         const socket = new SockJS(url + '/socket')
         let subscribe: Subscription | null = null
         socket.onmessage = e => {
@@ -24,7 +25,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
                 reason: e.reason,
                 code: e.code
             })
-            dispatch(diffGame({'/socket': null}))
+            dispatch(diffGame({ connection: { state: 'failed' } }))
             if (e.code < 3000) setTimeout(refresh, 3000)
             else setPage$.next('login')
         }
@@ -49,14 +50,14 @@ export default function Socket(prop: {children?: JSX.Element}) {
         return () => {
             socket.close()
         }
-    }, [token, flag])
+    }, [server?.token, flag])
     return prop.children || (<></>)
 }
 
 function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
     switch (json['type']) {
         case 'auth.pass': {
-            dispatch(diffGame({'/socket': socket}))
+            dispatch(diffGame({ connection: { state: 'connected' } }))
             break
         }
         case 'state.dispatch': {
