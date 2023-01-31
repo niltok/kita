@@ -6,7 +6,7 @@ public class AbstractBehavior implements Behavior {
     public Context context;
 
     @Override
-    public void start(Context context) {
+    public void setContext(Context context) {
         this.context = context;
     }
 

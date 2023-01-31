@@ -9,10 +9,10 @@ public class CompositeBehavior extends AbstractBehavior {
     }
 
     @Override
-    public void start(Context context) {
-        super.start(context);
+    public void setContext(Context context) {
+        super.setContext(context);
         for (Behavior behavior : behaviors) {
-            behavior.start(context);
+            behavior.setContext(context);
         }
     }
 

@@ -2,16 +2,17 @@ package ikuyo.server;
 
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
+import ikuyo.api.UserKeyInput;
 import ikuyo.server.api.Renderer;
 import ikuyo.server.behaviors.CompositeBehavior;
 import ikuyo.server.api.Behavior;
+import ikuyo.server.behaviors.ControlMovingBehavior;
 import ikuyo.server.renderers.CameraRenderer;
 import ikuyo.server.renderers.CompositeRenderer;
 import ikuyo.server.renderers.DrawableRenderer;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -19,17 +20,18 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
-import static io.vertx.await.Async.await;
+import java.util.stream.Collectors;
 
 public class UpdateVert extends AsyncVerticle {
     final double MaxFps = 60;
-    EventBus eb;
     Star star;
     MessageConsumer<JsonObject> vertEvents;
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0;
     String msgVertId;
     PgPool pool;
-    Behavior mainBehavior = new CompositeBehavior();
+    Behavior mainBehavior = new CompositeBehavior(
+            new ControlMovingBehavior()
+    );
     Renderer commonSeqRenderer = new CompositeRenderer(
             new DrawableRenderer().withName("starDrawables")
     );
@@ -39,7 +41,6 @@ public class UpdateVert extends AsyncVerticle {
 
     @Override
     public void start() {
-        eb = vertx.eventBus();
         pool = PgPool.pool(vertx, new PoolOptions());
         loadStar(config().getInteger("id"));
     }
@@ -66,9 +67,8 @@ public class UpdateVert extends AsyncVerticle {
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
-        mainBehavior.start(new Behavior.Context(star));
         logger.info("star." + id + " loaded");
-        vertEvents = eb.localConsumer(deploymentID(), this::vertEventsHandler);
+        vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
         msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
                 .setWorker(true)
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
@@ -80,6 +80,7 @@ public class UpdateVert extends AsyncVerticle {
 
     private void vertEventsHandler(Message<JsonObject> msg) {
         var json = msg.body();
+        logger.info(json);
         switch (json.getString("type")) {
             case "vert.undeploy" -> {
                 vertx.undeploy(deploymentID());
@@ -105,8 +106,14 @@ public class UpdateVert extends AsyncVerticle {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
+            var userKeyInputs = ((JsonObject)
+                    await(eventBus.request(msgVertId, JsonObject.of("type", "user.input.key.require"))).body())
+                    .stream().collect(Collectors.toMap(
+                            e -> Integer.valueOf(e.getKey()),
+                            e -> ((JsonObject)e.getValue()).mapTo(UserKeyInput.class)));
+            mainBehavior.setContext(new Behavior.Context(star, userKeyInputs));
             mainBehavior.update();
-            eb.send(msgVertId, JsonObject.of(
+            eventBus.send(msgVertId, JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,

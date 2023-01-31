@@ -1,8 +1,9 @@
 package ikuyo.server;
 
+import ikuyo.api.UserKeyInput;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
-import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -10,24 +11,38 @@ import io.vertx.core.json.JsonObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+class UserState {
+    Integer specialCache = null;
+    UserKeyInput keyInput = new UserKeyInput();
+    /** 发往这个地址的内容必须序列化为 Buffer 或 String */
+    String socket;
+    public UserState(String socket) {
+        this.socket = socket;
+    }
+}
 
 public class MessageVert extends AsyncVerticle {
-    EventBus eb;
     int starId;
     String updaterId;
     MessageConsumer<JsonObject> starEvents, vertEvents;
     MsgDiffer msgDiffer = new MsgDiffer("starDrawables");
-    Map<Integer, Integer> specialCache = new HashMap<>();
-    /** 发往这个地址的内容必须序列化为 Buffer 或 String */
-    Map<Integer, String> socket = new HashMap<>();
+    Map<Integer, UserState> userStates = new HashMap<>();
 
     @Override
     public void start() throws Exception {
-        eb = vertx.eventBus();
         starId = config().getInteger("starId");
         updaterId = config().getString("updaterId");
-        starEvents = eb.consumer("star." + starId, this::starEventsHandler);
-        vertEvents = eb.localConsumer(deploymentID(), this::vertEventsHandler);
+        starEvents = eventBus.consumer("star." + starId, this::starEventsHandler);
+        vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
+    }
+
+    @Override
+    public void stop() throws Exception {
+        await(CompositeFuture.all(
+                starEvents.unregister(),
+                vertEvents.unregister()));
     }
 
     private void starEventsHandler(Message<JsonObject> msg) {
@@ -36,17 +51,17 @@ public class MessageVert extends AsyncVerticle {
         switch (json.getString("type")) {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
-                socket.put(json.getInteger("id"), json.getString("socket"));
-                await(eb.request(updaterId, json));
+                userStates.put(json.getInteger("id"), new UserState(json.getString("socket")));
+                await(eventBus.request(updaterId, json));
                 msg.reply(JsonObject.of("type", "user.add.success"));
             }
             case "user.disconnect" -> {
-                socket.remove(json.getInteger("id"));
-                await(eb.request(updaterId, json));
-                if (socket.isEmpty())
-                    eb.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                userStates.remove(json.getInteger("id"));
+                await(eventBus.request(updaterId, json));
+                if (userStates.isEmpty())
+                    eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
             }
-            case "state.seq.require" -> eb.send(json.getString("socket"), msgDiffer.prev());
+            case "state.seq.require" -> eventBus.send(json.getString("socket"), msgDiffer.prev());
             case "user.message" -> userEventHandler(json);
         }
     }
@@ -54,6 +69,10 @@ public class MessageVert extends AsyncVerticle {
     private void userEventHandler(JsonObject json) {
         var msg = json.getJsonObject("msg");
         switch (msg.getString("type")) {
+            case "star.operate.key" -> {
+                userStates.get(json.getInteger("userId")).keyInput.input(
+                        msg.getString("action"), msg.getInteger("value", 1));
+            }
         }
     }
 
@@ -64,14 +83,14 @@ public class MessageVert extends AsyncVerticle {
                 var drawables = json.getJsonObject("commonSeq").getJsonObject("starDrawables");
                 var diff = msgDiffer.next(drawables);
                 var specials = json.getJsonObject("special");
-                socket.forEach((id, socket) -> {
-                    if (diff != null) eb.send(socket, diff); // 只有 seq 变化、其他无变化则不用发送
+                userStates.forEach((id, userState) -> {
+                    if (diff != null) eventBus.send(userState.socket, diff); // 只有 seq 变化、其他无变化则不用发送
                     var state = specials.getJsonObject(id.toString());
                     if (state != null) {
                         var hash = state.hashCode();
-                        if (!Objects.equals(hash, specialCache.get(id))) { // 变化才发送
-                            specialCache.put(id, hash);
-                            eb.send(socket, JsonObject.of(
+                        if (!Objects.equals(hash, userState.specialCache)) { // 变化才发送
+                            userState.specialCache = hash;
+                            eventBus.send(userState.socket, JsonObject.of(
                                     "type", "state.dispatch",
                                     "action", "gameState/diffGame",
                                     "payload", JsonObject.of("star", state)
@@ -79,6 +98,12 @@ public class MessageVert extends AsyncVerticle {
                         }
                     }
                 });
+            }
+            case "user.input.key.require" -> {
+                msg.reply(new JsonObject(userStates.entrySet().stream().collect(Collectors.toMap(
+                        e -> e.getKey().toString(),
+                        e -> JsonObject.mapFrom(e.getValue().keyInput)))));
+                userStates.forEach((id, u) -> u.keyInput.frame());
             }
         }
     }

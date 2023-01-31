@@ -21,16 +21,18 @@ export function useRefresh(): [boolean, () => void] {
     return [flag, () => setFlag(flag => !flag)]
 }
 
-export function useObservable<T>(obs: Observable<T>, init: T): T {
-    const [value, setValue] = useState(init)
+export function useSubscribe<T>(obs: Observable<T>, callback: (val: T) => void) {
     useEffect(() => {
         const sub = obs.subscribe({
-            next(val) {
-                setValue(val)
-            }
+            next(val) { callback(val) }
         });
         return () => sub.unsubscribe()
     })
+}
+
+export function useObservable<T>(obs: Observable<T>, init: T): T {
+    const [value, setValue] = useState(init)
+    useSubscribe(obs, setValue);
     return value
 }
 
@@ -65,3 +67,18 @@ export function renderDrawables(drawables: [string, Drawable][]) {
     })
 }
 
+/// 前缀（注意顺序）：$(Ctrl), #(Meta), @(Alt), ^(Shift)
+//
+// 后缀：!(keyup)
+//
+// 举例：$^Digit1! 表示Ctrl+Shift+1这个组合键抬起
+export function getKeyCode(e: KeyboardEvent) {
+    let keyCode = ''
+    if (e.ctrlKey) keyCode += '$'
+    if (e.metaKey) keyCode += '#'
+    if (e.altKey) keyCode += '@'
+    if (e.shiftKey) keyCode += '^'
+    keyCode += e.code
+    if (e.type == 'keyup') keyCode += '!'
+    return keyCode
+}

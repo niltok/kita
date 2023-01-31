@@ -1,9 +1,35 @@
 import {useAppSelector} from "../storeHook"
 import Immutable from "immutable"
-import {renderDrawables} from "../utils"
+import {getKeyCode, renderDrawables, useSubscribe} from "../utils"
 import {Container} from "@inlet/react-pixi"
 import {useEffect} from "react";
-import {sendSocket$} from "../dbus";
+import {keyEvents$, sendSocket$} from "../dbus";
+
+const keyMapper = {
+    "KeyW": {action: "up", value: 2},
+    "KeyW!": "up",
+    "KeyS": {action: "down", value: 2},
+    "KeyS!": "down",
+    "KeyA": {action: "left", value: 2},
+    "KeyA!": "left",
+    "KeyD": {action: "right", value: 2},
+    "KeyD!": "right",
+}
+
+function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: string | {action: string, value: number} }) {
+    const action = mapper[getKeyCode(e)]
+    if (typeof action == 'undefined') return
+    if (typeof action == 'string')
+        sendSocket$.next({
+            type: "star.operate.key",
+            action
+        })
+    else if (typeof action == 'object')
+        sendSocket$.next({
+            type: "star.operate.key",
+            ...action
+        })
+}
 
 export function Star() {
     const {height, width} = useAppSelector(state => state.gameState.windowSize)
@@ -17,6 +43,7 @@ export function Star() {
             sendSocket$.next({type: "state.seq.require", target: "starDrawables"})
         }
     }, [state])
+    useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
     return (<Container position={[width / 2 - camera.x, height / 2 - camera.y]} rotation={camera.rotation}>
         {renderDrawables(starDrawables)}
     </Container>)

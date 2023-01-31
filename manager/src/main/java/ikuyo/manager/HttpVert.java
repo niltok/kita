@@ -2,8 +2,6 @@ package ikuyo.manager;
 
 import ikuyo.api.User;
 import ikuyo.utils.AsyncVerticle;
-import io.netty.handler.codec.compression.CompressionOptions;
-import io.netty.handler.codec.compression.GzipOptions;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.*;
@@ -12,7 +10,6 @@ import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
@@ -29,13 +26,11 @@ import java.util.UUID;
 public class HttpVert extends AsyncVerticle {
     HttpServer server;
     PgPool pool;
-    EventBus eb;
     Router router;
     Map<String, User> socketCache = new HashMap<>();
 
     @Override
     public void start() {
-        eb = vertx.eventBus();
         pool = PgPool.pool(vertx, new PoolOptions());
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
@@ -72,7 +67,7 @@ public class HttpVert extends AsyncVerticle {
         });
         socket.closeHandler(v -> {
             if (socketCache.get(socket.writeHandlerID()) == null) return;
-            eb.send(socketAddress(socket), JsonObject.of(
+            eventBus.send(socketAddress(socket), JsonObject.of(
                     "type", "user.disconnect",
                     "id", socketCache.get(socket.writeHandlerID()).id()));
             socketCache.remove(socket.writeHandlerID());
@@ -100,11 +95,11 @@ public class HttpVert extends AsyncVerticle {
                 select * from star where index = $1 and vert_id is not null
                 """).execute(Tuple.of(user.star()))).rowCount() == 1;
             if (!loaded) {
-                await(eb.request("star.none", JsonObject.of(
+                await(eventBus.request("star.none", JsonObject.of(
                         "type", "star.load", "id", user.star()
                 ), new DeliveryOptions().setSendTimeout(5000)));
             }
-            await(eb.request("star." + user.star(), JsonObject.of(
+            await(eventBus.request("star." + user.star(), JsonObject.of(
                     "type", "user.add", "socket", socket, "id", user.id()
             ), new DeliveryOptions().setSendTimeout(1000)));
         } catch (Exception e) {
@@ -128,7 +123,7 @@ public class HttpVert extends AsyncVerticle {
             case "state.seq.require" -> {
                 switch (msg.getString("target")) {
                     case "starDrawables" ->
-                            eb.send(socketAddress(socket), JsonObject.of(
+                            eventBus.send(socketAddress(socket), JsonObject.of(
                                     "type", msg.getString("type"),
                                     "socket", socket.writeHandlerID(),
                                     "userId", socketCache.get(socket.writeHandlerID()).id(),
@@ -137,7 +132,7 @@ public class HttpVert extends AsyncVerticle {
                 }
             }
             default -> {
-                eb.send(socketAddress(socket), JsonObject.of(
+                eventBus.send(socketAddress(socket), JsonObject.of(
                         "type", "user.message",
                         "socket", socket.writeHandlerID(),
                         "userId", socketCache.get(socket.writeHandlerID()).id(),

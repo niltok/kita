@@ -49,8 +49,8 @@ public class CoroutineBehavior extends AbstractBehavior {
     }
 
     @Override
-    public void start(Context context) {
-        super.start(context);
+    public void setContext(Context context) {
+        super.setContext(context);
         coroutines = new HashSet<>();
     }
 

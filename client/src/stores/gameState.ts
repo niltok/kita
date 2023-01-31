@@ -30,7 +30,6 @@ const initialState: GameState = {
 }
 
 function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
-    console.log(original(obj), diff)
     for (const ptr in diff) {
         const val = diff[ptr]
         if (val === null) delete obj[ptr]
