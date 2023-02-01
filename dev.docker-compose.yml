@@ -10,8 +10,6 @@ services:
 
   psql:
     image: postgres
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: kita
     ports:
@@ -20,7 +18,7 @@ services:
   manager:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
-      - ./manager/build/libs:/usr/app
+      - ./manager/build/libs/manager-rolling-all.jar:/usr/app/manager-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
     command: [sh, startJvm.sh, "", manager-rolling-all.jar;;-cluster]
@@ -36,7 +34,7 @@ services:
   server:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
-      - ./server/build/libs:/usr/app
+      - ./server/build/libs/server-rolling-all.jar:/usr/app/server-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
     command: [sh, startJvm.sh, "", server-rolling-all.jar;;-cluster]
@@ -51,7 +49,7 @@ services:
   bundle:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
-      - ./bundle/build/libs:/usr/app
+      - ./bundle/build/libs/bundle-rolling-all.jar:/usr/app/bundle-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
     command: [sh, startJvm.sh, "", bundle-rolling-all.jar;;-cluster]

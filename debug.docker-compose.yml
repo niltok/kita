@@ -3,8 +3,6 @@ version: '3.6'
 services:
   psql:
     image: postgres
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: kita
     ports:
@@ -13,7 +11,7 @@ services:
   bundle:
     image: bellsoft/liberica-openjdk-debian:19
     volumes:
-      - ./bundle/build/libs:/usr/app
+      - ./bundle/build/libs/bundle-rolling-all.jar:/usr/app/bundle-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
     command: [sh, startJvm.sh,
