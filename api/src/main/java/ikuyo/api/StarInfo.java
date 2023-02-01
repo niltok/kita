@@ -4,6 +4,7 @@ import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ public class StarInfo {
         info.blocks = new Block[100];
         for (var i = 0; i < 100; i++) {
             info.blocks[i] = new Block.Normal();
-            info.blocks[i].id = 0;
+            info.blocks[i].type = 0;
         }
         info.starUsers = new HashMap<>();
         return info;
