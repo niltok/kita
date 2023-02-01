@@ -12,9 +12,9 @@ public class CameraRenderer implements Renderer {
         var map = new HashMap<String, Object>();
         star.starInfo().starUsers.forEach((id, pos) -> {
             map.put(id.toString(), JsonObject.of("camera", JsonObject.of(
-                    "x", pos.x,
-                    "y", pos.y,
-                    "rotation", 0 //Math.atan2(pos.y, pos.x)
+                    "x", 0,
+                    "y", -Math.hypot(pos.x, pos.y),
+                    "rotation", Math.atan2(pos.x, pos.y)
             )));
         });
         return new JsonObject(map);
