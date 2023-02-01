@@ -21,7 +21,7 @@ services:
       - ./manager/build/libs/manager-rolling-all.jar:/usr/app/manager-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [sh, startJvm.sh, "", manager-rolling-all.jar;;-cluster]
+    command: [sh, startJvm.sh, "", /usr/app/manager-rolling-all.jar;;-cluster]
     links:
       - psql:psql
     environment:
@@ -37,7 +37,7 @@ services:
       - ./server/build/libs/server-rolling-all.jar:/usr/app/server-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [sh, startJvm.sh, "", server-rolling-all.jar;;-cluster]
+    command: [sh, startJvm.sh, "", /usr/app/server-rolling-all.jar;;-cluster]
     links:
       - psql:psql
     environment:
@@ -52,7 +52,7 @@ services:
       - ./bundle/build/libs/bundle-rolling-all.jar:/usr/app/bundle-rolling-all.jar
       - ./startJvm.sh:/usr/app/startJvm.sh
     working_dir: /usr/app
-    command: [sh, startJvm.sh, "", bundle-rolling-all.jar;;-cluster]
+    command: [sh, startJvm.sh, "", /usr/app/bundle-rolling-all.jar;;-cluster]
     links:
       - psql:psql
     environment:
