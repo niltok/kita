@@ -1,0 +1,10 @@
+* text=auto
+
+gradlew text eol=lf
+startJvm.sh text eol=lf
+
+*.jpg binary
+*.png binary
+*.ico binary
+*.pdf binary
+*.woff2 binary

@@ -16,7 +16,7 @@ services:
     working_dir: /usr/app
     command: [sh, startJvm.sh,
               "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005",
-              /usr/app/bundle-rolling-all.jar]
+              bundle-rolling-all.jar]
     ports:
       - "8070:8070"
       - "5005:5005"
