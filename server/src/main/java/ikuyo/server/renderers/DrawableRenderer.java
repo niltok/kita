@@ -17,7 +17,7 @@ public class DrawableRenderer implements Renderer {
             var block = star.starInfo().blocks[i];
             var d = new Drawable.Sprite();
             d.bundle = "blocks";
-            d.asset = String.valueOf(block.id);
+            d.asset = String.valueOf(block.type);
             drawables.add(d);
         }
         return new JsonObject(drawables.stream().map(JsonObject::mapFrom).collect(Collectors.toMap(
