@@ -42,4 +42,11 @@ public interface AsyncStatic {
             }
         });
     }
+
+    /** 将当前任务剩下的部分放到任务队列末尾并释放进程让其他任务先执行 */
+    static void doEvents() {
+        Promise<Void> promise = Promise.promise();
+        Vertx.currentContext().runOnContext(v -> promise.complete());
+        Async.await(promise.future());
+    }
 }

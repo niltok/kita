@@ -5,13 +5,12 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
+import static ikuyo.utils.AsyncStatic.delay;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EnumeratorTest implements AsyncHelper {
-    void runAsync(Runnable task) {
-        var vertx = Vertx.vertx();
-        new Async(vertx).run(v -> task.run());
-    }
+public class EnumeratorTest implements AsyncHelper, TestHelper {
     @Test
     public void testNext() {
         runAsync(() -> {

@@ -26,4 +26,7 @@ public interface AsyncHelper {
     default <T> T await(Future<T> future, Duration timeout) {
         return AsyncStatic.await(future, timeout);
     }
+
+    /** 将当前任务剩下的部分放到任务队列末尾并释放进程让其他任务先执行 */
+    default void doEvents() { AsyncStatic.doEvents(); }
 }

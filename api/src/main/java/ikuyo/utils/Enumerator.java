@@ -25,7 +25,8 @@ public class Enumerator<T, U> implements AsyncHelper {
         });
     }
     public T next(U value) {
-        var val = Async.await(nextValue.future());
+        if (!hasNext()) return null;
+        var val = await(nextValue.future());
         nextValue = Promise.promise();
         suspend.complete(value);
         return val;
@@ -47,6 +48,7 @@ public class Enumerator<T, U> implements AsyncHelper {
         return complete.future();
     }
     public boolean hasNext() {
+        await(CompositeFuture.any(nextValue.future(), complete.future()));
         return !complete.future().isComplete();
     }
 }
