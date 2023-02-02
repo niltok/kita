@@ -7,10 +7,7 @@ import ikuyo.server.api.Renderer;
 import ikuyo.server.behaviors.CompositeBehavior;
 import ikuyo.server.api.Behavior;
 import ikuyo.server.behaviors.ControlMovingBehavior;
-import ikuyo.server.renderers.CameraRenderer;
-import ikuyo.server.renderers.CompositeRenderer;
-import ikuyo.server.renderers.DrawableRenderer;
-import ikuyo.server.renderers.UserRenderer;
+import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
@@ -34,8 +31,8 @@ public class UpdateVert extends AsyncVerticle {
             new ControlMovingBehavior()
     );
     Renderer commonSeqRenderer = new CompositeRenderer(false,
-            new CompositeRenderer(false,
-                    new DrawableRenderer(),
+            new DrawablesRenderer.Composite(
+                    new BlockRenderer(),
                     new UserRenderer()
             ).withName("starDrawables")
     );
