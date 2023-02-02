@@ -19,6 +19,7 @@ export default function Loading() {
                     bundle: assets
                 }))
             }))
+            console.log(Array.from(document.fonts.values()))
             await delay(2000)
             setPage$.next('login')
         })()

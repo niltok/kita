@@ -5,9 +5,11 @@ import io.vertx.core.json.JsonObject;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public sealed abstract class Drawable {
+    public String key;
     public double x, y;
     /** 单位：弧度 */
     public double angle;
+    public int zIndex = 0;
     public boolean interaction = false;
     public static sealed class Sprite extends Drawable {
         public String bundle, asset;

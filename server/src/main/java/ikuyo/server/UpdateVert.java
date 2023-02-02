@@ -33,11 +33,13 @@ public class UpdateVert extends AsyncVerticle {
     Behavior mainBehavior = new CompositeBehavior(
             new ControlMovingBehavior()
     );
-    Renderer commonSeqRenderer = new CompositeRenderer(
-            new DrawableRenderer().withName("starDrawables"),
-            new UserRenderer().withName("starDrawables")
+    Renderer commonSeqRenderer = new CompositeRenderer(false,
+            new CompositeRenderer(false,
+                    new DrawableRenderer(),
+                    new UserRenderer()
+            ).withName("starDrawables")
     );
-    Renderer specialRenderer = new CompositeRenderer(
+    Renderer specialRenderer = new CompositeRenderer(true,
             new CameraRenderer()
     );
 

@@ -42,7 +42,7 @@ export function renderDrawables(drawables: Drawable[], assets: any) {
             position: [drawable.x, drawable.y] as _ReactPixi.PointLike,
             rotation: drawable.angle
         }
-        const key = JSON.stringify(drawable)
+        const key = drawable.key
         return matchI(drawable) ({
             Drawable$Sprite: sprite => {
                 return <Sprite {...containerProp}
@@ -55,14 +55,15 @@ export function renderDrawables(drawables: Drawable[], assets: any) {
                     key={key}
                     text={text.text}
                     style={new TextStyle({
-                        fontFamily: "Source Han Serif CN VF",
+                        fontFamily: "Sourcehanserifcn Vf.ttf",
                         ...text.style
                     })}
                 />
             },
             Drawable$Container: container => {
                 return <Container {...containerProp} key={key}>
-                    {renderDrawables(container.children, assets)}
+                    {renderDrawables(container.children.sort((a, b) =>
+                        a.zIndex - b.zIndex), assets)}
                 </Container>
             },
             Drawable$AnimatedSprite: animated => {

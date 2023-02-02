@@ -6,8 +6,12 @@ export const manifest: ResolverManifest = {
             name: "ui",
             assets: [
                 {
-                    name: "Source Han Serif CN VF",
+                    name: "Sourcehanserifcn Vf.ttf",
                     srcs: "/ui/SourceHanSerifCN-VF.ttf.woff2"
+                },
+                {
+                    name: "Sourcehansanscn Vf.ttf",
+                    srcs: "/ui/SourceHanSansCN-VF.ttf.woff2"
                 }
             ]
         },
