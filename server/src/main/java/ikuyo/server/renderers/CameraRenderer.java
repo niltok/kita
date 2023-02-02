@@ -13,8 +13,8 @@ public class CameraRenderer implements Renderer {
         star.starInfo().starUsers.forEach((id, pos) -> {
             map.put(id.toString(), JsonObject.of("camera", JsonObject.of(
                     "x", 0,
-                    "y", -Math.hypot(pos.x, pos.y),
-                    "rotation", Math.atan2(pos.x, pos.y)
+                    "y", Math.hypot(pos.x, pos.y),
+                    "rotation", -Math.atan2(pos.x, -pos.y)
             )));
         });
         return new JsonObject(map);

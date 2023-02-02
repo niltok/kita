@@ -84,7 +84,10 @@ public class MessageVert extends AsyncVerticle {
                 var diff = msgDiffer.next(drawables);
                 var specials = json.getJsonObject("special");
                 userStates.forEach((id, userState) -> {
-                    if (diff != null) eventBus.send(userState.socket, diff); // 只有 seq 变化、其他无变化则不用发送
+                    if (diff != null) { // 只有 seq 变化、其他无变化则不用发送
+                        logger.info(diff);
+                        eventBus.send(userState.socket, diff);
+                    }
                     var state = specials.getJsonObject(id.toString());
                     if (state != null) {
                         var hash = state.hashCode();

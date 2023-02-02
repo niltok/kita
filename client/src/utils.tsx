@@ -1,9 +1,8 @@
 import {useEffect, useState} from "react"
 import {Observable} from "rxjs"
-import {Drawable, Sprite as dSprite, Text as dText} from "./types/Drawable"
-import {_ReactPixi, Sprite, Text} from "@inlet/react-pixi"
+import {Drawable, matchI} from "./types/Drawable"
+import {_ReactPixi, AnimatedSprite, Container, Sprite, Text} from "@inlet/react-pixi"
 import {TextStyle} from 'pixi.js'
-import {useAppSelector} from "./storeHook"
 
 export const delay = (time: number) => {
     return new Promise(resolve => setTimeout(resolve, time))
@@ -36,24 +35,22 @@ export function useObservable<T>(obs: Observable<T>, init: T): T {
     return value
 }
 
-export function renderDrawables(drawables: [string, Drawable][]) {
-    const assets = useAppSelector(state => state.gameState.assets)
-    return drawables.map(([key, drawable]) => {
+export function renderDrawables(drawables: Drawable[], assets: any) {
+    return drawables.map(drawable => {
         const containerProp = {
             anchor: 0.5,
             position: [drawable.x, drawable.y] as _ReactPixi.PointLike,
             rotation: drawable.angle
         }
-        switch (drawable["@type"]) {
-            case "Drawable$Sprite": {
-                const sprite = drawable as dSprite
+        const key = JSON.stringify(drawable)
+        return matchI(drawable) ({
+            Drawable$Sprite: sprite => {
                 return <Sprite {...containerProp}
                     key={key}
                     texture={assets[sprite.bundle][sprite.asset]}
                 />
-            }
-            case "Drawable$Text": {
-                const text = drawable as dText
+            },
+            Drawable$Text: text => {
                 return <Text {...containerProp}
                     key={key}
                     text={text.text}
@@ -62,8 +59,21 @@ export function renderDrawables(drawables: [string, Drawable][]) {
                         ...text.style
                     })}
                 />
+            },
+            Drawable$Container: container => {
+                return <Container {...containerProp} key={key}>
+                    {renderDrawables(container.children, assets)}
+                </Container>
+            },
+            Drawable$AnimatedSprite: animated => {
+                return <AnimatedSprite {...containerProp}
+                    key={key}
+                    textures={assets[animated.bundle][animated.asset].animations[animated.animation]}
+                    isPlaying={animated.playing}
+                    initialFrame={animated.initialFrame}
+                />
             }
-        }
+        })
     })
 }
 

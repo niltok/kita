@@ -35,7 +35,7 @@ export function Star() {
     const {height, width} = useAppSelector(state => state.gameState.windowSize)
     const starDrawables = Immutable.Map(useAppSelector(state =>
         state.seqState["starDrawables"].data
-    )).toArray()
+    )).toArray().map(([, drawable]) => drawable)
     const state = useAppSelector(state => state.gameState.connection.state)
     const { camera } = useAppSelector(state => state.gameState.star)
     useEffect(() => {
@@ -44,7 +44,8 @@ export function Star() {
         }
     }, [state])
     useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
-    return (<Container position={[width / 2 - camera.x, height / 2 - camera.y]} rotation={camera.rotation}>
-        {renderDrawables(starDrawables)}
+    const assets = useAppSelector(state => state.gameState.assets)
+    return (<Container position={[width / 2 + camera.x, height / 2 + camera.y]} rotation={camera.rotation}>
+        {renderDrawables(starDrawables, assets)}
     </Container>)
 }

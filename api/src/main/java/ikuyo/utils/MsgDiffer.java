@@ -1,5 +1,6 @@
 package ikuyo.utils;
 
+import com.google.common.collect.Sets;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
@@ -43,14 +44,14 @@ public class MsgDiffer {
     }
 
     public static JsonObject jsonFlatDiff(JsonObject from, JsonObject to) {
-        var merged = to.mergeIn(from);
-        var diff = new HashMap<String, Object>();
-        for (var kv : merged) {
-            var k = kv.getKey();
-            Object fv = from.getValue(k), tv = to.getValue(k);
-            if (fv == null && tv != null) diff.put(k, kv.getValue());
-            if (fv != null && tv == null) diff.put(k, null);
+        var merged = Sets.union(to.fieldNames(), from.fieldNames());
+        var diff = JsonObject.of();
+        for (var k : merged) {
+            boolean fv = from.containsKey(k);
+            Object tv = to.getValue(k);
+            if (!fv && tv != null) diff.put(k, tv);
+            if (fv && tv == null) diff.putNull(k);
         }
-        return new JsonObject(diff);
+        return diff;
     }
 }

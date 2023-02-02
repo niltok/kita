@@ -9,7 +9,7 @@ public class ControlMovingBehavior extends AbstractBehavior {
             if (!pos.online) return;
             var z = Math.hypot(pos.x, pos.y);
             var dx = speed * (z == 0 ? 0 : pos.x / z);
-            var dy = speed * (z == 0 ? 1 : pos.y / z);
+            var dy = speed * (z == 0 ? -1 : pos.y / z);
             if (input.up > 0) {
                 pos.x += dx;
                 pos.y += dy;

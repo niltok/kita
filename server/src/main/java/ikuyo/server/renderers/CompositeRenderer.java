@@ -15,7 +15,7 @@ public class CompositeRenderer implements Renderer {
     public JsonObject render(Star star) {
         return Arrays.stream(renderers).reduce(
                 JsonObject.of(),
-                (json, renderer) -> renderer.render(star),
+                (json, renderer) -> json.mergeIn(renderer.render(star), true),
                 (a, b) -> a.mergeIn(b, true));
     }
 }
