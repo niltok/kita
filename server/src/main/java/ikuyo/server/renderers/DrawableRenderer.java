@@ -15,7 +15,7 @@ public class DrawableRenderer implements Renderer {
     @Override
     public JsonObject render(Star star) {
         var drawables = new ArrayList<Drawable>();
-        int rindex = StarInfo.realINdexOf(0, star.starInfo().mintier);
+        int rindex = StarInfo.realIndexOf(0, star.starInfo().mintier);
         for (var i = 0; i < star.starInfo().blocks.length; i++) {
             var block = star.starInfo().blocks[i];
             var d = new Drawable.Sprite();

@@ -90,7 +90,7 @@ public class StarInfo {
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
     }
 
-    public static int realINdexOf(int index, int mintier) {
+    public static int realIndexOf(int index, int mintier) {
         return 3*mintier*(mintier+1) + index + 1;
     }
 
