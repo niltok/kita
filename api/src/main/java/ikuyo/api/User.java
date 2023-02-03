@@ -65,11 +65,11 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
                 id serial primary key,
                 name text not null unique,
                 pwd text not null,
-                is_admin bool not null,
+                is_admin bool not null default false,
                 token text not null default '',
                 universe int references universe not null default 1,
                 star int references star not null default 1
             );
-            insert into "user"(name, pwd, is_admin) values ('admin', 'admin', true);
+            insert into "user"(name, pwd, is_admin) values ('admin', 'admin', true), ('user0', 'user0', false);
             """;
 }

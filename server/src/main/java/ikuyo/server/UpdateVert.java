@@ -48,6 +48,7 @@ public class UpdateVert extends AsyncVerticle {
 
     @Override
     public void stop() throws Exception {
+        doEvents();
         logger.info(JsonObject.of(
                 "type", "updater.undeploy",
                 "updateCount", updateCount,
@@ -57,10 +58,16 @@ public class UpdateVert extends AsyncVerticle {
         await(CompositeFuture.all(
                 vertEvents.unregister(),
                 vertx.undeploy(msgVertId),
-                async(this::tryWriteBack),
-                pool.preparedQuery("update star set vert_id = null where vert_id = $1;")
-                        .execute(Tuple.of(deploymentID()))
-                        .compose(rows -> pool.close())));
+                async(this::stopPool)));
+    }
+
+    private void stopPool() {
+        tryWriteBack();
+        try {
+            await(pool.preparedQuery("update star set vert_id = null where vert_id = $1;")
+                    .execute(Tuple.of(deploymentID())));
+        } catch (Exception ignored) {}
+        await(pool.close());
     }
 
     private void loadStar(int id) {
