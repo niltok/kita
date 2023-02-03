@@ -3,10 +3,12 @@ package ikuyo.api;
 import com.google.common.hash.Hashing;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -49,7 +51,7 @@ public record Star(int index, int universe, double x, double y, double z, StarIn
                 fs.add(async(() -> Star.insert(client, universe,
                         (posX + rand.nextDouble()) * 100 - 50,
                         (posY + rand.nextDouble()) * 100 - 50,
-                        2 * rand.nextDouble() - 1, seed)));
+                        2 * rand.nextDouble() - 1, rand.nextInt())));
             }
             fs.add(client.preparedQuery("insert into star_group(universe, pos_x, pos_y) values ($1, $2, $3)")
                     .execute(Tuple.of(universe, posX, posY)));
@@ -101,14 +103,17 @@ public record Star(int index, int universe, double x, double y, double z, StarIn
     public static Star[] query(SqlClient client, int universe, double x1, double x2, double y1, double y2) {
         var uni = Universe.get(client, universe);
         assert uni != null;
+        var fs = new ArrayList<Future>();
         if (uni.autoExpand()) {
             int x1g = posFromLy(x1), x2g = posFromLy(x2), y1g = posFromLy(y1), y2g = posFromLy(y2);
             for (int x = x1g; x <= x2g; x++) {
                 for (int y = y1g; y <= y2g; y++) {
                     if (StarGroup.exist(client, universe, x, y)) continue;
-                    StarGroup.insert(client, universe, x, y, uni.seed());
+                    int finalX = x, finalY = y;
+                    fs.add(async(() -> StarGroup.insert(client, universe, finalX, finalY, uni.seed())));
                 }
             }
+            await(CompositeFuture.all(fs));
         }
         var rows = await(client.preparedQuery("""
                     select index, universe, x, y, z

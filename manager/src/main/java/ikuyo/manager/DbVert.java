@@ -4,6 +4,7 @@ import ikuyo.api.Star;
 import ikuyo.api.Universe;
 import ikuyo.api.User;
 import ikuyo.utils.AsyncVerticle;
+import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 
@@ -37,15 +38,18 @@ public class DbVert extends AsyncVerticle {
             case "always" -> {} // break & reset
             case null, default -> { return; } // never reset
         }
+        logger.info(JsonObject.of("type", "reset database..."));
         await(pool.query(String.join("",
                 cleanDbSql,
                 Universe.createTableSql,
                 Star.StarGroup.createTableSql,
                 Star.createTableSql
         )).execute());
+        logger.info(JsonObject.of("type", "creating initial star group..."));
         Star.query(pool, 1, 0, 0, 0, 0);
         await(pool.query(String.join("",
                 User.createTableSql
         )).execute());
+        logger.info(JsonObject.of("type", "database reset done"));
     }
 }
