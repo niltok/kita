@@ -30,6 +30,8 @@ public class StarInfo {
         return DataStatic.gzipEncode(toJson().toBuffer());
     }
     public static StarInfo gen(int seed) {
+//        System.out.print("[seed]:\t");
+//        System.out.println(seed);
         var info = new StarInfo();
         ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
@@ -38,7 +40,7 @@ public class StarInfo {
         int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
                         + (info.maxtier-info.mintier)*0.25)
                         + info.mintier;
-//        tiernum = 30; info.maxtier = 50; info.mintier = 10;
+//        tiernum = 13; info.maxtier = 13; info.mintier = 10;
         int roundstarttier = (int)(tiernum * (Math.pow(3,1.0/2)/2)) - 1;
 
 //        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
@@ -79,7 +81,8 @@ public class StarInfo {
         }
 
         info.blocks = block.toArray(new Block[0]);
-        System.out.println(info.blocks.length);
+//        System.out.print("[blocks:]:\t");
+//        System.out.println(info.blocks.length);
         info.starUsers = new HashMap<>();
         return info;
     }
