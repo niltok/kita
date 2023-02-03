@@ -17,8 +17,8 @@ public class BlockRenderer implements DrawablesRenderer {
                 var d = new Drawable.Sprite();
                 d.key = "block#%d.image".formatted(i);
                 Position pos = StarInfo.posOf(rindex);
-                d.x = pos.x * 10;
-                d.y = pos.y * 10;
+                d.x = pos.x * 20;
+                d.y = pos.y * 20;
                 d.bundle = "blocks";
                 d.asset = String.valueOf(block.type);
                 drawables.add(d);

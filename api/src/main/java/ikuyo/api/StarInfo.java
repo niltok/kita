@@ -34,16 +34,22 @@ public class StarInfo {
         ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
 
-        int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)) + info.mintier;
-        int roundstarttier = (int)(tiernum * Math.pow(3,1.0/2) / 2);
+//        生成地面最高层
+        int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
+                        + (info.maxtier-info.mintier)*0.25)
+                        + info.mintier;
+//        tiernum = 30; info.maxtier = 50; info.mintier = 10;
+        int roundstarttier = (int)(tiernum * (Math.pow(3,1.0/2)/2)) - 1;
 
-//        tiernum = 10; info.mintier = 5;
 //        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
 
-        int blocknum = tiernum*(tiernum+1)*3 - info.mintier*(info.mintier+1)*3;
-        int roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier+1)*3;
+        int blocknum = info.maxtier*(info.maxtier+1)*3 - info.mintier*(info.mintier-1)*3;
+        int groundnum =  tiernum*(tiernum+1)*3 - info.mintier*(info.mintier-1)*3;
+        int roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
+        if (roundnum < 0) roundnum = 0;
 
-        for (var i = 0; i < roundnum-2; i++) {
+//        纯地面生成
+        for (var i = 0; i < roundnum; i++) {
             Block newblock = new Block.Normal();
             newblock.type = 1;
             newblock.isVisible = true;
@@ -51,10 +57,10 @@ public class StarInfo {
             newblock.isInteractive = true;
             block.add(newblock);
         }
-
-        int rindex = realIndexOf(roundnum-1, info.mintier);
+//        圆角修饰部分
+        int rindex = realIndexOf(roundnum, info.mintier);
         double r = heiehtOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
-        for (var i = roundnum-1; i < blocknum-1; i++) {
+        for (var i = roundnum; i < groundnum; i++) {
             Block newblock = new Block.Normal();
             if ( heiehtOf(rindex) <= r ) {
                 newblock.type = 1;
@@ -65,11 +71,15 @@ public class StarInfo {
             block.add(newblock);
             rindex++;
         }
+//        纯天空生成
+        for (var i = groundnum; i < blocknum; i++) {
+            Block newblock = new Block.Normal();
+            newblock.type = 0;
+            block.add(newblock);
+        }
 
         info.blocks = block.toArray(new Block[0]);
-
-//        System.out.println(info.blocks.length);
-
+        System.out.println(info.blocks.length);
         info.starUsers = new HashMap<>();
         return info;
     }
@@ -102,16 +112,19 @@ public class StarInfo {
 //        Position pos = StarInfo.posOf(43);
 //        System.out.print("angle1:\t");
 //        System.out.println(StarInfo.angleOf(43));
-//        System.out.print("tier:\t");
+//        System.out.print(tierOf(18));
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
     }
 
     public static int realIndexOf(int index, int mintier) {
-        return 3*mintier*(mintier+1) + index + 1;
+        return 3*mintier*(mintier-1) + index + 1;
     }
 
     public static int tierOf(int realindex) {
-        return (int)(0.5 + Math.pow((12*realindex+9), 1.0/2)/6.0);
+        double an = 0.5 + Math.pow((12*realindex+9), 1.0/2)/6.0;
+        int res = (int)an;
+        if (an-res == 0.0) res--;
+        return res;
     }
 
     public static Position posOf(int realindex) {
