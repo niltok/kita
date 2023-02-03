@@ -21,25 +21,21 @@ public class MsgDiffer {
         seq++;
         prev = msg;
         return JsonObject.of(
-                "type", "state.dispatch",
-                "action", "seqState/diffSeq",
-                "payload", JsonObject.of(
-                    "target", base,
-                    "seq", seq,
-                    "diff", diff
-                )
+                "type", "seq.operate",
+                "operate", "diff",
+                "target", base,
+                "seq", seq,
+                "data", diff
         ).toBuffer();
     }
 
     public Buffer prev() {
         return JsonObject.of(
-                "type", "state.dispatch",
-                "action", "seqState/setSeq",
-                "payload", JsonObject.of(
-                    "target", base,
-                    "seq", seq,
-                    "data", prev
-                )
+                "type", "seq.operate",
+                "operate", "set",
+                "target", base,
+                "seq", seq,
+                "data", prev
         ).toBuffer();
     }
 

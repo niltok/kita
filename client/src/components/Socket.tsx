@@ -1,13 +1,13 @@
 import {useAppDispatch, useAppSelector} from "../storeHook"
-import {diffGame, selectGameState} from "../stores/gameState"
+import {diffGame} from "../stores/gameState"
 import SockJS from "sockjs-client"
 import {useAsyncEffect, useRefresh} from "../utils"
 import {AppDispatch} from "../store"
-import {sendSocket$, setPage$} from "../dbus"
+import {sendSocket$, seqDrawables$, setPage$} from "../dbus"
 import {Subscription} from "rxjs"
 
 export default function Socket(prop: {children?: JSX.Element}) {
-    const { server } = useAppSelector(selectGameState)
+    const server = useAppSelector(state => state.gameState.server)
     const dispatch = useAppDispatch()
     const [flag, refresh] = useRefresh()
     useAsyncEffect(async () => {
@@ -65,6 +65,10 @@ function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
                 type: json.action,
                 payload: json.payload
             })
+            break
+        }
+        case "seq.operate": {
+            seqDrawables$.next(json)
             break
         }
     }

@@ -1,8 +1,7 @@
 import {useEffect, useState} from "react"
 import {Observable} from "rxjs"
-import {Drawable, matchI} from "./types/Drawable"
-import {_ReactPixi, AnimatedSprite, Container, Sprite, Text} from "@inlet/react-pixi"
-import {TextStyle} from 'pixi.js'
+import {keyEvents$} from "./dbus";
+import {useDiffGame} from "./stores/gameState";
 
 export const delay = (time: number) => {
     return new Promise(resolve => setTimeout(resolve, time))
@@ -26,56 +25,13 @@ export function useSubscribe<T>(obs: Observable<T>, callback: (val: T) => void) 
             next(val) { callback(val) }
         });
         return () => sub.unsubscribe()
-    })
+    }, [obs, callback])
 }
 
 export function useObservable<T>(obs: Observable<T>, init: T): T {
     const [value, setValue] = useState(init)
     useSubscribe(obs, setValue);
     return value
-}
-
-export function renderDrawables(drawables: Drawable[], assets: any) {
-    return drawables.map(drawable => {
-        const containerProp = {
-            anchor: 0.5,
-            position: [drawable.x, drawable.y] as _ReactPixi.PointLike,
-            rotation: drawable.angle
-        }
-        const key = drawable.key
-        return matchI(drawable) ({
-            Drawable$Sprite: sprite => {
-                return <Sprite {...containerProp}
-                    key={key}
-                    texture={assets[sprite.bundle][sprite.asset]}
-                />
-            },
-            Drawable$Text: text => {
-                return <Text {...containerProp}
-                    key={key}
-                    text={text.text}
-                    style={new TextStyle({
-                        fontFamily: "Sourcehanserifcn Vf.ttf",
-                        ...text.style
-                    })}
-                />
-            },
-            Drawable$Container: container => {
-                return <Container {...containerProp} key={key}>
-                    {renderDrawables(container.children.sort((a, b) =>
-                        a.zIndex - b.zIndex), assets)}
-                </Container>
-            },
-            Drawable$AnimatedSprite: animated => {
-                return <AnimatedSprite {...containerProp}
-                    key={key}
-                    textures={assets[animated.bundle][animated.asset].animations[animated.animation]}
-                    isPlaying={animated.playing}
-                    initialFrame={animated.initialFrame}
-                />
-            }
-        })
-    })
 }
 
 /// 前缀（注意顺序）：$(Ctrl), #(Meta), @(Alt), ^(Shift)
@@ -92,4 +48,43 @@ export function getKeyCode(e: KeyboardEvent) {
     keyCode += e.code
     if (e.type == 'keyup') keyCode += '!'
     return keyCode
+}
+
+export function useKeyboard() {
+    useEffect(() => {
+        function handleKeyEvent(e: KeyboardEvent) {
+            e.preventDefault()
+            if (e.repeat) return
+            keyEvents$.next(e)
+        }
+
+        document.body.addEventListener('keydown', handleKeyEvent)
+        document.body.addEventListener('keyup', handleKeyEvent)
+        return () => {
+            document.body.removeEventListener('keydown', handleKeyEvent)
+            document.body.removeEventListener('keyup', handleKeyEvent)
+        }
+    }, [])
+}
+
+export function useWindowSize() {
+    const diffGame = useDiffGame()
+    useEffect(() => {
+        diffGame({
+            windowSize: {
+                height: document.body.clientHeight,
+                width: document.body.clientWidth
+            }
+        })
+        const listener = () => {
+            diffGame({
+                windowSize: {
+                    height: document.body.clientHeight,
+                    width: document.body.clientWidth
+                }
+            })
+        }
+        window.addEventListener('resize', listener)
+        return () => window.removeEventListener('resize', listener)
+    }, [])
 }
