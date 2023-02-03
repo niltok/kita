@@ -13,9 +13,9 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
 ///   层级最大值
-    public int maxtier = 10;
+    public int maxtier = 50;
 ///   层级最小值
-    public int mintier = 5;
+    public int mintier = 10;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -31,28 +31,55 @@ public class StarInfo {
     }
     public static StarInfo gen(int seed) {
         var info = new StarInfo();
-
         ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
 
-        int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)) + info.mintier;
-//        tiernum = 200; info.mintier = 150;
-//        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
-        int blocknum = tiernum*(tiernum+1)*3 + info.mintier*(info.mintier+1)*3;
-//        System.out.println(blocknum);
+//        生成地面最高层
+        int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
+                        + (info.maxtier-info.mintier)*0.25)
+                        + info.mintier;
+//        tiernum = 30; info.maxtier = 50; info.mintier = 10;
+        int roundstarttier = (int)(tiernum * (Math.pow(3,1.0/2)/2)) - 1;
 
-        for (var i = 0; i < blocknum; i++) {
+//        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
+
+        int blocknum = info.maxtier*(info.maxtier+1)*3 - info.mintier*(info.mintier-1)*3;
+        int groundnum =  tiernum*(tiernum+1)*3 - info.mintier*(info.mintier-1)*3;
+        int roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
+        if (roundnum < 0) roundnum = 0;
+
+//        纯地面生成
+        for (var i = 0; i < roundnum; i++) {
             Block newblock = new Block.Normal();
-            newblock.type = 0;
+            newblock.type = 1;
             newblock.isVisible = true;
             newblock.isDestructible = true;
             newblock.isInteractive = true;
             block.add(newblock);
         }
+//        圆角修饰部分
+        int rindex = realIndexOf(roundnum, info.mintier);
+        double r = heiehtOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
+        for (var i = roundnum; i < groundnum; i++) {
+            Block newblock = new Block.Normal();
+            if ( heiehtOf(rindex) <= r ) {
+                newblock.type = 1;
+                newblock.isVisible = true;
+                newblock.isDestructible = true;
+                newblock.isInteractive = true;
+            }else newblock.type = 0;
+            block.add(newblock);
+            rindex++;
+        }
+//        纯天空生成
+        for (var i = groundnum; i < blocknum; i++) {
+            Block newblock = new Block.Normal();
+            newblock.type = 0;
+            block.add(newblock);
+        }
+
         info.blocks = block.toArray(new Block[0]);
-
-//        System.out.println(info.blocks.length);
-
+        System.out.println(info.blocks.length);
         info.starUsers = new HashMap<>();
         return info;
     }
@@ -81,21 +108,23 @@ public class StarInfo {
     }
 
     public static void main(String[] args) {
-        StarInfo.gen(0);
+//        StarInfo.gen(0);
 //        Position pos = StarInfo.posOf(43);
 //        System.out.print("angle1:\t");
 //        System.out.println(StarInfo.angleOf(43));
-//        System.out.print("tier:\t");
-//        System.out.println(StarInfo.tierOf(43));
+//        System.out.print(tierOf(18));
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
     }
 
     public static int realIndexOf(int index, int mintier) {
-        return 3*mintier*(mintier+1) + index + 1;
+        return 3*mintier*(mintier-1) + index + 1;
     }
 
     public static int tierOf(int realindex) {
-        return (int)(0.5 + Math.pow((12*realindex+9), 1.0/2)/6.0);
+        double an = 0.5 + Math.pow((12*realindex+9), 1.0/2)/6.0;
+        int res = (int)an;
+        if (an-res == 0.0) res--;
+        return res;
     }
 
     public static Position posOf(int realindex) {
@@ -110,6 +139,11 @@ public class StarInfo {
         pos.x = Math.cos(angle) * l * tier;
         pos.y = Math.sin(angle) * l * tier;
         return pos;
+    }
+
+    public static double heiehtOf(int realindex) {
+        Position pos = posOf(realindex);
+        return Math.hypot(pos.x, pos.y);
     }
 //    public static double angleOf(int realindex) {
 //        int tier = tierOf(realindex);
