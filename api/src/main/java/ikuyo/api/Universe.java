@@ -10,7 +10,7 @@ public record Universe(int index, int seed, boolean autoExpand) {
     public static final String createTableSql = """
         create table universe(
             index serial primary key,
-            seed int not null default random(),
+            seed int not null default (random() - 0.5) * 4294967296,
             auto_expand boolean not null
         );
         insert into universe(auto_expand) values (true);
