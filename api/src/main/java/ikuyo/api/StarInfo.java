@@ -13,9 +13,9 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
 ///   层级最大值
-    public int maxtier = 10;
+    public int maxtier = 50;
 ///   层级最小值
-    public int mintier = 5;
+    public int mintier = 10;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -31,24 +31,41 @@ public class StarInfo {
     }
     public static StarInfo gen(int seed) {
         var info = new StarInfo();
-
         ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
 
         int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)) + info.mintier;
-//        tiernum = 200; info.mintier = 150;
-//        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
-        int blocknum = tiernum*(tiernum+1)*3 + info.mintier*(info.mintier+1)*3;
-//        System.out.println(blocknum);
+        int roundstarttier = (int)(tiernum * Math.pow(3,1.0/2) / 2);
 
-        for (var i = 0; i < blocknum; i++) {
+//        tiernum = 10; info.mintier = 5;
+//        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
+
+        int blocknum = tiernum*(tiernum+1)*3 - info.mintier*(info.mintier+1)*3;
+        int roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier+1)*3;
+
+        for (var i = 0; i < roundnum-2; i++) {
             Block newblock = new Block.Normal();
-            newblock.type = 0;
+            newblock.type = 1;
             newblock.isVisible = true;
             newblock.isDestructible = true;
             newblock.isInteractive = true;
             block.add(newblock);
         }
+
+        int rindex = realIndexOf(roundnum-1, info.mintier);
+        double r = heiehtOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
+        for (var i = roundnum-1; i < blocknum-1; i++) {
+            Block newblock = new Block.Normal();
+            if ( heiehtOf(rindex) <= r ) {
+                newblock.type = 1;
+                newblock.isVisible = true;
+                newblock.isDestructible = true;
+                newblock.isInteractive = true;
+            }else newblock.type = 0;
+            block.add(newblock);
+            rindex++;
+        }
+
         info.blocks = block.toArray(new Block[0]);
 
 //        System.out.println(info.blocks.length);
@@ -81,12 +98,11 @@ public class StarInfo {
     }
 
     public static void main(String[] args) {
-        StarInfo.gen(0);
+//        StarInfo.gen(0);
 //        Position pos = StarInfo.posOf(43);
 //        System.out.print("angle1:\t");
 //        System.out.println(StarInfo.angleOf(43));
 //        System.out.print("tier:\t");
-//        System.out.println(StarInfo.tierOf(43));
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
     }
 
@@ -110,6 +126,11 @@ public class StarInfo {
         pos.x = Math.cos(angle) * l * tier;
         pos.y = Math.sin(angle) * l * tier;
         return pos;
+    }
+
+    public static double heiehtOf(int realindex) {
+        Position pos = posOf(realindex);
+        return Math.hypot(pos.x, pos.y);
     }
 //    public static double angleOf(int realindex) {
 //        int tier = tierOf(realindex);

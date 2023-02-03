@@ -19,8 +19,8 @@ export const manifest: ResolverManifest = {
             name: "blocks",
             assets: [
                 {
-                    name: ["0", "unknown"],
-                    srcs: "/blocks/stub.png"
+                    name: ["1", "unknown"],
+                    srcs: "blocks/hexagon/gray.png"
                 }
             ]
         }
