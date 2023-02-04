@@ -1,6 +1,7 @@
-import {createSlice, original, PayloadAction} from "@reduxjs/toolkit"
+import {createSlice, PayloadAction} from "@reduxjs/toolkit"
 import {RootState} from "../store"
 import {useAppDispatch} from "../storeHook"
+import {applyObjectDiff} from "../utils";
 
 export interface GameState {
     server: {
@@ -26,17 +27,6 @@ const initialState: GameState = {
     },
     star: {
         camera: { x: 0, y: 0, rotation: 0 }
-    }
-}
-
-function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
-    for (const ptr in diff) {
-        const val = diff[ptr]
-        if (val === null) delete obj[ptr]
-        else if (typeof val == 'object' && typeof obj[ptr] != 'undefined'
-            && obj[ptr] != null && typeof original(obj[ptr]) == 'object')
-            applyObjectDiff(obj[ptr], diff[ptr])
-        else obj[ptr] = diff[ptr]
     }
 }
 

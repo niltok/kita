@@ -121,12 +121,13 @@ public class UpdateVert extends AsyncVerticle {
                             e -> ((JsonObject)e.getValue()).mapTo(UserKeyInput.class)));
             mainBehavior.setContext(new Behavior.Context(star, userKeyInputs));
             mainBehavior.update();
+            var renderContext = new Renderer.Context(star);
             eventBus.send(msgVertId, JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
-                    "commonSeq", commonSeqRenderer.render(star),
-                    "special", specialRenderer.render(star)));
+                    "commonSeq", commonSeqRenderer.render(renderContext),
+                    "special", specialRenderer.render(renderContext)));
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),

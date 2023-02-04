@@ -2,6 +2,7 @@ import {useEffect, useState} from "react"
 import {Observable} from "rxjs"
 import {keyEvents$} from "./dbus";
 import {useDiffGame} from "./stores/gameState";
+import {isDraft, original} from "@reduxjs/toolkit";
 
 export const delay = (time: number) => {
     return new Promise(resolve => setTimeout(resolve, time))
@@ -87,4 +88,18 @@ export function useWindowSize() {
         window.addEventListener('resize', listener)
         return () => window.removeEventListener('resize', listener)
     }, [])
+}
+
+export function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
+    for (const ptr in diff) {
+        const val = diff[ptr]
+        if (val === null) delete obj[ptr]
+        else {
+            let elem = obj[ptr];
+            if (typeof val == 'object' && elem !== undefined && elem !== null
+                && (isDraft(elem) && typeof original(elem) == 'object' || typeof elem == 'object'))
+                applyObjectDiff(elem, val)
+            else obj[ptr] = val
+        }
+    }
 }

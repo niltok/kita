@@ -14,10 +14,10 @@ public class CompositeRenderer implements Renderer {
         this.renderers = renderers;
     }
     @Override
-    public JsonObject render(Star star) {
+    public JsonObject render(Context ctx) {
         return Arrays.stream(renderers).reduce(
                 JsonObject.of(),
-                (json, renderer) -> json.mergeIn(renderer.render(star), deep),
+                (json, renderer) -> json.mergeIn(renderer.render(ctx), deep),
                 (a, b) -> a.mergeIn(b, deep));
     }
 }

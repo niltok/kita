@@ -4,10 +4,9 @@ import com.google.common.collect.Sets;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
-import java.util.HashMap;
+import java.util.Objects;
 
 public class MsgDiffer {
-    int seq = 0;
     String base;
     JsonObject prev = JsonObject.of();
 
@@ -16,15 +15,12 @@ public class MsgDiffer {
     }
 
     public Buffer next(JsonObject msg) {
-        var diff = jsonFlatDiff(prev, msg);
-        if (diff.size() == 0) return null;
-        seq++;
+        var diff = jsonDiff(prev, msg);
+        if (diff.isEmpty()) return null;
         prev = msg;
         return JsonObject.of(
                 "type", "seq.operate",
-                "operate", "diff",
                 "target", base,
-                "seq", seq,
                 "data", diff
         ).toBuffer();
     }
@@ -32,22 +28,31 @@ public class MsgDiffer {
     public Buffer prev() {
         return JsonObject.of(
                 "type", "seq.operate",
-                "operate", "set",
                 "target", base,
-                "seq", seq,
                 "data", prev
         ).toBuffer();
     }
 
     public static JsonObject jsonFlatDiff(JsonObject from, JsonObject to) {
+        return jsonDiff(from, to, 0);
+    }
+
+    public static JsonObject jsonDiff(JsonObject from, JsonObject to, int deep) {
         var merged = Sets.union(to.fieldNames(), from.fieldNames());
         var diff = JsonObject.of();
         for (var k : merged) {
-            boolean fv = from.containsKey(k);
-            Object tv = to.getValue(k);
-            if (!fv && tv != null) diff.put(k, tv);
-            if (fv && tv == null) diff.putNull(k);
+            Object fv = from.getValue(k), tv = to.getValue(k);
+            if (fv == null && tv != null) diff.put(k, tv);
+            else if (fv != null && tv == null) diff.putNull(k);
+            else if (fv instanceof JsonObject fj && tv instanceof JsonObject tj && deep > 0) {
+                var ft = jsonDiff(fj, tj, deep - 1);
+                if (!ft.isEmpty()) diff.put(k, ft);
+            } else if (!Objects.equals(fv, tv)) diff.put(k, tv);
         }
         return diff;
+    }
+
+    public static JsonObject jsonDiff(JsonObject from, JsonObject to) {
+        return jsonDiff(from, to, Integer.MAX_VALUE);
     }
 }

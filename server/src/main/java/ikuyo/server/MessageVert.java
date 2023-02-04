@@ -1,5 +1,6 @@
 package ikuyo.server;
 
+import com.google.common.hash.Hashing;
 import ikuyo.api.UserKeyInput;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
@@ -8,13 +9,15 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 class UserState {
-    Integer specialCache = null;
+    JsonObject specialCache = JsonObject.of();
     UserKeyInput keyInput = new UserKeyInput();
     /** 发往这个地址的内容必须序列化为 Buffer 或 String */
     String socket;
@@ -52,6 +55,7 @@ public class MessageVert extends AsyncVerticle {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
                 userStates.put(json.getInteger("id"), new UserState(json.getString("socket")));
+                eventBus.send(json.getString("socket"), msgDiffer.prev());
                 await(eventBus.request(updaterId, json));
                 msg.reply(JsonObject.of("type", "user.add.success"));
             }
@@ -90,13 +94,13 @@ public class MessageVert extends AsyncVerticle {
                     }
                     var state = specials.getJsonObject(id.toString());
                     if (state != null) {
-                        var hash = state.hashCode();
-                        if (!Objects.equals(hash, userState.specialCache)) { // 变化才发送
-                            userState.specialCache = hash;
+                        var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
+                        if (!specialDiff.isEmpty()) { // 变化才发送
+                            userState.specialCache = state;
                             eventBus.send(userState.socket, JsonObject.of(
                                     "type", "state.dispatch",
                                     "action", "gameState/diffGame",
-                                    "payload", JsonObject.of("star", state)
+                                    "payload", JsonObject.of("star", specialDiff)
                             ).toBuffer());
                         }
                     }

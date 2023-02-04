@@ -3,13 +3,12 @@ import {useAppSelector} from "../storeHook"
 import {keyEvents$, sendSocket$, seqDrawables$} from "../dbus"
 import {Drawable, matchI} from "../types/Drawable"
 import * as pixi from 'pixi.js'
-import {getKeyCode, useKeyboard, useSubscribe, useWindowSize} from "../utils"
+import {applyObjectDiff, getKeyCode, useKeyboard, useSubscribe, useWindowSize} from "../utils"
 import {store} from "../store"
 
-export type SeqDrawable = { operate: 'set' | 'diff', seq: number, data: { [key: string]: Drawable } };
+export type SeqDrawable = { data: { [key: string]: Drawable } };
 type SeqState = {
-    seq: number
-    hashDrawable: Map<string, Drawable>
+    drawables: { [key: string]: Drawable }
     assets: any
 }
 
@@ -60,43 +59,6 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
     })
 }
 
-function diffDrawables(camera: pixi.Container, state: SeqState, val: SeqDrawable) {
-    if (state.seq >= val.seq) return // equiv this.seq + 1 > diff.seq
-    if (state.seq + 1 < val.seq) {
-        state.seq = 2 << 31
-        sendSocket$.next({ type: "state.seq.require", target: "starDrawables" })
-        return
-    }
-    // this.seq + 1 == diff.seq
-    state.seq = val.seq
-    for (const k in val.data) {
-        if (state.hashDrawable.has(k)) {
-            if (val.data[k] === null)
-                state.hashDrawable.delete(k)
-            else console.error("seq-diff: duplicate drawables")
-            continue
-        }
-        state.hashDrawable.set(k, val.data[k])
-    }
-}
-
-function setDrawables(camera: pixi.Container, state: SeqState, val: SeqDrawable) {
-    state.hashDrawable.clear()
-    for (const key in val.data) {
-        state.hashDrawable.set(key, val.data[key])
-    }
-    state.seq = val.seq
-}
-
-function useAutoRequire() {
-    const state = useAppSelector(state => state.gameState.connection.state)
-    useEffect(() => {
-        if (state == 'connected') {
-            sendSocket$.next({type: "state.seq.require", target: "starDrawables"})
-        }
-    }, [state])
-}
-
 const keyMapper = {
     "KeyW": {action: "up", value: 2},
     "KeyW!": "up",
@@ -129,7 +91,6 @@ export const Stage = () => {
     useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
     const assets = useAppSelector(state => state.gameState.assets)
-    useAutoRequire();
     useEffect(() => {
         if (canvas == null) return
         const app = new pixi.Application({
@@ -141,18 +102,18 @@ export const Stage = () => {
         camera.sortableChildren = true
         app.stage.addChild(camera)
         const state: SeqState = {
-            seq: 0,
             assets,
-            hashDrawable: new Map<string, Drawable>()
+            drawables: {}
         }
         const seqSub = seqDrawables$.subscribe({
             next(val) {
-                if (val.operate == 'set') setDrawables(camera, state, val)
-                else diffDrawables(camera, state, val)
+                applyObjectDiff(state.drawables, val.data)
                 camera.removeChildren()
-                state.hashDrawable.forEach(drawable => {
+                for (const key in state.drawables) {
+                    const drawable = state.drawables[key]
+                    drawable.key = key
                     camera.addChild(renderDrawable(drawable, assets))
-                })
+                }
                 camera.sortChildren()
             }
         })

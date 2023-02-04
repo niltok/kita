@@ -8,7 +8,8 @@ import java.util.HashMap;
 
 public class CameraRenderer implements Renderer {
     @Override
-    public JsonObject render(Star star) {
+    public JsonObject render(Context ctx) {
+        var star = ctx.star();
         var map = new HashMap<String, Object>();
         star.starInfo().starUsers.forEach((id, pos) -> {
             map.put(id.toString(), JsonObject.of("camera", JsonObject.of(

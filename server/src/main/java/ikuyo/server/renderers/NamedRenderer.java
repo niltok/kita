@@ -12,7 +12,7 @@ public class NamedRenderer implements Renderer {
         this.renderer = renderer;
     }
     @Override
-    public JsonObject render(Star star) {
-        return JsonObject.of(name, renderer.render(star));
+    public JsonObject render(Context ctx) {
+        return JsonObject.of(name, renderer.render(ctx));
     }
 }
