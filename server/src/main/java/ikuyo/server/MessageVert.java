@@ -1,6 +1,5 @@
 package ikuyo.server;
 
-import com.google.common.hash.Hashing;
 import ikuyo.api.UserKeyInput;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
@@ -9,11 +8,8 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 
-import java.nio.charset.Charset;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 class UserState {
@@ -65,7 +61,6 @@ public class MessageVert extends AsyncVerticle {
                 if (userStates.isEmpty())
                     eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
             }
-            case "state.seq.require" -> eventBus.send(json.getString("socket"), msgDiffer.prev());
             case "user.message" -> userEventHandler(json);
         }
     }

@@ -1,8 +1,11 @@
 package ikuyo.server.behaviors;
 
-public class ControlMovingBehavior extends AbstractBehavior {
+import ikuyo.api.behaviors.Behavior;
+import ikuyo.server.api.BehaviorContext;
+
+public class ControlMovingBehavior implements Behavior<BehaviorContext> {
     @Override
-    public void update() {
+    public void update(BehaviorContext context) {
         var speed = 5;
         context.userKeyInputs().forEach((id, input) -> {
             var pos = context.star().starInfo().starUsers.get(id);

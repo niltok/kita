@@ -3,9 +3,12 @@ package ikuyo.server;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.UserKeyInput;
-import ikuyo.server.api.Renderer;
-import ikuyo.server.behaviors.CompositeBehavior;
-import ikuyo.server.api.Behavior;
+import ikuyo.api.renderers.CompositeRenderer;
+import ikuyo.api.renderers.Renderer;
+import ikuyo.api.behaviors.CompositeBehavior;
+import ikuyo.api.behaviors.Behavior;
+import ikuyo.server.api.BehaviorContext;
+import ikuyo.server.api.RendererContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
@@ -27,18 +30,19 @@ public class UpdateVert extends AsyncVerticle {
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0;
     String msgVertId;
     PgPool pool;
-    Behavior mainBehavior = new CompositeBehavior(
+    Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
             new ControlMovingBehavior()
     );
-    Renderer commonSeqRenderer = new CompositeRenderer(false,
+    Renderer<RendererContext> commonSeqRenderer = new CompositeRenderer<>(false,
             new DrawablesRenderer.Composite(
                     new BlockRenderer(),
                     new UserRenderer()
             ).withName("starDrawables")
     );
-    Renderer specialRenderer = new CompositeRenderer(true,
+    Renderer<RendererContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer()
     );
+    RendererContext rendererContext = new RendererContext(star);
 
     @Override
     public void start() {
@@ -119,15 +123,13 @@ public class UpdateVert extends AsyncVerticle {
                     .stream().collect(Collectors.toMap(
                             e -> Integer.valueOf(e.getKey()),
                             e -> ((JsonObject)e.getValue()).mapTo(UserKeyInput.class)));
-            mainBehavior.setContext(new Behavior.Context(star, userKeyInputs));
-            mainBehavior.update();
-            var renderContext = new Renderer.Context(star);
+            mainBehavior.update(new BehaviorContext(star, userKeyInputs));
             eventBus.send(msgVertId, JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
-                    "commonSeq", commonSeqRenderer.render(renderContext),
-                    "special", specialRenderer.render(renderContext)));
+                    "commonSeq", commonSeqRenderer.render(rendererContext),
+                    "special", specialRenderer.render(rendererContext)));
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),

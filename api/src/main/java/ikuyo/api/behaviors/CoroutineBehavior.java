@@ -1,12 +1,10 @@
-package ikuyo.server.behaviors;
+package ikuyo.api.behaviors;
 
-import ikuyo.server.api.Behavior;
 import ikuyo.utils.Enumerator;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Handler;
 
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,14 +12,13 @@ import static ikuyo.utils.AsyncStatic.delay;
 
 /** Similar to Unity3d's StartCoroutine support
  */
-public class CoroutineBehavior extends AbstractBehavior {
+public class CoroutineBehavior<T> implements Behavior<T> {
     Set<Coroutine> coroutines;
-    public class Coroutine {
-        Enumerator<Void, Void> enumerator;
-        public class Context {
+    public static class Coroutine {
+        Enumerator<?, ?> enumerator;
+        public static class CoroutineContext {
             Enumerator<Void, Void>.Context eCtx;
-            public Behavior.Context renderContext = context;
-            Context(Enumerator<Void, Void>.Context eCtx) {
+            CoroutineContext(Enumerator<Void, Void>.Context eCtx) {
                 this.eCtx = eCtx;
             }
             public void nextFrame() {
@@ -33,12 +30,11 @@ public class CoroutineBehavior extends AbstractBehavior {
                 while (!fut.isComplete()) eCtx.yield(null);
             }
         }
-        public Coroutine(Handler<Context> task) {
-            //noinspection unchecked
-            enumerator = new Enumerator<>(ctx -> task.handle(new Context(ctx)));
+        public Coroutine(Handler<CoroutineContext> task) {
+            enumerator = new Enumerator<Void, Void>(ctx -> task.handle(new CoroutineContext(ctx)));
         }
     }
-    public final void startCoroutine(Handler<Coroutine.Context> task) {
+    public final void startCoroutine(Handler<Coroutine.CoroutineContext> task) {
         var coroutine = new Coroutine(task);
         coroutines.add(coroutine);
         async(() -> {
@@ -48,15 +44,9 @@ public class CoroutineBehavior extends AbstractBehavior {
         await(coroutine.enumerator.nextFuture());
     }
 
-    @Override
-    public void setContext(Context context) {
-        super.setContext(context);
-        coroutines = new HashSet<>();
-    }
-
     /** do not forget call super.render(context) to render coroutines when overriding this method */
     @Override
-    public void update() {
+    public void update(T context) {
         await(CompositeFuture.all(coroutines.stream().map(coroutine ->
                 async(() -> {
                     coroutine.enumerator.next(null);

@@ -2,15 +2,16 @@ package ikuyo.server.renderers;
 
 import ikuyo.api.Drawable;
 import ikuyo.api.Star;
-import ikuyo.server.api.Renderer;
+import ikuyo.api.renderers.Renderer;
+import ikuyo.server.api.RendererContext;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public interface DrawablesRenderer extends Renderer {
-    default JsonObject render(Context ctx) {
+public interface DrawablesRenderer extends Renderer<RendererContext> {
+    default JsonObject render(RendererContext ctx) {
         var drawables = new HashMap<String, Drawable>();
         renderDrawables(ctx.star(), drawables);
         return new JsonObject(drawables.entrySet().stream().collect(Collectors.toMap(
@@ -21,14 +22,14 @@ public interface DrawablesRenderer extends Renderer {
 
     void renderDrawables(Star star, Map<String, Drawable> drawables);
 
-    class Composite implements Renderer {
+    class Composite implements Renderer<RendererContext> {
         DrawablesRenderer[] renderers;
         public Composite(DrawablesRenderer... renderers) {
             this.renderers = renderers;
         }
 
         @Override
-        public JsonObject render(Context ctx) {
+        public JsonObject render(RendererContext ctx) {
             var drawables = new HashMap<String, Drawable>();
             for (DrawablesRenderer renderer : renderers) {
                 renderer.renderDrawables(ctx.star(), drawables);

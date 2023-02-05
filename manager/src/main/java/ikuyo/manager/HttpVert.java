@@ -120,17 +120,6 @@ public class HttpVert extends AsyncVerticle {
                 socketCache.put(socket.writeHandlerID(), user);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
-            case "state.seq.require" -> {
-                switch (msg.getString("target")) {
-                    case "starDrawables" ->
-                            eventBus.send(socketAddress(socket), JsonObject.of(
-                                    "type", msg.getString("type"),
-                                    "socket", socket.writeHandlerID(),
-                                    "userId", socketCache.get(socket.writeHandlerID()).id(),
-                                    "msg", msg));
-                    default -> {}
-                }
-            }
             default -> {
                 eventBus.send(socketAddress(socket), JsonObject.of(
                         "type", "user.message",

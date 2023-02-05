@@ -1,20 +1,19 @@
-package ikuyo.server.renderers;
+package ikuyo.api.renderers;
 
-import ikuyo.api.Star;
-import ikuyo.server.api.Renderer;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Arrays;
 
-public class CompositeRenderer implements Renderer {
+public class CompositeRenderer<T> implements Renderer<T> {
     boolean deep;
-    Renderer[] renderers;
-    public CompositeRenderer(boolean deep, Renderer... renderers) {
+    Renderer<T>[] renderers;
+    @SafeVarargs
+    public CompositeRenderer(boolean deep, Renderer<T>... renderers) {
         this.deep = deep;
         this.renderers = renderers;
     }
     @Override
-    public JsonObject render(Context ctx) {
+    public JsonObject render(T ctx) {
         return Arrays.stream(renderers).reduce(
                 JsonObject.of(),
                 (json, renderer) -> json.mergeIn(renderer.render(ctx), deep),

@@ -1,14 +1,14 @@
 package ikuyo.server.renderers;
 
-import ikuyo.api.Star;
-import ikuyo.server.api.Renderer;
+import ikuyo.api.renderers.Renderer;
+import ikuyo.server.api.RendererContext;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 
-public class CameraRenderer implements Renderer {
+public class CameraRenderer implements Renderer<RendererContext> {
     @Override
-    public JsonObject render(Context ctx) {
+    public JsonObject render(RendererContext ctx) {
         var star = ctx.star();
         var map = new HashMap<String, Object>();
         star.starInfo().starUsers.forEach((id, pos) -> {
