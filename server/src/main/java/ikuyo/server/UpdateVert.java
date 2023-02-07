@@ -42,7 +42,6 @@ public class UpdateVert extends AsyncVerticle {
     Renderer<RendererContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer()
     );
-    RendererContext rendererContext = new RendererContext(star);
 
     @Override
     public void start() {
@@ -124,6 +123,7 @@ public class UpdateVert extends AsyncVerticle {
                             e -> Integer.valueOf(e.getKey()),
                             e -> ((JsonObject)e.getValue()).mapTo(UserKeyInput.class)));
             mainBehavior.update(new BehaviorContext(star, userKeyInputs));
+            RendererContext rendererContext = new RendererContext(star);
             eventBus.send(msgVertId, JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
