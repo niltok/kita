@@ -64,6 +64,7 @@ subprojects {
         implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
         implementation 'org.jetbrains:annotations:23.0.0'
         implementation 'org.apache.commons:commons-math3:3.6.1'
+        implementation 'io.reactivex.rxjava3:rxjava:3.1.6'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
     }

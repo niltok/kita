@@ -2,6 +2,7 @@ package ikuyo.utils;
 
 import com.google.common.collect.Sets;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Objects;
@@ -47,6 +48,9 @@ public class MsgDiffer {
             else if (fv instanceof JsonObject fj && tv instanceof JsonObject tj && deep > 0) {
                 var ft = jsonDiff(fj, tj, deep - 1);
                 if (!ft.isEmpty()) diff.put(k, ft);
+            } else if (fv instanceof JsonArray fa && tv instanceof JsonArray ta && deep > 0) {
+                var ft = jsonDiff(arrayToObject(fa), arrayToObject(ta), deep - 1);
+                if (!ft.isEmpty()) diff.put(k, ft);
             } else if (!Objects.equals(fv, tv)) diff.put(k, tv);
         }
         return diff;
@@ -54,5 +58,11 @@ public class MsgDiffer {
 
     public static JsonObject jsonDiff(JsonObject from, JsonObject to) {
         return jsonDiff(from, to, Integer.MAX_VALUE);
+    }
+    private static JsonObject arrayToObject(JsonArray array) {
+        var json = JsonObject.of();
+        for (var i = 0; i < array.size(); i++)
+            json.put(String.valueOf(i), array.getValue(i));
+        return json;
     }
 }

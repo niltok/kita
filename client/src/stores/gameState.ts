@@ -2,6 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit"
 import {RootState} from "../store"
 import {useAppDispatch} from "../storeHook"
 import {applyObjectDiff} from "../utils";
+import {UIElement} from "../types/UIElement";
 
 export interface GameState {
     server: {
@@ -13,8 +14,11 @@ export interface GameState {
     assets: any
     windowSize: { height: number, width: number },
     star: {
-        camera: { x: number, y: number, rotation: number }
+        camera: { x: number, y: number, rotation: number },
+        ui?: UIElement
     }
+    ui?: UIElement
+    uiState: { [key: string]: any }
 }
 
 const initialState: GameState = {
@@ -27,7 +31,8 @@ const initialState: GameState = {
     },
     star: {
         camera: { x: 0, y: 0, rotation: 0 }
-    }
+    },
+    uiState: {}
 }
 
 export const gameStateSlicer = createSlice({
@@ -39,12 +44,12 @@ export const gameStateSlicer = createSlice({
         },
         addAssets(state, action: PayloadAction<{ name: string, bundle: any }>) {
             state.assets[action.payload.name] = action.payload.bundle
-        }
+        },
+
     }
 })
 
 export const {diffGame, addAssets} = gameStateSlicer.actions
-export const selectGameState = (state: RootState) => state.gameState
 
 export const useDiffGame = () => {
     const dispatch = useAppDispatch()

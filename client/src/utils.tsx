@@ -1,8 +1,10 @@
-import {useEffect, useState} from "react"
+import React, {useEffect, useState} from "react"
 import {Observable} from "rxjs"
-import {keyEvents$} from "./dbus";
-import {useDiffGame} from "./stores/gameState";
+import {keyEvents$, sendSocket$} from "./dbus";
+import {diffGame, useDiffGame} from "./stores/gameState";
 import {isDraft, original} from "@reduxjs/toolkit";
+import {UIElement} from "./types/UIElement";
+import {store} from "./store";
 
 export const delay = (time: number) => {
     return new Promise(resolve => setTimeout(resolve, time))
@@ -101,5 +103,23 @@ export function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
                 applyObjectDiff(elem, val)
             else obj[ptr] = val
         }
+    }
+}
+
+export function renderUI(elem: UIElement): JSX.Element {
+    switch (elem.type) {
+        case "div": return (<div style={elem.style} onClick={() =>
+            elem.callback && sendSocket$.next(elem.callback)}>
+            {elem.children.map(e => renderUI(e))}
+        </div>)
+        case "button": return (<button style={elem.style} onClick={() =>
+            elem.callback && sendSocket$.next(elem.callback)}>
+            {elem.children.map(e => renderUI(e))}
+        </button>)
+        case "input.text": return (<input type={"text"} style={elem.style} onChange={e =>
+            elem.stateName && store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))}>
+            {elem.children.map(e => renderUI(e))}
+        </input>)
+        default: return <>{elem.type}</>
     }
 }
