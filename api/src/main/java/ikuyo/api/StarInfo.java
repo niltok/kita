@@ -61,10 +61,10 @@ public class StarInfo {
         }
 //        圆角修饰部分
         int rindex = realIndexOf(roundnum, info.mintier);
-        double r = heiehtOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
+        double r = heightOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
         for (var i = roundnum; i < groundnum; i++) {
             Block newblock = new Block.Normal();
-            if ( heiehtOf(rindex) <= r ) {
+            if ( heightOf(rindex) <= r ) {
                 newblock.type = 1;
                 newblock.isVisible = true;
                 newblock.isDestructible = true;
@@ -144,7 +144,7 @@ public class StarInfo {
         return pos;
     }
 
-    public static double heiehtOf(int realindex) {
+    public static double heightOf(int realindex) {
         Position pos = posOf(realindex);
         return Math.hypot(pos.x, pos.y);
     }
