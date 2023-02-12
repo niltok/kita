@@ -27,6 +27,15 @@ export const manifest: ResolverManifest = {
                     srcs: "blocks/hexagon//gray.png"
                 }
             ]
+        },
+        {
+            name: "other",
+            assets: [
+                {
+                    name: "paimon",
+                    srcs: "other/paimon.png"
+                }
+            ]
         }
     ]
 }

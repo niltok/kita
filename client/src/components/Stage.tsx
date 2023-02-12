@@ -91,7 +91,7 @@ function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: string | {act
 export const Stage = () => {
     useKeyboard();
     useWindowSize();
-    useSubscribe(keyEvents$.pipe(debounceTime(1000 / FPS)), e => handleKeyEvent(e, keyMapper))
+    useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
     const assets = useAppSelector(state => state.gameState.assets)
     useEffect(() => {
@@ -99,7 +99,8 @@ export const Stage = () => {
         const app = new pixi.Application({
             resizeTo: window,
             view: canvas,
-            antialias: true,
+            antialias: false,
+            autoDensity: true,
         })
         app.ticker.maxFPS = FPS
         const camera = new pixi.Container()
