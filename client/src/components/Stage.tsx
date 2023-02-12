@@ -34,7 +34,7 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
         Drawable$Text(text) {
             const display = cached instanceof pixi.Text && cached ||
                 new pixi.Text(text.text, {
-                    fontFamily: "Sourcehanserifcn Vf.ttf",
+                    fontFamily: ["Sourcehanserifcn Vf.ttf"],
                     ...text.style
                 })
             setCommonProp(display)
