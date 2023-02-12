@@ -134,7 +134,7 @@ public class StarInfo {
 //        System.out.println(StarInfo.angleOf(43));
 //        System.out.print(tierOf(18));
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
-        System.out.println(heightOf(7));
+//        System.out.println(heightOf(7));
     }
 
     public static int realIndexOf(int index, int mintier) {
