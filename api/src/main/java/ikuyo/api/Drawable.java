@@ -10,6 +10,7 @@ public sealed abstract class Drawable {
     public double angle;
     public int zIndex = 0;
     public boolean interaction = false;
+    public static final double scaling = 20.0;
     public static sealed class Sprite extends Drawable {
         public String bundle, asset;
     }

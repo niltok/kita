@@ -4,10 +4,8 @@ import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class StarInfo {
     public Block[] blocks;
@@ -16,6 +14,8 @@ public class StarInfo {
     public int maxtier = 200;
 ///   层级最小值
     public int mintier = 20;
+///   层级间距
+    public static final double tierdistance = Math.pow(3,1.0/2)/2;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -36,12 +36,13 @@ public class StarInfo {
         ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
 
+        info.maxtier = 30; info.mintier = 10;
 //        生成地面最高层
         int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
                         + (info.maxtier-info.mintier)*0.25)
                         + info.mintier;
-//        tiernum = 13; info.maxtier = 13; info.mintier = 10;
-        int roundstarttier = (int)(tiernum * (Math.pow(3,1.0/2)/2)) - 1;
+//        tiernum = 13;
+        int roundstarttier = (int)(tiernum * tierdistance) - 1;
 
 //        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
 
@@ -63,6 +64,7 @@ public class StarInfo {
                 newblock.isVisible = true;
                 newblock.isDestructible = true;
                 newblock.isInteractive = true;
+                newblock.isCollidable = true;
             }
             block.add(newblock);
             index_in++;
@@ -74,11 +76,12 @@ public class StarInfo {
             newblock.isVisible = true;
             newblock.isDestructible = true;
             newblock.isInteractive = true;
+            newblock.isCollidable = true;
             block.add(newblock);
         }
 //        圆角修饰部分_out
         int index_out = realIndexOf(outline_roundnum, info.mintier);
-        double r_out = heightOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
+        double r_out = heightOf(tiernum*(tiernum-1)*3+1) * tierdistance;
         for (var i = outline_roundnum; i < groundnum; i++) {
             Block newblock = new Block.Normal();
             if ( heightOf(index_out) <= r_out ) {
@@ -86,6 +89,7 @@ public class StarInfo {
                 newblock.isVisible = true;
                 newblock.isDestructible = true;
                 newblock.isInteractive = true;
+                newblock.isCollidable = true;
             }else newblock.type = 0;
             block.add(newblock);
             index_out++;
@@ -129,12 +133,13 @@ public class StarInfo {
 
     public static void main(String[] args) {
 //        StarInfo.gen(0);
-//        Position pos = StarInfo.posOf(43);
 //        System.out.print("angle1:\t");
 //        System.out.println(StarInfo.angleOf(43));
 //        System.out.print(tierOf(18));
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
-//        System.out.println(heightOf(7));
+//        int index = 7;
+//        Position pos = StarInfo.posOf(index);
+//        System.out.printf("Position at [%f,%f] is : [%d]%n", 2.3, 0.5, realIndexOf(2.3, 0.5));
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -166,6 +171,54 @@ public class StarInfo {
     public static double heightOf(int realindex) {
         Position pos = posOf(realindex);
         return Math.hypot(pos.x, pos.y);
+    }
+
+    public static boolean is_standable(double x, double y, double r, StarInfo star) {
+        boolean res = true;
+        int index = realIndexOf(x,y);
+        Position pos = posOf(index);
+        double rr = Math.hypot(pos.x-x, pos.y-y) + r;
+        int tiers = (int)(rr / tierdistance) + 1;
+        int[] blocklist = new int[tiers*(tiers+1)*3];
+        for (int i = 0; i < blocklist.length; i++ ) {
+            blocklist[i] = i + 1;
+        }
+        for (int i = 0; i < blocklist.length; i++ ) {
+            Position posi = posOf(blocklist[i]);
+            blocklist[i] = realIndexOf(pos.x+posi.x, pos.y+ pos.y);
+        }
+        for ( var i : blocklist) {
+            if (star.blocks[i].isCollidable) { res = false; break; }
+        }
+        return res;
+    }
+
+    public static int realIndexOf(double x, double y) {
+        int tier = (int)(Math.hypot(x,y)/tierdistance);
+        double radian = (Math.atan2(y,x) + Math.PI*2) % (Math.PI*2);
+        int edge = (int)(radian / (Math.PI/3));
+        double percent = radian % (Math.PI/3);
+        Map<Integer, Double> map = new HashMap<>();
+        int index = edge * tier + (int)(percent * tier) + tier * (tier-1) * 3;
+        Position pos = posOf(index);
+        map.put(index,Math.hypot(pos.x-x, pos.y-y));
+
+        index += 1;
+        pos = posOf(index);
+        map.put(index,Math.hypot(pos.x-x, pos.y-y));
+
+        index = edge * (tier+1) + (int)(percent * (tier+1)) + (tier+1) * tier * 3;
+        pos = posOf(index);
+        map.put(index,Math.hypot(pos.x-x, pos.y-y));
+
+        index += 1;
+        pos = posOf(index);
+        map.put(index,Math.hypot(pos.x-x, pos.y-y));
+
+        List<Entry<Integer, Double>> list = new ArrayList<>(map.entrySet());
+        list.sort(Entry.comparingByValue());
+
+        return list.get(0).getKey();
     }
 //    public static double angleOf(int realindex) {
 //        int tier = tierOf(realindex);

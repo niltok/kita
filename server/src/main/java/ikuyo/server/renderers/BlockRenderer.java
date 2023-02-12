@@ -5,7 +5,6 @@ import ikuyo.api.Position;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 
-import java.util.List;
 import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
@@ -17,8 +16,8 @@ public class BlockRenderer implements DrawablesRenderer {
             if (block.isVisible) {
                 var d = new Drawable.Sprite();
                 Position pos = StarInfo.posOf(rindex);
-                d.x = pos.x * 20;
-                d.y = pos.y * 20;
+                d.x = pos.x * Drawable.scaling;
+                d.y = pos.y * Drawable.scaling;
                 d.bundle = "blocks";
                 d.asset = String.valueOf(block.type);
                 drawables.put("block#%d.image".formatted(i), d);

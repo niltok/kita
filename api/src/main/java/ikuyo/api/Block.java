@@ -1,6 +1,5 @@
 package ikuyo.api;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
@@ -9,11 +8,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 //})
 public abstract sealed class Block {
     public int type;
-    ///可见性
+    /**可见性*/
     public boolean isVisible;
-    ///可交互性
+    /**可交互性*/
     public boolean isInteractive;
-    ///可破坏性
+    /**可破坏性*/
     public boolean isDestructible;
+    /**可碰撞性*/
+    public boolean isCollidable;
     public static final class Normal extends Block {}
 }
