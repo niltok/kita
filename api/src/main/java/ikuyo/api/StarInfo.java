@@ -13,9 +13,9 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
 ///   层级最大值
-    public int maxtier = 50;
+    public int maxtier = 200;
 ///   层级最小值
-    public int mintier = 10;
+    public int mintier = 20;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -117,7 +117,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y;
+        public double x, y = 725;
         public boolean online;
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {

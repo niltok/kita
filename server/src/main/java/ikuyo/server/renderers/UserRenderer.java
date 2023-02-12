@@ -13,7 +13,7 @@ public class UserRenderer implements DrawablesRenderer {
         star.starInfo().starUsers.forEach((id, info) -> {
             if (!info.online) return;
             var text = new Drawable.Text();
-            text.y = 70;
+            text.y = -70;
             text.text = "#%d(%.1f, %.1f)".formatted(id, info.x, info.y);
             text.style = JsonObject.of("fill", "red", "fontSize", 20);
             var pic = new Drawable.Sprite();
