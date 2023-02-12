@@ -13,9 +13,9 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
 ///   层级最大值
-    public int maxtier = 50;
+    public int maxtier = 200;
 ///   层级最小值
-    public int mintier = 10;
+    public int mintier = 20;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -47,11 +47,28 @@ public class StarInfo {
 
         int blocknum = info.maxtier*(info.maxtier+1)*3 - info.mintier*(info.mintier-1)*3;
         int groundnum =  tiernum*(tiernum+1)*3 - info.mintier*(info.mintier-1)*3;
-        int roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
-        if (roundnum < 0) roundnum = 0;
+        int outline_roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
+        if (outline_roundnum < 0) outline_roundnum = 0;
 
+//        圆角修饰部分_in
+        int index_in = realIndexOf(0, info.mintier);
+        double r_in = heightOf(index_in);
+        int inline_tier = (int)((Math.pow(3,1.0/2)*2/3-1) * r_in) + 1 + info.mintier;
+        int inline_roundnum = inline_tier*(inline_tier+1)*3 - info.mintier*(info.mintier-1)*3;
+        for (var i = 0; i < inline_roundnum; i++) {
+            Block newblock = new Block.Normal();
+            if ( heightOf(index_in) < r_in ) newblock.type = 0;
+            else {
+                newblock.type = 1;
+                newblock.isVisible = true;
+                newblock.isDestructible = true;
+                newblock.isInteractive = true;
+            }
+            block.add(newblock);
+            index_in++;
+        }
 //        纯地面生成
-        for (var i = 0; i < roundnum; i++) {
+        for (var i = inline_roundnum; i < outline_roundnum; i++) {
             Block newblock = new Block.Normal();
             newblock.type = 1;
             newblock.isVisible = true;
@@ -59,19 +76,19 @@ public class StarInfo {
             newblock.isInteractive = true;
             block.add(newblock);
         }
-//        圆角修饰部分
-        int rindex = realIndexOf(roundnum, info.mintier);
-        double r = heightOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
-        for (var i = roundnum; i < groundnum; i++) {
+//        圆角修饰部分_out
+        int index_out = realIndexOf(outline_roundnum, info.mintier);
+        double r_out = heightOf(tiernum*(tiernum-1)*3+1) * Math.pow(3,1.0/2) / 2;
+        for (var i = outline_roundnum; i < groundnum; i++) {
             Block newblock = new Block.Normal();
-            if ( heightOf(rindex) <= r ) {
+            if ( heightOf(index_out) <= r_out ) {
                 newblock.type = 1;
                 newblock.isVisible = true;
                 newblock.isDestructible = true;
                 newblock.isInteractive = true;
             }else newblock.type = 0;
             block.add(newblock);
-            rindex++;
+            index_out++;
         }
 //        纯天空生成
         for (var i = groundnum; i < blocknum; i++) {
@@ -81,8 +98,8 @@ public class StarInfo {
         }
 
         info.blocks = block.toArray(new Block[0]);
-//        System.out.print("[blocks:]:\t");
-//        System.out.println(info.blocks.length);
+        System.out.print("[blocks:]:\t");
+        System.out.println(info.blocks.length);
         info.starUsers = new HashMap<>();
         return info;
     }
@@ -117,6 +134,7 @@ public class StarInfo {
 //        System.out.println(StarInfo.angleOf(43));
 //        System.out.print(tierOf(18));
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
+        System.out.println(heightOf(7));
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -130,6 +148,7 @@ public class StarInfo {
         return res;
     }
 
+//    单位 1 : 根3边长;  两层距离 : 二分之根3
     public static Position posOf(int realindex) {
         Position pos = new Position();
         int tier = tierOf(realindex);

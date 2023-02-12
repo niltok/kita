@@ -14,7 +14,7 @@ public class BlockRenderer implements DrawablesRenderer {
         int rindex = StarInfo.realIndexOf(0, star.starInfo().mintier);
         for (var i = 0; i < star.starInfo().blocks.length; i++) {
             var block = star.starInfo().blocks[i];
-            if (block.type == 1) {
+            if (block.isVisible) {
                 var d = new Drawable.Sprite();
                 Position pos = StarInfo.posOf(rindex);
                 d.x = pos.x * 20;
