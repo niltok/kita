@@ -175,20 +175,26 @@ public class StarInfo {
 
     public static boolean is_standable(double x, double y, double r, StarInfo star) {
         boolean res = true;
-        int index = realIndexOf(x,y);
-        Position pos = posOf(index);
-        double rr = Math.hypot(pos.x-x, pos.y-y) + r;
-        int tiers = (int)(rr / tierdistance) + 1;
-        int[] blocklist = new int[tiers*(tiers+1)*3];
-        for (int i = 0; i < blocklist.length; i++ ) {
-            blocklist[i] = i + 1;
-        }
-        for (int i = 0; i < blocklist.length; i++ ) {
-            Position posi = posOf(blocklist[i]);
-            blocklist[i] = realIndexOf(pos.x+posi.x, pos.y+ pos.y);
-        }
-        for ( var i : blocklist) {
-            if (star.blocks[i].isCollidable) { res = false; break; }
+        if (Math.hypot(x,y) > star.maxtier) {
+            int index = realIndexOf(x, y);
+            Position pos = posOf(index);
+            double rr = Math.hypot(pos.x - x, pos.y - y) + r;
+            int tiers = (int) (rr / tierdistance) + 1;
+            int[] blocklist = new int[tiers * (tiers + 1) * 3];
+            for (int i = 0; i < blocklist.length; i++) {
+                blocklist[i] = i + 1;
+            }
+            int surblock = star.mintier * (star.mintier - 1) * 3;
+            for (int i = 0; i < blocklist.length; i++) {
+                Position posi = posOf(blocklist[i]);
+                blocklist[i] = realIndexOf(pos.x + posi.x, pos.y + pos.y) - surblock - 1;
+            }
+            for (var i : blocklist) {
+                if (star.blocks[blocklist[i]].isCollidable) {
+                    res = false;
+                    break;
+                }
+            }
         }
         return res;
     }
