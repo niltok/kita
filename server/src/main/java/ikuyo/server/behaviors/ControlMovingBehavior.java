@@ -1,5 +1,7 @@
 package ikuyo.server.behaviors;
 
+import ikuyo.api.Drawable;
+import ikuyo.api.StarInfo;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.BehaviorContext;
 
@@ -13,21 +15,31 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
             var z = Math.hypot(pos.x, pos.y);
             var dx = speed * (z == 0 ? 0 : pos.x / z);
             var dy = speed * (z == 0 ? -1 : pos.y / z);
+            var px = pos.x;
+            var py = pos.y;
             if (input.up > 0) {
-                pos.x += dx;
-                pos.y += dy;
+                px += dx;
+                py += dy;
             }
             if (input.down > 0) {
-                pos.x -= dx;
-                pos.y -= dy;
+                px -= dx;
+                py -= dy;
             }
             if (input.left > 0) {
-                pos.x += dy;
-                pos.y -= dx;
+                px += dy;
+                py -= dx;
             }
             if (input.right > 0) {
-                pos.x -= dy;
-                pos.y += dx;
+                px -= dy;
+                py += dx;
+            }
+            if (StarInfo.is_standable(
+                    px / Drawable.scaling,
+                    py / Drawable.scaling,
+                    50 / Drawable.scaling,
+                    context.star().starInfo())) {
+                pos.x = px;
+                pos.y = py;
             }
         });
     }
