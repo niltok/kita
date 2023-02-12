@@ -70,6 +70,12 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
                 universe int references universe not null default 1,
                 star int references star not null default 1
             );
-            insert into "user"(name, pwd, is_admin) values ('admin', 'admin', true), ('user0', 'user0', false);
             """;
+
+    public static int insert(SqlClient client, String name, String pwd, boolean isAdmin, int univ, int star) {
+        var id = await(client.preparedQuery("""
+            insert into "user"(name, pwd, is_admin, universe, star) values ($1, $2, $3, $4, $5) returning id;
+            """).execute(Tuple.of(name, pwd, isAdmin, univ, star))).iterator().next().getInteger(0);
+        return id;
+    }
 }

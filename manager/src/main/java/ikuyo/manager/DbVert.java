@@ -9,6 +9,7 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 
 public class DbVert extends AsyncVerticle {
+    final boolean SingleStar = true;
     PgPool pool;
 
     //language=PostgreSQL
@@ -43,13 +44,15 @@ public class DbVert extends AsyncVerticle {
                 cleanDbSql,
                 Universe.createTableSql,
                 Star.StarGroup.createTableSql,
-                Star.createTableSql
-        )).execute());
-        logger.info(JsonObject.of("type", "creating initial star group..."));
-        Star.query(pool, 1, 0, 0, 0, 0);
-        await(pool.query(String.join("",
+                Star.createTableSql,
                 User.createTableSql
         )).execute());
+        logger.info(JsonObject.of("type", "creating universe..."));
+        int univId = Universe.insert(pool, !SingleStar);
+        if (SingleStar) Star.insert(pool, univId, 0, 0, 0, 0);
+        logger.info(JsonObject.of("type", "creating users..."));
+        User.insert(pool, "admin", "admin", true, univId, 1);
+        User.insert(pool, "user0", "user0", true, univId, 1);
         logger.info(JsonObject.of("type", "database reset done"));
     }
 }

@@ -13,7 +13,6 @@ public record Universe(int index, int seed, boolean autoExpand) {
             seed int not null default (random() - 0.5) * 4294967296,
             auto_expand boolean not null
         );
-        insert into universe(auto_expand) values (true);
         """;
 
     public static Universe get(SqlClient client, int index) {
@@ -26,5 +25,14 @@ public record Universe(int index, int seed, boolean autoExpand) {
                 row.getInteger("index"),
                 row.getInteger("seed"),
                 row.getBoolean("auto_expand"));
+    }
+
+    public static int insert(SqlClient client, boolean autoExpand) {
+        var id = await(client.preparedQuery(
+                "insert into universe(auto_expand) values ($1) returning index;"
+        ).execute(Tuple.of(autoExpand))).iterator().next().getInteger(0);
+        if (!autoExpand) return id;
+        Star.query(client, id, 0, 0, 0, 0);
+        return id;
     }
 }
