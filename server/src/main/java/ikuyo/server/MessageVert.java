@@ -46,7 +46,7 @@ public class MessageVert extends AsyncVerticle {
 
     private void starEventsHandler(Message<JsonObject> msg) {
         var json = msg.body();
-        logger.info(json);
+//        logger.info(json);
         switch (json.getString("type")) {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
