@@ -6,6 +6,8 @@ import {isDraft, original} from "@reduxjs/toolkit";
 import {UIElement} from "./types/UIElement";
 import {store} from "./store";
 
+export const FPS = 60
+
 export const delay = (time: number) => {
     return new Promise(resolve => setTimeout(resolve, time))
 }
@@ -107,19 +109,19 @@ export function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
 }
 
 export function renderUI(elem: UIElement): JSX.Element {
+    const commonProp = {
+        style: elem.style,
+        className: elem.classes.join(' '),
+        children: elem.children.map(e => renderUI(e))
+    }
+    const clickCallback = elem.callback ? {
+        onClick: () => sendSocket$.next(elem.callback)
+    } : {}
     switch (elem.type) {
-        case "div": return (<div style={elem.style} onClick={() =>
-            elem.callback && sendSocket$.next(elem.callback)}>
-            {elem.children.map(e => renderUI(e))}
-        </div>)
-        case "button": return (<button style={elem.style} onClick={() =>
-            elem.callback && sendSocket$.next(elem.callback)}>
-            {elem.children.map(e => renderUI(e))}
-        </button>)
-        case "input.text": return (<input type={"text"} style={elem.style} onChange={e =>
-            elem.stateName && store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))}>
-            {elem.children.map(e => renderUI(e))}
-        </input>)
+        case "div": return (<div {...commonProp} {...clickCallback} />)
+        case "button": return (<button {...commonProp} {...clickCallback} />)
+        case "input.text": return (<input type={"text"} {...commonProp} onChange={e =>
+            elem.stateName && store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))} />)
         default: return <>{elem.type}</>
     }
 }

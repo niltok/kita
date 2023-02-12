@@ -6,6 +6,7 @@ public class UIElement {
     public String type;
     public UIElement[] children;
     public JsonObject style = JsonObject.of();
+    public String[] classes = new String[0];
     public UIElement(String type) {
         this.type = type;
         this.children = new UIElement[0];
@@ -16,6 +17,11 @@ public class UIElement {
     }
     public UIElement withStyle(JsonObject style) {
         this.style = style;
+        return this;
+    }
+
+    public UIElement withClass(String... classes) {
+        this.classes = classes;
         return this;
     }
 

@@ -3,12 +3,14 @@ import {useAppSelector} from "../storeHook"
 import {keyEvents$, sendSocket$, seqDrawables$} from "../dbus"
 import {Drawable, matchI} from "../types/Drawable"
 import * as pixi from 'pixi.js'
-import {applyObjectDiff, getKeyCode, useKeyboard, useSubscribe, useWindowSize} from "../utils"
+import {applyObjectDiff, FPS, getKeyCode, useKeyboard, useSubscribe, useWindowSize} from "../utils"
 import {store} from "../store"
+import Immutable from "immutable";
+import {debounceTime} from "rxjs";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 type SeqState = {
-    drawables: { [key: string]: Drawable }
+    drawables: Map<string, Drawable>
     assets: any
 }
 
@@ -32,7 +34,7 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
         Drawable$Text(text) {
             const display = cached instanceof pixi.Text && cached ||
                 new pixi.Text(text.text, {
-                    fontFamily: "Sourcehanserifcn Vf.ttf",
+                    fontFamily: ["Sourcehanserifcn Vf.ttf"],
                     ...text.style
                 })
             setCommonProp(display)
@@ -45,6 +47,7 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
             container.children.forEach(d => display.addChild(renderDrawable(d, assets)))
             display.sortableChildren = true
             display.sortChildren()
+            display.sortableChildren = false
             setCommonProp(display)
             return display
         },
@@ -96,25 +99,33 @@ export const Stage = () => {
         const app = new pixi.Application({
             resizeTo: window,
             view: canvas,
-            antialias: true,
+            antialias: false,
+            autoDensity: true,
         })
+        app.ticker.maxFPS = FPS
         const camera = new pixi.Container()
-        camera.sortableChildren = true
         app.stage.addChild(camera)
         const state: SeqState = {
             assets,
-            drawables: {}
+            drawables: new Map<string, Drawable>(),
         }
         const seqSub = seqDrawables$.subscribe({
             next(val) {
-                applyObjectDiff(state.drawables, val.data)
+                for (const k in val.data) {
+                    const d = state.drawables.get(k), vd = val.data[k]
+                    if (vd === null) state.drawables.delete(k)
+                    else if (d === undefined) state.drawables.set(k, vd)
+                    else applyObjectDiff(d, vd)
+                }
+                // console.log(Immutable.Map(state.drawables).toObject())
                 camera.removeChildren()
-                for (const key in state.drawables) {
-                    const drawable = state.drawables[key]
+                state.drawables.forEach((drawable, key) => {
                     drawable.key = key
                     camera.addChild(renderDrawable(drawable, assets))
-                }
+                })
+                camera.sortableChildren = true
                 camera.sortChildren()
+                camera.sortableChildren = false
             }
         })
         const storeUnsub = store.subscribe(() => {

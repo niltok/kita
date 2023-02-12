@@ -121,7 +121,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y;
+        public double x, y = 725;
         public boolean online;
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
