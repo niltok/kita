@@ -30,81 +30,88 @@ public class StarInfo {
         return DataStatic.gzipEncode(toJson().toBuffer());
     }
     public static StarInfo gen(int seed) {
-//        System.out.print("[seed]:\t");
-//        System.out.println(seed);
         var info = new StarInfo();
-        ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
+        int blocknum = info.maxtier*(info.maxtier+1)*3 - info.mintier*(info.mintier-1)*3;
+        info.blocks = new Block[blocknum];
+        for (int i = 0;i < info.blocks.length; i++) {
+            info.blocks[i] = new Block.Normal();
+        }
+        info.starUsers = new HashMap<>();
 
-        info.maxtier = 50; info.mintier = 10;
-//        生成地面最高层
-        int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
-                        + (info.maxtier-info.mintier)*0.25)
-                        + info.mintier;
-//        tiernum = 13;
-        int roundstarttier = (int)(tiernum * tierdistance) - 1;
-
+//        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
 //        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
 
-        int blocknum = info.maxtier*(info.maxtier+1)*3 - info.mintier*(info.mintier-1)*3;
-        int groundnum =  tiernum*(tiernum+1)*3 - info.mintier*(info.mintier-1)*3;
-        int outline_roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
-        if (outline_roundnum < 0) outline_roundnum = 0;
 
-//        圆角修饰部分_in
+ //        圆角修饰部分_in
         int index_in = realIndexOf(0, info.mintier);
         double r_in = heightOf(index_in);
         int inline_tier = (int)((Math.pow(3,1.0/2)*2/3-1) * r_in) + 1 + info.mintier;
         int inline_roundnum = inline_tier*(inline_tier+1)*3 - info.mintier*(info.mintier-1)*3;
+        if (inline_roundnum > blocknum) inline_roundnum = blocknum;
         for (var i = 0; i < inline_roundnum; i++) {
-            Block newblock = new Block.Normal();
-            if ( heightOf(index_in) < r_in ) newblock.type = 0;
+            if ( heightOf(index_in) < r_in ) info.blocks[i].type = 0;
             else {
-                newblock.type = 1;
-                newblock.isVisible = true;
-                newblock.isDestructible = true;
-                newblock.isInteractive = true;
-                newblock.isCollidable = true;
+                info.blocks[i].type = 1;
+                info.blocks[i].isVisible = true;
+                info.blocks[i].isDestructible = true;
+                info.blocks[i].isInteractive = true;
+                info.blocks[i].isCollidable = true;
             }
-            block.add(newblock);
             index_in++;
         }
+
+//        生成地面最高层
+        int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
+                + (info.maxtier-info.mintier)*0.25)
+                + info.mintier;
+        int roundstarttier = (int)(tiernum * tierdistance) - 1;
+        int groundnum =  tiernum*(tiernum+1)*3 - info.mintier*(info.mintier-1)*3;
+        int outline_roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
+        if (outline_roundnum < 0) outline_roundnum = 0;
+
 //        纯地面生成
         for (var i = inline_roundnum; i < outline_roundnum; i++) {
-            Block newblock = new Block.Normal();
-            newblock.type = 1;
-            newblock.isVisible = true;
-            newblock.isDestructible = true;
-            newblock.isInteractive = true;
-            newblock.isCollidable = true;
-            block.add(newblock);
+            info.blocks[i].type = 1;
+            info.blocks[i].isVisible = true;
+            info.blocks[i].isDestructible = true;
+            info.blocks[i].isInteractive = true;
+            info.blocks[i].isCollidable = true;
         }
+
 //        圆角修饰部分_out
         int index_out = realIndexOf(outline_roundnum, info.mintier);
         double r_out = heightOf(tiernum*(tiernum-1)*3+1) * tierdistance;
         for (var i = outline_roundnum; i < groundnum; i++) {
-            Block newblock = new Block.Normal();
             if ( heightOf(index_out) <= r_out ) {
-                newblock.type = 1;
-                newblock.isVisible = true;
-                newblock.isDestructible = true;
-                newblock.isInteractive = true;
-                newblock.isCollidable = true;
-            }else newblock.type = 0;
-            block.add(newblock);
+                info.blocks[i].type = 1;
+                info.blocks[i].isVisible = true;
+                info.blocks[i].isDestructible = true;
+                info.blocks[i].isInteractive = true;
+                info.blocks[i].isCollidable = true;
+            }else info.blocks[i].type = 0;
             index_out++;
         }
+
 //        纯天空生成
         for (var i = groundnum; i < blocknum; i++) {
-            Block newblock = new Block.Normal();
-            newblock.type = 0;
-            block.add(newblock);
+            info.blocks[i].type = 0;
         }
 
-        info.blocks = block.toArray(new Block[0]);
-        System.out.print("[blocks:]:\t");
-        System.out.println(info.blocks.length);
-        info.starUsers = new HashMap<>();
+
+//        int[] test = new int[500];
+//        boolean a = true;
+//        for(int i = 0; i < info.blocks.length; i++) {
+//            int tier = tierOf(realIndexOf(i,info.mintier));
+//            if ( tier > 260 || tier < 240 ) { a = false; }
+//            if(!info.blocks[i].isVisible) {
+//                test[tierOf(realIndexOf(i,info.mintier))] ++;
+//            }
+//        }
+//        for (int i = 0; i < 500; i++) {
+//            if (test[i] != 0) System.out.println("[tier]: %d, [num]: %d".formatted(i,test[i]));
+//        }
+
         return info;
     }
 
@@ -121,7 +128,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y = 725;
+        public double x, y = 1000;
         public boolean online;
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
@@ -136,10 +143,26 @@ public class StarInfo {
 //        System.out.print("angle1:\t");
 //        System.out.println(StarInfo.angleOf(43));
 //        System.out.print(tierOf(18));
-//        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
-//        int index = 7;
+//        Position pos = StarInfo.posOf(172441);
+
+//        int index = 17;
 //        Position pos = StarInfo.posOf(index);
-//        System.out.printf("Position at [%f,%f] is : [%d]%n", 1.0, 36.0, realIndexOf(1.0, 36.0));
+//        System.out.println("[index]: %d, [tier]: %d, [x]: %f, [y]: %f, [angle]: %f"
+//                .formatted(index, tierOf(index), pos.x, pos.y, (Math.atan2(pos.y,pos.x) + Math.PI*2) % (Math.PI*2)));
+//        System.out.println("Position at [%d] is : [%d]".formatted(index, realIndexOf(pos.x, pos.y)));
+
+//        System.out.println("Position at [%f,%f] is : [%d]%n".formatted(-4.0, 207.846, realIndexOf(-4.0, 207.846)));
+
+//        int testtier = 500;
+//        int error = 0;
+//        for(int i = 7; i < testtier*(testtier+1)*3; i++) {
+//            Position pos = posOf(i);
+//            if ( i != realIndexOf(pos.x,pos.y) ) {
+//                error++;
+//                System.out.println("[i]: %d, [cul]: %d".formatted(i, realIndexOf(pos.x,pos.y)));
+//            }
+//        }
+//        System.out.println("[totalNumber]: %d, [ErrorNumber]: %d".formatted(testtier*(testtier+1)*3, error));
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -182,19 +205,15 @@ public class StarInfo {
             Position pos = posOf(index);
             double rr = Math.hypot(pos.x - x, pos.y - y) + r;
             int tiers = (int) (rr / tierdistance) + 1;
-            int[] blocklist = new int[tiers * (tiers + 1) * 3];
-
-            int surblock = star.mintier * (star.mintier - 1) * 3;
-            for (int i = 0; i < blocklist.length; i++) {
-                Position posi = posOf(i+1);
-                blocklist[i] = realIndexOf(pos.x + posi.x, pos.y + posi.y) - surblock - 1;
-            }
+            int[] blocklist = ntierAround(index, tiers * (tiers + 1) * 3, star.mintier, star.maxtier)
+                    .stream().mapToInt(Integer::valueOf).toArray();
 
 //            System.out.println("[blocks]: %d".formatted(star.blocks.length));
 //            for (var i : blocklist) { System.out.println(i); }
 
+            int surblock = star.mintier * (star.mintier - 1) * 3;
             for (var i : blocklist) {
-                if (star.blocks[i].isCollidable) {
+                if (star.blocks[i-surblock-1].isCollidable) {
                     res = false;
                     break;
                 }
@@ -204,12 +223,19 @@ public class StarInfo {
     }
 
     public static int realIndexOf(double x, double y) {
-        int tier = (int)(Math.hypot(x,y)/tierdistance);
         double radian = (Math.atan2(y,x) + Math.PI*2) % (Math.PI*2);
-        int edge = (int)(radian / (Math.PI/3));
-        double percent = radian % (Math.PI/3);
+        radian = Double.parseDouble(String.format("%.6f", radian));
+        double PIDiv3 = Double.parseDouble(String.format("%.6f", Math.PI/3));
+        int edge = (int)(radian / PIDiv3);
+        double i = radian % PIDiv3;
+        int tier = (int)(Math.cos(Math.abs(Math.PI/6-i))*Math.hypot(x,y) / tierdistance);
+        double percent = (Math.tan(i)/Math.sin(Math.PI/3)) / (Math.tan(i)/Math.tan(Math.PI/3)+1);
+        if (percent > 1) percent -= 1.0;
+//        System.out.println("{realIndexOf}\t[tier]: %d, [edge]: %d, [i]: %f, [percent]: %f"
+//                .formatted(tier, edge, i, percent));
+
         Map<Integer, Double> map = new HashMap<>();
-        int index = edge * tier + (int)(percent * tier) + tier * (tier-1) * 3;
+        int index = edge * tier + (int)(percent * tier) + tier * (tier-1) * 3 + 1;
         Position pos = posOf(index);
         map.put(index,Math.hypot(pos.x-x, pos.y-y));
 
@@ -217,7 +243,7 @@ public class StarInfo {
         pos = posOf(index);
         map.put(index,Math.hypot(pos.x-x, pos.y-y));
 
-        index = edge * (tier+1) + (int)(percent * (tier+1)) + (tier+1) * tier * 3;
+        index = edge * (tier+1) + (int)(percent * (tier+1)) + (tier+1) * tier * 3 + 1;
         pos = posOf(index);
         map.put(index,Math.hypot(pos.x-x, pos.y-y));
 
@@ -230,12 +256,18 @@ public class StarInfo {
 
         return list.get(0).getKey();
     }
-//    public static double angleOf(int realindex) {
-//        int tier = tierOf(realindex);
-//        int reltindex = realindex - 3*tier*(tier-1) - 1;
-//        double i = (reltindex%tier)/(double)tier;
-//        double x = 1 - i * Math.cos(Math.PI/3.0);
-//        double y = i * Math.sin(Math.PI/3.0);
-//        return Math.atan(y/x) + Math.PI*(int)(reltindex/tier)/3.0;
-//    }
+
+/** realindex 周围 n 层的块的真实编号*/
+    public static ArrayList<Integer> ntierAround(int realindex, int n, int mintier, int maxtier) {
+        ArrayList<Integer> res = new ArrayList<>();
+        Position pos = posOf(realindex);
+        for (int i = 0; i < n*(n+1)*3; i++) {
+            Position posi = posOf(i+1);
+            int index = realIndexOf(pos.x + posi.x, pos.y + posi.y);
+            int tier = tierOf(index);
+            if( tier >= mintier && tier <= maxtier) res.add(index);
+        }
+        return res;
+//        res.stream().mapToInt(Integer::valueOf).toArray()
+    }
 }
