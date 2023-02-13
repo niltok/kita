@@ -46,7 +46,7 @@ public class MessageVert extends AsyncVerticle {
 
     private void starEventsHandler(Message<JsonObject> msg) {
         var json = msg.body();
-//        logger.info(json);
+        logger.info(json);
         switch (json.getString("type")) {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
@@ -84,7 +84,6 @@ public class MessageVert extends AsyncVerticle {
                 var specials = json.getJsonObject("special");
                 userStates.forEach((id, userState) -> {
                     if (diff != null) { // 只有 seq 变化、其他无变化则不用发送
-                        logger.info(diff);
                         eventBus.send(userState.socket, diff);
                     }
                     var state = specials.getJsonObject(id.toString());
