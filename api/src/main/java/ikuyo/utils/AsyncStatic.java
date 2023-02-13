@@ -5,8 +5,10 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.executeblocking.ExecuteBlocking;
 
 import java.time.Duration;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public interface AsyncStatic {
@@ -48,5 +50,9 @@ public interface AsyncStatic {
         Promise<Void> promise = Promise.promise();
         Vertx.currentContext().runOnContext(v -> promise.complete());
         Async.await(promise.future());
+    }
+
+    static <T> T runBlocking(Supplier<T> task) {
+        return Async.await(ExecuteBlocking.executeBlocking(task::get));
     }
 }

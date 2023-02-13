@@ -15,7 +15,7 @@ public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHel
     @Override
     public final void init(Vertx vertx, Context context) {
         super.init(vertx, context);
-        asyncRunner = new Async(vertx);
+        asyncRunner = new Async(vertx, true);
         eventBus = vertx.eventBus();
         this.logger = LoggerFactory.getLogger("%s(%s)".formatted(this.getClass().getName(), deploymentID()));
     }

@@ -25,13 +25,13 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
     }
     const cached = cache?.get(drawable.key)
     return matchI(drawable) ({
-        Drawable$Sprite(sprite) {
+        Sprite(sprite) {
             const display = cached instanceof pixi.Sprite && cached ||
                 pixi.Sprite.from(assets[sprite.bundle][sprite.asset])
             setCommonProp(display)
             return display
         },
-        Drawable$Text(text) {
+        Text(text) {
             const display = cached instanceof pixi.Text && cached ||
                 new pixi.Text(text.text, {
                     fontFamily: ["Sourcehanserifcn Vf.ttf"],
@@ -40,7 +40,7 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
             setCommonProp(display)
             return display
         },
-        Drawable$Container(container) {
+        Container(container) {
             const display = cached instanceof pixi.Container && cached ||
                 new pixi.Container()
             display.removeChildren()
@@ -51,7 +51,7 @@ function renderDrawable(drawable: Drawable, assets: any, cache?: Map<string, pix
             setCommonProp(display)
             return display
         },
-        Drawable$AnimatedSprite(animated) {
+        AnimatedSprite(animated) {
             const display = cached instanceof pixi.AnimatedSprite && cached ||
                 new pixi.AnimatedSprite(assets[animated.bundle][animated.asset].animations[animated.animation])
             if (animated.playing) display.gotoAndPlay(animated.initialFrame)

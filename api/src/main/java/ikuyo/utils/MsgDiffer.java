@@ -1,9 +1,11 @@
 package ikuyo.utils;
 
 import com.google.common.collect.Sets;
+import io.vertx.await.Async;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.executeblocking.ExecuteBlocking;
 
 import java.util.Objects;
 
@@ -16,7 +18,7 @@ public class MsgDiffer {
     }
 
     public Buffer next(JsonObject msg) {
-        var diff = jsonDiff(prev, msg);
+        var diff = AsyncStatic.runBlocking(() -> jsonDiff(prev, msg));
         if (diff.isEmpty()) return null;
         prev = msg;
         return JsonObject.of(
@@ -42,7 +44,7 @@ public class MsgDiffer {
         var merged = Sets.union(to.fieldNames(), from.fieldNames());
         var diff = JsonObject.of();
         for (var k : merged) {
-            Object fv = from.getValue(k), tv = to.getValue(k);
+            Object fv = from.getMap().get(k), tv = to.getMap().get(k);
             if (fv == null && tv != null) diff.put(k, tv);
             else if (fv != null && tv == null) diff.putNull(k);
             else if (fv instanceof JsonObject fj && tv instanceof JsonObject tj && deep > 0) {

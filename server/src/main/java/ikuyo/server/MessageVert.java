@@ -3,6 +3,7 @@ package ikuyo.server;
 import ikuyo.api.UserKeyInput;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
+import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
@@ -25,7 +26,8 @@ class UserState {
 public class MessageVert extends AsyncVerticle {
     int starId;
     String updaterId;
-    MessageConsumer<JsonObject> starEvents, vertEvents;
+    MessageConsumer<JsonObject> starEvents;
+    MessageConsumer<NoCopyBox<JsonObject>> vertEvents;
     MsgDiffer msgDiffer = new MsgDiffer("starDrawables");
     Map<Integer, UserState> userStates = new HashMap<>();
 
@@ -75,8 +77,8 @@ public class MessageVert extends AsyncVerticle {
         }
     }
 
-    private void vertEventsHandler(Message<JsonObject> msg) {
-        var json = msg.body();
+    private void vertEventsHandler(Message<NoCopyBox<JsonObject>> msg) {
+        var json = msg.body().value;
         switch (json.getString("type")) {
             case "star.updated" -> {
                 var drawables = json.getJsonObject("commonSeq").getJsonObject("starDrawables");

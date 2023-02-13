@@ -36,7 +36,7 @@ public interface DrawablesRenderer extends Renderer<RendererContext> {
             }
             return new JsonObject(drawables.entrySet().stream().collect(Collectors.toMap(
                     Map.Entry::getKey,
-                    kv -> JsonObject.mapFrom(kv.getValue()),
+                    kv -> kv.getValue().toJson(),
                     (s, a) -> s)));
         }
     }
