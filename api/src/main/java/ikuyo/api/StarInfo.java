@@ -11,9 +11,9 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
 ///   层级最大值
-    public int maxtier = 200;
+    public int maxtier = 50;
 ///   层级最小值
-    public int mintier = 20;
+    public int mintier = 10;
 ///   层级间距
     public static final double tierdistance = Math.pow(3,1.0/2)/2;
 
@@ -36,7 +36,7 @@ public class StarInfo {
         ArrayList<Block> block = new ArrayList<>();
         Random random = new Random(seed);
 
-        info.maxtier = 30; info.mintier = 10;
+        info.maxtier = 50; info.mintier = 10;
 //        生成地面最高层
         int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
                         + (info.maxtier-info.mintier)*0.25)
@@ -139,7 +139,7 @@ public class StarInfo {
 //        System.out.printf(String.format("%g, %g, \nangle2:\t%g", pos.x, pos.y, Math.atan(pos.y/pos.x)));
 //        int index = 7;
 //        Position pos = StarInfo.posOf(index);
-//        System.out.printf("Position at [%f,%f] is : [%d]%n", 2.3, 0.5, realIndexOf(2.3, 0.5));
+//        System.out.printf("Position at [%f,%f] is : [%d]%n", 1.0, 36.0, realIndexOf(1.0, 36.0));
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -175,22 +175,26 @@ public class StarInfo {
 
     public static boolean is_standable(double x, double y, double r, StarInfo star) {
         boolean res = true;
-        if (Math.hypot(x,y) > star.maxtier) {
+//        System.out.println("[x]: %f, [y]: %f, [r]: %f, [maxtier]: %d".formatted(x, y, r, star.maxtier));
+        if (Math.hypot(x,y) < star.maxtier*tierdistance) {
             int index = realIndexOf(x, y);
+//            System.out.println("[index]: %d".formatted(index));
             Position pos = posOf(index);
             double rr = Math.hypot(pos.x - x, pos.y - y) + r;
             int tiers = (int) (rr / tierdistance) + 1;
             int[] blocklist = new int[tiers * (tiers + 1) * 3];
-            for (int i = 0; i < blocklist.length; i++) {
-                blocklist[i] = i + 1;
-            }
+
             int surblock = star.mintier * (star.mintier - 1) * 3;
             for (int i = 0; i < blocklist.length; i++) {
-                Position posi = posOf(blocklist[i]);
-                blocklist[i] = realIndexOf(pos.x + posi.x, pos.y + pos.y) - surblock - 1;
+                Position posi = posOf(i+1);
+                blocklist[i] = realIndexOf(pos.x + posi.x, pos.y + posi.y) - surblock - 1;
             }
+
+//            System.out.println("[blocks]: %d".formatted(star.blocks.length));
+//            for (var i : blocklist) { System.out.println(i); }
+
             for (var i : blocklist) {
-                if (star.blocks[blocklist[i]].isCollidable) {
+                if (star.blocks[i].isCollidable) {
                     res = false;
                     break;
                 }
