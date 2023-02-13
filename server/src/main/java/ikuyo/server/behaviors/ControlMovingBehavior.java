@@ -36,7 +36,7 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
             if (StarInfo.is_standable(
                     px / Drawable.scaling,
                     py / Drawable.scaling,
-                    50 / Drawable.scaling,
+                    60 / Drawable.scaling,
                     context.star().starInfo())) {
                 pos.x = px;
                 pos.y = py;
