@@ -22,18 +22,20 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class UpdateVert extends AsyncVerticle {
     final double MaxFps = 60;
     Star star;
     MessageConsumer<JsonObject> vertEvents;
-    long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0;
+    long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
     String msgVertId;
     PgPool pool;
     Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
             new ControlMovingBehavior()
     );
+    BehaviorContext behaviorContext;
     Renderer<RendererContext> commonSeqRenderer = new CompositeRenderer<>(false,
             new DrawablesRenderer.Composite(
                     new BlockRenderer(),
@@ -43,6 +45,7 @@ public class UpdateVert extends AsyncVerticle {
     Renderer<RendererContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer()
     );
+    RendererContext rendererContext;
 
     @Override
     public void start() {
@@ -52,17 +55,17 @@ public class UpdateVert extends AsyncVerticle {
 
     @Override
     public void stop() throws Exception {
-        doEvents();
-        logger.info(JsonObject.of(
-                "type", "updater.undeploy",
-                "updateCount", updateCount,
-                "averageTime", (System.nanoTime() - startTime) / 1000_000.0 / updateCount));
         vertx.cancelTimer(writeBackId);
         vertx.cancelTimer(mainLoopId);
         await(CompositeFuture.all(
                 vertEvents.unregister(),
                 vertx.undeploy(msgVertId),
                 async(this::stopPool)));
+        logger.info(JsonObject.of(
+                "type", "updater.undeploy",
+                "updateCount", updateCount,
+                "averageDeltaTime", (System.nanoTime() - startTime) / 1000_000.0 / updateCount,
+                "averageUpdateTime", updateTotalTime / 1000_000.0 / updateCount));
     }
 
     private void stopPool() {
@@ -76,13 +79,14 @@ public class UpdateVert extends AsyncVerticle {
 
     private void loadStar(int id) {
         star = Star.get(pool, id);
+        behaviorContext = new BehaviorContext(star, new HashMap<>());
+        rendererContext = new RendererContext(star);
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
         logger.info("star." + id + " loaded");
         vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
         msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
-                .setWorker(true)
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
         startTime = System.nanoTime();
         prevTime = startTime;
@@ -102,6 +106,8 @@ public class UpdateVert extends AsyncVerticle {
                 var users = star.starInfo().starUsers;
                 if (users.get(id) == null) users.put(id, new StarInfo.StarUserInfo());
                 users.get(id).online = true;
+                if (behaviorContext.userKeyInputs().get(id) == null)
+                    behaviorContext.userKeyInputs().put(id, new UserKeyInput());
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
@@ -109,6 +115,17 @@ public class UpdateVert extends AsyncVerticle {
                 var users = star.starInfo().starUsers;
                 users.get(id).online = false;
                 msg.reply(JsonObject.of("type", "success"));
+            }
+            case "user.message" -> userEventHandler(json);
+        }
+    }
+
+    void userEventHandler(JsonObject json) {
+        var msg = json.getJsonObject("msg");
+        switch (msg.getString("type")) {
+            case "star.operate.key" -> {
+                behaviorContext.userKeyInputs().get(json.getInteger("userId")).input(
+                        msg.getString("action"), msg.getInteger("value", 1));
             }
         }
     }
@@ -118,14 +135,8 @@ public class UpdateVert extends AsyncVerticle {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
-            var userKeyInputs = ((JsonObject)
-                    await(eventBus.request(msgVertId, NoCopyBox.of(JsonObject.of(
-                            "type", "user.input.key.require")))).body())
-                    .stream().collect(Collectors.toMap(
-                            e -> Integer.valueOf(e.getKey()),
-                            e -> ((JsonObject)e.getValue()).mapTo(UserKeyInput.class)));
-            mainBehavior.update(new BehaviorContext(star, userKeyInputs));
-            RendererContext rendererContext = new RendererContext(star);
+            mainBehavior.update(behaviorContext);
+            behaviorContext.userKeyInputs().forEach((i, u) -> u.frame());
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
@@ -134,6 +145,7 @@ public class UpdateVert extends AsyncVerticle {
                     "special", specialRenderer.render(rendererContext))));
             updateCount++;
             updateTime = System.nanoTime() - startTime;
+            updateTotalTime += updateTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),
                     v -> mainLoop());
         } catch (Exception e) { // stop buggy logic
