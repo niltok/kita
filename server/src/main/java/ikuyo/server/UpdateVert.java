@@ -12,6 +12,7 @@ import ikuyo.server.api.RendererContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
+import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.eventbus.Message;
@@ -118,18 +119,19 @@ public class UpdateVert extends AsyncVerticle {
             deltaTime = startTime - prevTime;
             prevTime = startTime;
             var userKeyInputs = ((JsonObject)
-                    await(eventBus.request(msgVertId, JsonObject.of("type", "user.input.key.require"))).body())
+                    await(eventBus.request(msgVertId, NoCopyBox.of(JsonObject.of(
+                            "type", "user.input.key.require")))).body())
                     .stream().collect(Collectors.toMap(
                             e -> Integer.valueOf(e.getKey()),
                             e -> ((JsonObject)e.getValue()).mapTo(UserKeyInput.class)));
             mainBehavior.update(new BehaviorContext(star, userKeyInputs));
             RendererContext rendererContext = new RendererContext(star);
-            eventBus.send(msgVertId, JsonObject.of(
+            eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
                     "commonSeq", commonSeqRenderer.render(rendererContext),
-                    "special", specialRenderer.render(rendererContext)));
+                    "special", specialRenderer.render(rendererContext))));
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),

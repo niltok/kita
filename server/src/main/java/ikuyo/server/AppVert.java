@@ -1,19 +1,19 @@
 package ikuyo.server;
 
 import ikuyo.utils.AsyncVerticle;
+import ikuyo.utils.NoCopyBox;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 
 public class AppVert extends AsyncVerticle {
-    EventBus eb;
     MessageConsumer<JsonObject> starNone;
 
     @Override
     public void start() {
-        eb = vertx.eventBus();
-        starNone = eb.consumer("star.none", msg -> {
+        eventBus.registerDefaultCodec(NoCopyBox.class, new NoCopyBox.Codec());
+        starNone = eventBus.consumer("star.none", msg -> {
             var json = msg.body();
             switch (json.getString("type")) {
                 case "star.load" -> {
