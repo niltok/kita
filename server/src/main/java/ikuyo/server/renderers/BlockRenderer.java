@@ -16,6 +16,7 @@ public class BlockRenderer implements DrawablesRenderer {
             if (block.isVisible) {
                 var d = new Drawable.Sprite();
                 Position pos = StarInfo.posOf(rindex);
+//                System.out.println("[x]: %f, [y]: %f".formatted(pos.x, pos.y));
                 d.x = pos.x * Drawable.scaling;
                 d.y = pos.y * Drawable.scaling;
                 d.bundle = "blocks";
