@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 class UserState {
     JsonObject specialCache = JsonObject.of();
-    UserKeyInput keyInput = new UserKeyInput();
     /** 发往这个地址的内容必须序列化为 Buffer 或 String */
     String socket;
     public UserState(String socket) {
@@ -70,10 +69,7 @@ public class MessageVert extends AsyncVerticle {
     private void userEventHandler(JsonObject json) {
         var msg = json.getJsonObject("msg");
         switch (msg.getString("type")) {
-            case "star.operate.key" -> {
-                userStates.get(json.getInteger("userId")).keyInput.input(
-                        msg.getString("action"), msg.getInteger("value", 1));
-            }
+            default -> eventBus.send(updaterId, json);
         }
     }
 
@@ -101,12 +97,6 @@ public class MessageVert extends AsyncVerticle {
                         }
                     }
                 });
-            }
-            case "user.input.key.require" -> {
-                msg.reply(new JsonObject(userStates.entrySet().stream().collect(Collectors.toMap(
-                        e -> e.getKey().toString(),
-                        e -> JsonObject.mapFrom(e.getValue().keyInput)))));
-                userStates.forEach((id, u) -> u.keyInput.frame());
             }
         }
     }
