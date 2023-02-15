@@ -139,30 +139,7 @@ public class StarInfo {
     }
 
     public static void main(String[] args) {
-//        StarInfo.gen(0);
-//        System.out.print("angle1:\t");
-//        System.out.println(StarInfo.angleOf(43));
-//        System.out.print(tierOf(18));
-//        Position pos = StarInfo.posOf(172441);
 
-//        int index = 17;
-//        Position pos = StarInfo.posOf(index);
-//        System.out.println("[index]: %d, [tier]: %d, [x]: %f, [y]: %f, [angle]: %f"
-//                .formatted(index, tierOf(index), pos.x, pos.y, (Math.atan2(pos.y,pos.x) + Math.PI*2) % (Math.PI*2)));
-//        System.out.println("Position at [%d] is : [%d]".formatted(index, realIndexOf(pos.x, pos.y)));
-
-//        System.out.println("Position at [%f,%f] is : [%d]%n".formatted(-4.0, 207.846, realIndexOf(-4.0, 207.846)));
-
-//        int testtier = 500;
-//        int error = 0;
-//        for(int i = 7; i < testtier*(testtier+1)*3; i++) {
-//            Position pos = posOf(i);
-//            if ( i != realIndexOf(pos.x,pos.y) ) {
-//                error++;
-//                System.out.println("[i]: %d, [cul]: %d".formatted(i, realIndexOf(pos.x,pos.y)));
-//            }
-//        }
-//        System.out.println("[totalNumber]: %d, [ErrorNumber]: %d".formatted(testtier*(testtier+1)*3, error));
     }
 
     public static int realIndexOf(int index, int mintier) {
