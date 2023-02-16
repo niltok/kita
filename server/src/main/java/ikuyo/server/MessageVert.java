@@ -78,7 +78,7 @@ public class MessageVert extends AsyncVerticle {
         switch (json.getString("type")) {
             case "star.updated" -> {
                 var drawables = json.getJsonObject("commonSeq").getJsonObject("starDrawables");
-                var diff = await(runBlocking(() -> msgDiffer.next(drawables), false));
+                var diff = msgDiffer.next(drawables);
                 var specials = json.getJsonObject("special");
                 userStates.forEach((id, userState) -> {
                     if (diff != null) { // 只有 seq 变化、其他无变化则不用发送

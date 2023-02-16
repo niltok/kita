@@ -9,6 +9,7 @@ import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.BehaviorContext;
 import ikuyo.server.api.RendererContext;
+import ikuyo.server.api.UpdatedContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
@@ -22,11 +23,12 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
 public class UpdateVert extends AsyncVerticle {
-    final double MaxFps = 60;
+    final double MaxFps = 80;
     Star star;
     MessageConsumer<JsonObject> vertEvents;
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
@@ -46,6 +48,7 @@ public class UpdateVert extends AsyncVerticle {
             new CameraRenderer()
     );
     RendererContext rendererContext;
+    UpdatedContext updatedContext;
 
     @Override
     public void start() {
@@ -79,8 +82,9 @@ public class UpdateVert extends AsyncVerticle {
 
     private void loadStar(int id) {
         star = Star.get(pool, id);
-        behaviorContext = new BehaviorContext(star, new HashMap<>());
-        rendererContext = new RendererContext(vertx, star);
+        updatedContext = new UpdatedContext();
+        behaviorContext = new BehaviorContext(star, new HashMap<>(), updatedContext);
+        rendererContext = new RendererContext(vertx, star, updatedContext);
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
@@ -108,12 +112,14 @@ public class UpdateVert extends AsyncVerticle {
                 users.get(id).online = true;
                 if (behaviorContext.userKeyInputs().get(id) == null)
                     behaviorContext.userKeyInputs().put(id, new UserKeyInput());
+                updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
                 var id = json.getInteger("id");
                 var users = star.starInfo().starUsers;
                 users.get(id).online = false;
+                updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.message" -> userEventHandler(json);
@@ -124,8 +130,10 @@ public class UpdateVert extends AsyncVerticle {
         var msg = json.getJsonObject("msg");
         switch (msg.getString("type")) {
             case "star.operate.key" -> {
-                behaviorContext.userKeyInputs().get(json.getInteger("userId")).input(
+                var id = json.getInteger("userId");
+                behaviorContext.userKeyInputs().get(id).input(
                         msg.getString("action"), msg.getInteger("value", 1));
+                updatedContext.users().add(id);
             }
         }
     }
@@ -137,12 +145,15 @@ public class UpdateVert extends AsyncVerticle {
             prevTime = startTime;
             mainBehavior.update(behaviorContext);
             behaviorContext.userKeyInputs().forEach((i, u) -> u.frame());
+            var seq = runBlocking(() -> commonSeqRenderer.render(rendererContext));
+            var spe = runBlocking(() -> specialRenderer.render(rendererContext));
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
-                    "commonSeq", commonSeqRenderer.render(rendererContext),
-                    "special", specialRenderer.render(rendererContext))));
+                    "commonSeq", await(seq),
+                    "special", await(spe))));
+            updatedContext.clear();
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             updateTotalTime += updateTime;

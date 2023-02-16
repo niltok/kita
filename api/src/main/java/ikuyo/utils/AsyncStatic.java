@@ -12,6 +12,8 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public interface AsyncStatic {
+    boolean UseEventLoopThread = false;
+
     static  <T> Future<T> async(Supplier<T> task) {
         Promise<T> promise = Promise.promise();
         Vertx.currentContext().runOnContext(v -> {
@@ -53,7 +55,7 @@ public interface AsyncStatic {
     }
 
     static <T> Future<T> runBlocking(Vertx vertx, Supplier<T> task, boolean ordered) {
-        return vertx.executeBlocking(promise -> new Async(vertx)
+        return vertx.executeBlocking(promise -> new Async(vertx, UseEventLoopThread)
                 .run(v -> promise.complete(task.get())), ordered);
     }
 

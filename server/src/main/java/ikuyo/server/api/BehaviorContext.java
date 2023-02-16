@@ -5,5 +5,5 @@ import ikuyo.api.UserKeyInput;
 
 import java.util.Map;
 
-public record BehaviorContext(Star star, Map<Integer, UserKeyInput> userKeyInputs) {
+public record BehaviorContext(Star star, Map<Integer, UserKeyInput> userKeyInputs, UpdatedContext updated) {
 }

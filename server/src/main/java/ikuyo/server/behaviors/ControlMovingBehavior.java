@@ -38,6 +38,7 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
                     py / Drawable.scaling,
                     60 / Drawable.scaling,
                     context.star().starInfo())) {
+                if (pos.x != px || pos.y != py) context.updated().users().add(id);
                 pos.x = px;
                 pos.y = py;
             }

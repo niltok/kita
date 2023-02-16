@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 public interface DrawablesRenderer extends Renderer<RendererContext> {
     default JsonObject render(RendererContext ctx) {
         var drawables = new HashMap<String, Drawable>();
-        renderDrawables(ctx.star(), drawables);
+        renderDrawables(ctx, drawables);
         return new JsonObject(drawables.entrySet().stream().collect(Collectors.toMap(
                 Map.Entry::getKey,
                 kv -> kv.getValue().toJson(),
                 (s, a) -> s)));
     }
 
-    void renderDrawables(Star star, Map<String, Drawable> drawables);
+    void renderDrawables(RendererContext ctx, Map<String, Drawable> drawables);
 
     class Composite implements Renderer<RendererContext> {
         DrawablesRenderer[] renderers;
@@ -32,7 +32,7 @@ public interface DrawablesRenderer extends Renderer<RendererContext> {
         public JsonObject render(RendererContext ctx) {
             var drawables = new HashMap<String, Drawable>();
             for (DrawablesRenderer renderer : renderers) {
-                renderer.renderDrawables(ctx.star(), drawables);
+                renderer.renderDrawables(ctx, drawables);
             }
             return new JsonObject(drawables.entrySet().stream().collect(Collectors.toMap(
                     Map.Entry::getKey,

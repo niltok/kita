@@ -18,13 +18,15 @@ public class MsgDiffer {
     }
 
     public Buffer next(JsonObject msg) {
-        var diff = jsonDiff(prev, msg);
-        if (diff.isEmpty()) return null;
-        prev = msg;
+        if (msg.isEmpty()) return null;
+        jsonPatchInplace(msg, prev);
+//        var diff = jsonDiff(prev, msg);
+//        if (diff.isEmpty()) return null;
+//        prev = msg;
         return JsonObject.of(
                 "type", "seq.operate",
                 "target", base,
-                "data", diff
+                "data", msg
         ).toBuffer();
     }
 
@@ -34,6 +36,17 @@ public class MsgDiffer {
                 "target", base,
                 "data", prev
         ).toBuffer();
+    }
+
+    public static JsonObject jsonPatchInplace(JsonObject from, JsonObject to) {
+        from.getMap().forEach((key, fv) -> {
+            var tv = to.getMap().get(key);
+            if (fv instanceof JsonArray fa) fv = arrayToObject(fa);
+            if (fv instanceof JsonObject fj && tv instanceof JsonObject tj)
+                jsonPatchInplace(fj, tj);
+            else to.put(key, fv);
+        });
+        return to;
     }
 
     public static JsonObject jsonFlatDiff(JsonObject from, JsonObject to) {

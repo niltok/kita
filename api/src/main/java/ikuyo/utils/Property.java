@@ -4,13 +4,13 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class Property<T> implements Supplier<T>, Consumer<T> {
-    public T value;
+    T value;
 
-    Property(T v) {
+    public Property(T v) {
         value = v;
     }
 
-    Property() {}
+    public Property() {}
 
     @Override
     public void accept(T v) {
