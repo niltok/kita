@@ -4,6 +4,7 @@ import ikuyo.api.Drawable;
 import ikuyo.api.Position;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
+import io.vertx.core.buffer.Buffer;
 
 import java.util.Map;
 
@@ -21,7 +22,10 @@ public class BlockRenderer implements DrawablesRenderer {
                 d.y = pos.y * Drawable.scaling;
                 d.bundle = "blocks";
                 d.asset = String.valueOf(block.type);
-                drawables.put("block#%d.image".formatted(i), d);
+                drawables.put(Buffer.buffer()
+                        .appendString("block#")
+                        .appendString(String.valueOf(i))
+                        .appendString(".image").toString(), d);
             }
             rindex++;
         }

@@ -121,7 +121,11 @@ export const Stage = () => {
                 camera.removeChildren()
                 state.drawables.forEach((drawable, key) => {
                     drawable.key = key
-                    camera.addChild(renderDrawable(drawable, assets))
+                    try {
+                        camera.addChild(renderDrawable(drawable, assets))
+                    } catch (e) {
+                        console.error(drawable, e)
+                    }
                 })
                 camera.sortableChildren = true
                 camera.sortChildren()

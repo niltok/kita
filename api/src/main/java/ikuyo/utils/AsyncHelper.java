@@ -31,8 +31,4 @@ public interface AsyncHelper {
 
     /** 将当前任务剩下的部分放到任务队列末尾并释放进程让其他任务先执行 */
     default void doEvents() { AsyncStatic.doEvents(); }
-
-    default <T> T runBlocking(Supplier<T> task) { return AsyncStatic.runBlocking(task); }
-
-    default void runBlocking(Runnable task) { AsyncStatic.runBlocking(() -> task); }
 }

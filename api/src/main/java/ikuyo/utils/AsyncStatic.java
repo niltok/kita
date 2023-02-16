@@ -52,7 +52,12 @@ public interface AsyncStatic {
         Async.await(promise.future());
     }
 
-    static <T> T runBlocking(Supplier<T> task) {
-        return Async.await(ExecuteBlocking.executeBlocking(task::get));
+    static <T> Future<T> runBlocking(Vertx vertx, Supplier<T> task, boolean ordered) {
+        return vertx.executeBlocking(promise -> new Async(vertx)
+                .run(v -> promise.complete(task.get())), ordered);
+    }
+
+    static <T> Future<T> runBlocking(Vertx vertx, Supplier<T> task) {
+        return runBlocking(vertx, task, true);
     }
 }

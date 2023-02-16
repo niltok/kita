@@ -5,7 +5,8 @@ import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.core.json.JsonObject;
+
+import java.util.function.Supplier;
 
 public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHelper {
     protected Logger logger;
@@ -42,5 +43,13 @@ public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHel
                 stopPromise.fail(e);
             }
         });
+    }
+
+    public final <T> Future<T> runBlocking(Supplier<T> task, boolean ordered) {
+        return AsyncStatic.runBlocking(vertx, task, ordered);
+    }
+
+    public final <T> Future<T> runBlocking(Supplier<T> task) {
+        return runBlocking(task, true);
     }
 }

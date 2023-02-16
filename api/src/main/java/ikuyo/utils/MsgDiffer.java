@@ -18,7 +18,7 @@ public class MsgDiffer {
     }
 
     public Buffer next(JsonObject msg) {
-        var diff = AsyncStatic.runBlocking(() -> jsonDiff(prev, msg));
+        var diff = jsonDiff(prev, msg);
         if (diff.isEmpty()) return null;
         prev = msg;
         return JsonObject.of(

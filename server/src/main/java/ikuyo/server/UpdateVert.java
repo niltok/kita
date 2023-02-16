@@ -36,13 +36,13 @@ public class UpdateVert extends AsyncVerticle {
             new ControlMovingBehavior()
     );
     BehaviorContext behaviorContext;
-    Renderer<RendererContext> commonSeqRenderer = new CompositeRenderer<>(false,
-            new DrawablesRenderer.Composite(
+    Renderer<RendererContext> commonSeqRenderer = new ParallelRenderer(false,
+            new ParallelRenderer(false,
                     new BlockRenderer(),
                     new UserRenderer()
             ).withName("starDrawables")
     );
-    Renderer<RendererContext> specialRenderer = new CompositeRenderer<>(true,
+    Renderer<RendererContext> specialRenderer = new ParallelRenderer(true,
             new CameraRenderer()
     );
     RendererContext rendererContext;
@@ -80,7 +80,7 @@ public class UpdateVert extends AsyncVerticle {
     private void loadStar(int id) {
         star = Star.get(pool, id);
         behaviorContext = new BehaviorContext(star, new HashMap<>());
-        rendererContext = new RendererContext(star);
+        rendererContext = new RendererContext(vertx, star);
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
@@ -170,9 +170,9 @@ public class UpdateVert extends AsyncVerticle {
     private boolean tryWriteBack() {
         try {
             var buf = star.starInfo().toBuffer();
-            return await(pool.preparedQuery(
+            return await(runBlocking(() -> await(pool.preparedQuery(
                     "update star set star_info = $1 where index = $2 and vert_id = $3;"
-            ).execute(Tuple.of(buf, star.index(), context.deploymentID()))).rowCount() == 1;
+            ).execute(Tuple.of(buf, star.index(), context.deploymentID()))).rowCount() == 1));
         } catch (Exception e) {
             logger.error(e.getLocalizedMessage());
             e.printStackTrace();
