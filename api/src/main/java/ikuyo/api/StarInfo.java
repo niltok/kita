@@ -10,12 +10,14 @@ import java.util.Map.Entry;
 public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
-///   层级最大值
-    public int maxtier = 50;
-///   层级最小值
+    /**层级最大值*/
+    public int maxtier = 500;
+    /**层级最小值*/
     public int mintier = 10;
-///   层级间距
+    /**层级间距*/
     public static final double tierdistance = Math.pow(3,1.0/2)/2;
+    /**星球半径*/
+    public double star_r;
 
     public JsonObject toJson() {
         return JsonObject.mapFrom(this);
@@ -38,6 +40,8 @@ public class StarInfo {
             info.blocks[i] = new Block.Normal();
         }
         info.starUsers = new HashMap<>();
+        int basetier = 30;
+        double noiselength = 30.0;
 
 //        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
 //        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
@@ -61,12 +65,12 @@ public class StarInfo {
             index_in++;
         }
 
-//        生成地面最高层
+//        计算地表
         int tiernum = (int)(random.nextDouble()*(info.maxtier-info.mintier)*0.5
                 + (info.maxtier-info.mintier)*0.25)
                 + info.mintier;
         int roundstarttier = (int)(tiernum * tierdistance) - 1;
-        int groundnum =  tiernum*(tiernum+1)*3 - info.mintier*(info.mintier-1)*3;
+        int groundnum =  (tiernum + basetier) * ((tiernum+basetier)+1) * 3 - info.mintier * (info.mintier-1) * 3;
         int outline_roundnum = roundstarttier*(roundstarttier+1)*3 - info.mintier*(info.mintier-1)*3;
         if (outline_roundnum < 0) outline_roundnum = 0;
 
@@ -81,9 +85,11 @@ public class StarInfo {
 
 //        圆角修饰部分_out
         int index_out = realIndexOf(outline_roundnum, info.mintier);
-        double r_out = heightOf(tiernum*(tiernum-1)*3+1) * tierdistance;
+        info.star_r = heightOf(tiernum*(tiernum-1)*3+1) * tierdistance;
+        double dropheight = basetier * StarInfo.tierdistance;
         for (var i = outline_roundnum; i < groundnum; i++) {
-            if ( heightOf(index_out) <= r_out ) {
+            if ( (heightOf(index_out) - info.star_r) * 2 / dropheight
+                    < OpenSimplex2S.noise2(seed, (angleOf(index_out) / Math.PI * 2) * noiselength, 0) + 1 ) {
                 info.blocks[i].type = 1;
                 info.blocks[i].isVisible = true;
                 info.blocks[i].isDestructible = true;
@@ -128,7 +134,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y = 1000;
+        public double x, y = 6000;
         public boolean online;
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
@@ -139,7 +145,10 @@ public class StarInfo {
     }
 
     public static void main(String[] args) {
-
+//        for (int i = 0; i < 100; i++) {
+//            System.out.println(OpenSimplex2S.noise2(0, i, 0) + 1);
+//        }
+//        System.out.println(OpenSimplex2S.noise2(0, 6, 0) + 1);
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -171,6 +180,11 @@ public class StarInfo {
     public static double heightOf(int realindex) {
         Position pos = posOf(realindex);
         return Math.hypot(pos.x, pos.y);
+    }
+
+    public static double angleOf(int realindex) {
+        Position pos = posOf(realindex);
+        return (Math.atan2(pos.y, pos.x) + Math.PI*2) % (Math.PI*2);
     }
 
     public static boolean is_standable(double x, double y, double r, StarInfo star) {
@@ -246,6 +260,114 @@ public class StarInfo {
             if( tier >= mintier && tier <= maxtier) res.add(index);
         }
         return res;
-//        res.stream().mapToInt(Integer::valueOf).toArray()
     }
 }
+
+//class OpenSimplexNoise {
+//
+//    private OpenSimplexNoiseKS generator;
+//
+//    public final static String VERSION = "##library.prettyVersion##";
+//
+//
+//    /**
+//     * Constructs a new OpenSimplexNoise object,
+//     * using the system's current time as the noise seed.
+//     */
+//    public OpenSimplexNoise() {
+//        this(System.currentTimeMillis());
+//    }
+//
+//    /**
+//     * Constructs a new OpenSimplexNoise object,
+//     * using the provided value as the noise seed.
+//     */
+//    public OpenSimplexNoise(long seed) {
+//        welcome();
+//        generator = new OpenSimplexNoiseKS(seed);
+//    }
+//
+//
+//    private void welcome() {
+//        System.out.println("##library.name## ##library.prettyVersion## by ##author##");
+//    }
+//
+//    private double remap(double val) {
+//        return (val + 1) * 0.5;
+//    }
+//
+//
+//    public float noise (float xoff) {
+//        return this.noise(xoff, 0);
+//    }
+//
+//    public float noise (float xoff, float yoff) {
+//        return (float) remap(generator.eval(xoff, yoff));
+//    }
+//
+//    public float noise (float xoff, float yoff, float zoff) {
+//        return (float) remap(generator.eval(xoff, yoff, zoff));
+//    }
+//
+//    public float noise (float xoff, float yoff, float zoff, float uoff) {
+//        return (float) remap(generator.eval(xoff, yoff, zoff, uoff));
+//    }
+//
+//
+//    /**
+//     * return the version of the Library.
+//     *
+//     * @return String
+//     */
+//    public static String version() {
+//        return VERSION;
+//    }
+//}
+//
+////final class ImprovedNoise {
+////    static public double noise(double x, double y, double z) {
+////        int X = (int)Math.floor(x) & 255,                  // FIND UNIT CUBE THAT
+////                Y = (int)Math.floor(y) & 255,                  // CONTAINS POINT.
+////                Z = (int)Math.floor(z) & 255;
+////        x -= Math.floor(x);                                // FIND RELATIVE X,Y,Z
+////        y -= Math.floor(y);                                // OF POINT IN CUBE.
+////        z -= Math.floor(z);
+////        double u = fade(x),                                // COMPUTE FADE CURVES
+////                v = fade(y),                                // FOR EACH OF X,Y,Z.
+////                w = fade(z);
+////        int A = p[X  ]+Y, AA = p[A]+Z, AB = p[A+1]+Z,      // HASH COORDINATES OF
+////                B = p[X+1]+Y, BA = p[B]+Z, BB = p[B+1]+Z;      // THE 8 CUBE CORNERS,
+////
+////        return lerp(w, lerp(v, lerp(u, grad(p[AA  ], x  , y  , z   ),  // AND ADD
+////                                grad(p[BA  ], x-1, y  , z   )), // BLENDED
+////                        lerp(u, grad(p[AB  ], x  , y-1, z   ),  // RESULTS
+////                                grad(p[BB  ], x-1, y-1, z   ))),// FROM  8
+////                lerp(v, lerp(u, grad(p[AA+1], x  , y  , z-1 ),  // CORNERS
+////                                grad(p[BA+1], x-1, y  , z-1 )), // OF CUBE
+////                        lerp(u, grad(p[AB+1], x  , y-1, z-1 ),
+////                                grad(p[BB+1], x-1, y-1, z-1 ))));
+////    }
+////    static double fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+////    static double lerp(double t, double a, double b) { return a + t * (b - a); }
+////    static double grad(int hash, double x, double y, double z) {
+////        int h = hash & 15;                      // CONVERT LO 4 BITS OF HASH CODE
+////        double u = h<8 ? x : y,                 // INTO 12 GRADIENT DIRECTIONS.
+////                v = h<4 ? y : h==12||h==14 ? x : z;
+////        return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
+////    }
+////    static final int[] p = new int[512], permutation = { 151,160,137,91,90,15,
+////            131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
+////            190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
+////            88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
+////            77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
+////            102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
+////            135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
+////            5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
+////            223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
+////            129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
+////            251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
+////            49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
+////            138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
+////    };
+////    static { for (int i=0; i < 256 ; i++) p[256+i] = p[i] = permutation[i]; }
+////}
