@@ -174,7 +174,7 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     void writeBack() {
-        if (!tryWriteBack()) vertx.undeploy(deploymentID());
+//        if (!tryWriteBack()) vertx.undeploy(deploymentID());
     }
 
     private boolean tryWriteBack() {

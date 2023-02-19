@@ -11,9 +11,9 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
 ///   层级最大值
-    public int maxtier = 50;
+    public int maxtier = 700;
 ///   层级最小值
-    public int mintier = 10;
+    public int mintier = 20;
 ///   层级间距
     public static final double tierdistance = Math.pow(3,1.0/2)/2;
 
@@ -39,7 +39,7 @@ public class StarInfo {
         }
         info.starUsers = new HashMap<>();
 
-//        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
+        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
 //        System.out.printf("max:%d\tmin:%d%n", info.maxtier, info.mintier);
 
 
@@ -128,7 +128,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y = 1000;
+        public double x, y = 8000;
         public boolean online;
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
