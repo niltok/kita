@@ -14,9 +14,8 @@ public class CameraRenderer implements Renderer<RendererContext> {
             var pos = ctx.star().starInfo().starUsers.get(id);
             if (pos == null) res.putNull(id.toString());
             else res.put(id.toString(), JsonObject.of("camera", JsonObject.of(
-                    "x", 0,
-                    "y", Math.hypot(pos.x, pos.y),
-                    "rotation", -Math.atan2(pos.x, -pos.y)
+                    "x", pos.x,
+                    "y", pos.y
             )));
         });
         return res;

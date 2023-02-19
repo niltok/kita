@@ -1,8 +1,8 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit"
 import {RootState} from "../store"
 import {useAppDispatch} from "../storeHook"
-import {applyObjectDiff} from "../utils";
 import {UIElement} from "../types/UIElement";
+import {applyReduxDiff} from "../utils/react";
 
 export interface GameState {
     server: {
@@ -14,7 +14,7 @@ export interface GameState {
     assets: any
     windowSize: { height: number, width: number },
     star: {
-        camera: { x: number, y: number, rotation: number },
+        camera: { x: number, y: number },
         ui?: UIElement
     }
     ui?: UIElement
@@ -27,10 +27,10 @@ const initialState: GameState = {
     connection: { state: 'uninitialized' },
     windowSize: {
         height: document.body.clientHeight,
-        width: document.body.offsetWidth
+        width: document.body.clientWidth
     },
     star: {
-        camera: { x: 0, y: 0, rotation: 0 }
+        camera: { x: 0, y: 0 }
     },
     uiState: {}
 }
@@ -40,7 +40,7 @@ export const gameStateSlicer = createSlice({
     initialState,
     reducers: {
         diffGame(state, action: PayloadAction<Partial<GameState>>) {
-            applyObjectDiff(state, action.payload)
+            applyReduxDiff(state, action.payload)
         },
         addAssets(state, action: PayloadAction<{ name: string, bundle: any }>) {
             state.assets[action.payload.name] = action.payload.bundle

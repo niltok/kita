@@ -1,10 +1,10 @@
 import {useAppDispatch, useAppSelector} from "../storeHook"
 import {diffGame} from "../stores/gameState"
 import SockJS from "sockjs-client"
-import {useAsyncEffect, useRefresh} from "../utils"
 import {AppDispatch} from "../store"
 import {sendSocket$, seqDrawables$, setPage$} from "../dbus"
 import {Subscription} from "rxjs"
+import {useAsyncEffect, useRefresh} from "../utils/react";
 
 export default function Socket(prop: {children?: JSX.Element}) {
     const server = useAppSelector(state => state.gameState.server)

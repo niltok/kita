@@ -1,7 +1,7 @@
 import {useEffect} from "react"
 import './Loading.css'
 import {Assets} from '@pixi/assets'
-import {delay} from "../utils"
+import {delay} from "../utils/common"
 import {useAppDispatch} from "../storeHook"
 import {addAssets} from "../stores/gameState"
 import {manifest} from "../manifest"

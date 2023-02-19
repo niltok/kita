@@ -1,21 +1,15 @@
-import React, {useEffect, useState} from "react"
-import {Observable} from "rxjs"
-import {keyEvents$, sendSocket$} from "./dbus";
-import {diffGame, useDiffGame} from "./stores/gameState";
+import {useEffect, useState} from "react";
+import {keyEvents$} from "../dbus";
+import {Observable} from "rxjs";
+import {useDiffGame} from "../stores/gameState";
 import {isDraft, original} from "@reduxjs/toolkit";
-import {UIElement} from "./types/UIElement";
-import {store} from "./store";
-
-export const FPS = 60
-
-export const delay = (time: number) => {
-    return new Promise(resolve => setTimeout(resolve, time))
-}
 
 export function useAsyncEffect(effect: () => Promise<void | (() => void)>, dependencies?: any[]) {
     return useEffect(() => {
         const cleanupPromise = effect()
-        return () => { cleanupPromise.then(cleanup => cleanup && cleanup()) }
+        return () => {
+            cleanupPromise.then(cleanup => cleanup && cleanup())
+        }
     }, dependencies)
 }
 
@@ -27,7 +21,9 @@ export function useRefresh(): [boolean, () => void] {
 export function useSubscribe<T>(obs: Observable<T>, callback: (val: T) => void) {
     useEffect(() => {
         const sub = obs.subscribe({
-            next(val) { callback(val) }
+            next(val) {
+                callback(val)
+            }
         });
         return () => sub.unsubscribe()
     }, [obs, callback])
@@ -37,22 +33,6 @@ export function useObservable<T>(obs: Observable<T>, init: T): T {
     const [value, setValue] = useState(init)
     useSubscribe(obs, setValue);
     return value
-}
-
-/// 前缀（注意顺序）：$(Ctrl), #(Meta), @(Alt), ^(Shift)
-//
-// 后缀：!(keyup)
-//
-// 举例：$^Digit1! 表示Ctrl+Shift+1这个组合键抬起
-export function getKeyCode(e: KeyboardEvent) {
-    let keyCode = ''
-    if (e.ctrlKey) keyCode += '$'
-    if (e.metaKey) keyCode += '#'
-    if (e.altKey) keyCode += '@'
-    if (e.shiftKey) keyCode += '^'
-    keyCode += e.code
-    if (e.type == 'keyup') keyCode += '!'
-    return keyCode
 }
 
 export function useKeyboard() {
@@ -94,7 +74,7 @@ export function useWindowSize() {
     }, [])
 }
 
-export function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
+export function applyReduxDiff(obj: any, diff: { [key: string]: any }) {
     for (const ptr in diff) {
         const val = diff[ptr]
         if (val === null) delete obj[ptr]
@@ -102,26 +82,8 @@ export function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
             let elem = obj[ptr];
             if (typeof val == 'object' && elem !== undefined && elem !== null
                 && (isDraft(elem) && typeof original(elem) == 'object' || typeof elem == 'object'))
-                applyObjectDiff(elem, val)
+                applyReduxDiff(elem, val)
             else obj[ptr] = val
         }
-    }
-}
-
-export function renderUI(elem: UIElement): JSX.Element {
-    const commonProp = {
-        style: elem.style,
-        className: elem.classes.join(' '),
-        children: elem.children.map(e => renderUI(e))
-    }
-    const clickCallback = elem.callback ? {
-        onClick: () => sendSocket$.next(elem.callback)
-    } : {}
-    switch (elem.type) {
-        case "div": return (<div {...commonProp} {...clickCallback} />)
-        case "button": return (<button {...commonProp} {...clickCallback} />)
-        case "input.text": return (<input type={"text"} {...commonProp} onChange={e =>
-            elem.stateName && store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))} />)
-        default: return <>{elem.type}</>
     }
 }

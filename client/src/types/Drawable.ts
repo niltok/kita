@@ -1,6 +1,6 @@
 import {MakeADT, makeMatchers} from 'ts-adt/MakeADT'
 
-interface Base { key: string, x: number, y: number, angle: number, zIndex: number }
+interface Base { x: number, y: number, angle: number, zIndex: number }
 interface Resource { bundle: string, asset: string }
 
 export type Drawable = MakeADT<'@type', {

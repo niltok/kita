@@ -133,7 +133,6 @@ public class UpdateVert extends AsyncVerticle {
                 var id = json.getInteger("userId");
                 behaviorContext.userKeyInputs().get(id).input(
                         msg.getString("action"), msg.getInteger("value", 1));
-                updatedContext.users().add(id);
             }
         }
     }

@@ -3,8 +3,8 @@ import Loading from "./Loading"
 import {Counter} from "./Counter"
 import Login from "./Login"
 import {Game} from "./Game"
-import {useObservable} from "../utils"
 import {setPage$} from "../dbus"
+import {useObservable} from "../utils/react";
 
 export default function App() {
     const page = useObservable(setPage$, 'load')
