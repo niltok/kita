@@ -7,11 +7,11 @@ export const manifest: ResolverManifest = {
             assets: [
                 {
                     name: "Sourcehanserifcn Vf.ttf",
-                    srcs: "/ui/SourceHanSerifCN-VF.ttf.woff2"
+                    srcs: "../ui/SourceHanSerifCN-VF.ttf.woff2"
                 },
                 {
                     name: "Sourcehansanscn Vf.ttf",
-                    srcs: "/ui/SourceHanSansCN-VF.ttf.woff2"
+                    srcs: "../ui/SourceHanSansCN-VF.ttf.woff2"
                 }
             ]
         },
@@ -20,11 +20,11 @@ export const manifest: ResolverManifest = {
             assets: [
                 {
                     name: ["0", "unknown"],
-                    srcs: "blocks/hexagon/blue.png"
+                    srcs: "../blocks/hexagon/blue.png"
                 },
                 {
                     name: ["1"],
-                    srcs: "blocks/hexagon//gray.png"
+                    srcs: "../blocks/hexagon/gray.png"
                 }
             ]
         },
@@ -33,7 +33,7 @@ export const manifest: ResolverManifest = {
             assets: [
                 {
                     name: "paimon",
-                    srcs: "other/paimon.png"
+                    srcs: "../other/paimon.png"
                 }
             ]
         }

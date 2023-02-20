@@ -11,15 +11,15 @@ export default function Loading() {
     const dispatch = useAppDispatch()
     useEffect(() => {
         (async () => {
-            await Assets.init({manifest})
-            await Promise.all(manifest.bundles.map(async bundle => {
-                const assets = await Assets.loadBundle(bundle.name)
-                dispatch(addAssets({
-                    name: bundle.name,
-                    bundle: assets
-                }))
-            }))
-            console.log(Array.from(document.fonts.values()))
+            // await Assets.init({manifest})
+            // await Promise.all(manifest.bundles.map(async bundle => {
+            //     const assets = await Assets.loadBundle(bundle.name)
+            //     dispatch(addAssets({
+            //         name: bundle.name,
+            //         bundle: assets
+            //     }))
+            // }))
+            // console.log(Array.from(document.fonts.values()))
             await delay(2000)
             setPage$.next('login')
         })()

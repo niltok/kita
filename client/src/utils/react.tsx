@@ -55,12 +55,6 @@ export function useKeyboard() {
 export function useWindowSize() {
     const diffGame = useDiffGame()
     useEffect(() => {
-        diffGame({
-            windowSize: {
-                height: document.body.clientHeight,
-                width: document.body.clientWidth
-            }
-        })
         const listener = () => {
             diffGame({
                 windowSize: {
@@ -69,6 +63,7 @@ export function useWindowSize() {
                 }
             })
         }
+        listener()
         window.addEventListener('resize', listener)
         return () => window.removeEventListener('resize', listener)
     }, [])
