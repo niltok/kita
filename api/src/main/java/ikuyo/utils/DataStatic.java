@@ -9,11 +9,11 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public interface DataStatic {
-    static Buffer gzipEncode(Buffer data) {
+    static Buffer gzipEncode(byte[] data) {
         var out = new ByteArrayOutputStream();
         try {
             var gzip = new GZIPOutputStream(out);
-            gzip.write(data.getBytes());
+            gzip.write(data);
             gzip.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -21,11 +21,11 @@ public interface DataStatic {
         return Buffer.buffer(out.toByteArray());
     }
 
-    static Buffer gzipDecode(Buffer zip) {
+    static byte[] gzipDecode(Buffer zip) {
         var in = new ByteArrayInputStream(zip.getBytes());
         try {
             var gzip = new GZIPInputStream(in);
-            return Buffer.buffer(gzip.readAllBytes());
+            return gzip.readAllBytes();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

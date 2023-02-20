@@ -1,5 +1,7 @@
 package ikuyo.server;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.UserKeyInput;
@@ -13,9 +15,11 @@ import ikuyo.server.api.UpdatedContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
+import ikuyo.utils.DataStatic;
 import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -95,7 +99,7 @@ public class UpdateVert extends AsyncVerticle {
         startTime = System.nanoTime();
         prevTime = startTime;
         mainLoopId = vertx.setTimer(1, v -> mainLoop());
-        writeBackId = vertx.setPeriodic(5000, ignore -> writeBack());
+        writeBackId = vertx.setPeriodic(20 * 60 * 1000, ignore -> writeBack());
     }
 
     private void vertEventsHandler(Message<JsonObject> msg) {
@@ -174,19 +178,29 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     void writeBack() {
-//        if (!tryWriteBack()) vertx.undeploy(deploymentID());
-    }
-
-    private boolean tryWriteBack() {
-        try {
-            var buf = star.starInfo().toBuffer();
-            return await(runBlocking(() -> await(pool.preparedQuery(
-                    "update star set star_info = $1 where index = $2 and vert_id = $3;"
-            ).execute(Tuple.of(buf, star.index(), context.deploymentID()))).rowCount() == 1));
-        } catch (Exception e) {
+        logger.info(JsonObject.of("type", "star.writeBack.start"));
+        var start = System.nanoTime();
+        tryWriteBack().onFailure(e -> {
             logger.error(e.getLocalizedMessage());
             e.printStackTrace();
-            return false;
+            vertx.undeploy(deploymentID());
+        }).onSuccess(r -> {
+            if (!r) vertx.undeploy(deploymentID());
+            else logger.info(JsonObject.of("type", "star.writeBack.writeEnd",
+                    "totalTime", (System.nanoTime() - start) / 1000_000.0));
+        });
+        logger.info(JsonObject.of("type", "star.writeBack.blockEnd",
+                "blockTime", (System.nanoTime() - start) / 1000_000.0));
+    }
+
+    private Future<Boolean> tryWriteBack() {
+        try {
+            var buf = new ObjectMapper().writeValueAsBytes(star.starInfo());
+            return runBlocking(() -> await(pool.preparedQuery(
+                    "update star set star_info = $1 where index = $2 and vert_id = $3;"
+            ).execute(Tuple.of(DataStatic.gzipEncode(buf), star.index(), context.deploymentID()))).rowCount() == 1);
+        } catch (JsonProcessingException e) {
+            return Future.failedFuture(e);
         }
     }
 }

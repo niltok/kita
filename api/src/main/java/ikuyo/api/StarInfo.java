@@ -1,9 +1,12 @@
 package ikuyo.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -25,11 +28,19 @@ public class StarInfo {
 
     @Override
     public String toString() {
-        return toJson().toString();
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Buffer toBuffer() {
-        return DataStatic.gzipEncode(toJson().toBuffer());
+        try {
+            return DataStatic.gzipEncode(new ObjectMapper().writeValueAsBytes(this));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
     public static StarInfo gen(int seed) {
         var info = new StarInfo();
@@ -126,7 +137,11 @@ public class StarInfo {
     }
 
     public static StarInfo fromJson(Buffer buffer) {
-        return fromJson(new JsonObject(DataStatic.gzipDecode(buffer)));
+        try {
+            return new ObjectMapper().readValue(DataStatic.gzipDecode(buffer), StarInfo.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static StarInfo fromJson(JsonObject json) {

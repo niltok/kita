@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class DataStaticTest {
     @Test
     public void testGzip() {
-        assertEquals(Buffer.buffer("test"),
-                DataStatic.gzipDecode(DataStatic.gzipEncode(Buffer.buffer("test"))));
+        assertEquals("test".getBytes(),
+                DataStatic.gzipDecode(DataStatic.gzipEncode("test".getBytes())));
     }
 }
