@@ -1,5 +1,6 @@
 package ikuyo.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import io.vertx.await.Async;
 import io.vertx.core.buffer.Buffer;
@@ -7,11 +8,14 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.executeblocking.ExecuteBlocking;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Objects;
 
 public class MsgDiffer {
     String base;
-    JsonObject prev = JsonObject.of();
+    JsonObject prev = new JsonObject();
 
     public MsgDiffer(String base) {
         this.base = base;
@@ -19,7 +23,7 @@ public class MsgDiffer {
 
     public Buffer next(JsonObject msg) {
         if (msg.isEmpty()) return null;
-        jsonPatchInplace(msg, prev);
+        patchInPlaceCompress(msg, prev);
 //        var diff = jsonDiff(prev, msg);
 //        if (diff.isEmpty()) return null;
 //        prev = msg;
@@ -34,8 +38,57 @@ public class MsgDiffer {
         return JsonObject.of(
                 "type", "seq.operate",
                 "target", base,
-                "data", prev
+                "data", compressedToString(prev)
         ).toBuffer();
+    }
+
+    public static class CompressedJson {
+        public String data;
+        public CompressedJson(JsonObject json) {
+            this.data = json.toString();
+        }
+        public JsonObject get() {
+            return new JsonObject(data);
+        }
+        public String toString() {
+            return data;
+        }
+    }
+
+    public String compressedToString(JsonObject json) {
+        try {
+            var outStream = new ByteArrayOutputStream();
+            var mapper = new ObjectMapper();
+            var writer = mapper.createGenerator(outStream);
+            writer.writeStartObject();
+            json.getMap().forEach((key, val) -> {
+                try {
+                    writer.writeFieldName(key);
+                    if (val instanceof CompressedJson cj) writer.writeRaw(cj.data);
+                    else writer.writeRaw(mapper.writeValueAsString(val));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            writer.writeEndObject();
+            return outStream.toString(Charset.defaultCharset());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public JsonObject patchInPlaceCompress(JsonObject from, JsonObject to) {
+        from.getMap().forEach((key, fv) -> {
+            var tv = to.getMap().get(key);
+            if (fv instanceof JsonArray fa) fv = arrayToObject(fa);
+            if (tv instanceof CompressedJson cj) tv = cj.get();
+            if (fv instanceof JsonObject fj && tv instanceof JsonObject tj) {
+                jsonPatchInplace(fj, tj);
+                to.put(key, new CompressedJson(tj));
+            } else if (fv instanceof JsonObject fj) to.put(key, new CompressedJson(fj));
+            else to.put(key, fv);
+        });
+        return to;
     }
 
     public static JsonObject jsonPatchInplace(JsonObject from, JsonObject to) {
