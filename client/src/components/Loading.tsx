@@ -1,25 +1,24 @@
 import {useEffect} from "react"
 import './Loading.css'
-import {Assets} from '@pixi/assets'
 import {delay} from "../utils/common"
-import {useAppDispatch} from "../storeHook"
-import {addAssets} from "../stores/gameState"
-import {manifest} from "../manifest"
-import {setPage$} from "../dbus";
+import {rendererEvent$, setPage$} from "../dbus"
+import {renderer} from "../worker/workers"
 
 export default function Loading() {
-    const dispatch = useAppDispatch()
     useEffect(() => {
         (async () => {
-            // await Assets.init({manifest})
-            // await Promise.all(manifest.bundles.map(async bundle => {
-            //     const assets = await Assets.loadBundle(bundle.name)
-            //     dispatch(addAssets({
-            //         name: bundle.name,
-            //         bundle: assets
-            //     }))
-            // }))
-            // console.log(Array.from(document.fonts.values()))
+            const promise = new Promise((res, rej) => {
+                const sub = rendererEvent$.subscribe({
+                    next(e) {
+                        if (e.type == 'init.end') {
+                            sub.unsubscribe()
+                            res({})
+                        }
+                    }
+                })
+            })
+            renderer.postMessage({ type: 'init' })
+            await (promise)
             await delay(2000)
             setPage$.next('login')
         })()

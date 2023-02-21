@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from "react"
-import {keyEvents$, sendSocket$, seqDrawables$} from "../dbus"
+import {keyEvents$, sendSocket$, seqDrawables$, workerCommon$} from "../dbus"
 import {Drawable} from "../types/Drawable"
 import {getKeyCode} from "../utils/common"
 import {store} from "../store"
-import Preprocessor from '../preprocessor.worker?worker'
 import {useKeyboard, useSubscribe, useWindowSize} from "../utils/react";
+import {renderer} from "../worker/workers";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 const keyMapper = {
@@ -41,7 +41,6 @@ export const Stage = () => {
     const [info, setInfo] = useState<any>({})
     useEffect(() => {
         if (canvas == null) return
-        const preprocessor = new Preprocessor()
         const cache: any = {
             camera: null,
             windowSize: null
@@ -53,7 +52,7 @@ export const Stage = () => {
             cache.windowSize = windowSize
             canvas.style.height = `${windowSize.height}px`
             canvas.style.width = `${windowSize.width}px`
-            preprocessor.postMessage({
+            workerCommon$.next({
                 type: 'patch',
                 camera: star.camera,
                 windowSize: {
@@ -66,7 +65,7 @@ export const Stage = () => {
         canvas.style.height = `${windowSize.height}px`
         canvas.style.width = `${windowSize.width}px`
         const offscreen = canvas.transferControlToOffscreen()
-        preprocessor.postMessage({
+        renderer.postMessage({
             type: 'canvas',
             canvas: offscreen,
             windowSize: {
@@ -76,16 +75,16 @@ export const Stage = () => {
         }, [offscreen])
         const seqSub = seqDrawables$.subscribe({
             next(val) {
-                preprocessor.postMessage({
+                workerCommon$.next({
                     type: 'draw',
                     drawables: val.data
                 })
             }
         })
         return () => {
+            workerCommon$.next({ type: 'clear' })
             storeUnsub()
             seqSub.unsubscribe()
-            preprocessor.terminate()
         }
     }, [canvas])
     return (<>
