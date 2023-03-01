@@ -53,29 +53,16 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             break
         }
         case 'draw': {
-            if (!camera) break
             if (e.data.drawables != undefined) {
                 for (const k in e.data.drawables) {
                     const d = drawables.get(k), vd = e.data.drawables[k]
                     if (vd === null) drawables.delete(k)
                     else if (d === undefined) drawables.set(k, vd)
                     else applyObjectDiff(d, vd)
-                    if (!vd) {
-                        camera.removeChild(cache.get(k)!)
-                        cache.delete(k)
-                        continue
-                    }
                     const cached = cache.get(k)
-                    const display = renderDrawable(vd, cached)
-                    if (!cached) {
-                        camera.addChild(display)
-                        cache.set(k, display)
-                    }
+                    if (cached && vd) renderDrawable(vd, cached)
                 }
             }
-            camera.sortableChildren = true
-            camera.sortChildren()
-            camera.sortableChildren = false
             break
         }
         case 'preprocessed': {

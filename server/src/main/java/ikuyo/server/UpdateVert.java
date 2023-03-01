@@ -76,7 +76,7 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     private void stopPool() {
-        tryWriteBack();
+        await(tryWriteBack());
         try {
             await(pool.preparedQuery("update star set vert_id = null where vert_id = $1;")
                     .execute(Tuple.of(deploymentID())));

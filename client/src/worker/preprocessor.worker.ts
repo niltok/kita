@@ -10,7 +10,6 @@ const state: State = {
 
 const drawables = new Map<string, Drawable>()
 let prev = new Set<string>()
-const update$ = new Subject<any>()
 
 onmessage = async (e: MessageEvent<StateEvent>) => {
     switch (e.data.type) {

@@ -57,7 +57,6 @@ public class MessageVert extends AsyncVerticle {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
                 userStates.put(json.getInteger("id"), new UserState(json.getString("socket")));
-//                eventBus.send(json.getString("socket"), msgDiffer.prev());
                 await(eventBus.request(updaterId, json));
                 msg.reply(JsonObject.of("type", "user.add.success"));
             }
@@ -109,7 +108,6 @@ public class MessageVert extends AsyncVerticle {
                     userState.camera.y = cy;
                     var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
                     if (diff != null) {
-//                        logger.info(diff);
                         eventBus.send(userState.socket, diff);
                     }
                 });
