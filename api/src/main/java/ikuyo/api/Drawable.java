@@ -1,11 +1,23 @@
 package ikuyo.api;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.ser.std.RawSerializer;
+import ikuyo.utils.RawDeserializer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Arrays;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Drawable.Sprite.class, name = "Sprite"),
+        @JsonSubTypes.Type(value = Drawable.Text.class, name = "Text"),
+        @JsonSubTypes.Type(value = Drawable.Container.class, name = "Container"),
+        @JsonSubTypes.Type(value = Drawable.AnimatedSprite.class, name = "AnimatedSprite")
+})
 public sealed abstract class Drawable {
     public double x, y;
     /** 单位：弧度 */
@@ -14,31 +26,18 @@ public sealed abstract class Drawable {
     public boolean interaction = false;
     public static final double scaling = 20.0;
     public JsonObject toJson() {
-        return JsonObject.of(
-                "x", x,
-                "y", y,
-                "angle", angle,
-                "zIndex", zIndex,
-                "interaction", interaction);
+        return JsonObject.mapFrom(this);
     }
     public static sealed class Sprite extends Drawable {
         public String bundle, asset;
-
-        @Override
-        public JsonObject toJson() {
-            return super.toJson().put("@type", "Sprite").put("bundle", bundle).put("asset", asset);
-        }
     }
     public static final class Text extends Drawable {
         public String text;
-        /** 字体样式 <p>
+        /** 字体样式 Json 格式 <p>
          * <a href="https://pixijs.download/dev/docs/PIXI.TextStyle.html#defaultStyle">格式参考</a> */
-        public JsonObject style = new JsonObject();
-
-        @Override
-        public JsonObject toJson() {
-            return super.toJson().put("@type", "Text").put("text", text).put("style", style);
-        }
+        @JsonRawValue
+        @JsonDeserialize(using = RawDeserializer.class)
+        public String style = "{}";
     }
     public static final class Container extends Drawable {
         public Drawable[] children;
@@ -47,21 +46,10 @@ public sealed abstract class Drawable {
             this.children = children;
         }
 
-        @Override
-        public JsonObject toJson() {
-            return super.toJson().put("@type", "Container").put("children",
-                    new JsonArray(Arrays.stream(children).map(Drawable::toJson).toList()));
-        }
     }
     public static final class AnimatedSprite extends Sprite {
         public String animation;
         public boolean playing = true;
         public int initialFrame = 0;
-
-        @Override
-        public JsonObject toJson() {
-            return super.toJson().put("@type", "AnimatedSprite").put("animation", animation)
-                    .put("playing", playing).put("initialFrame", initialFrame);
-        }
     }
 }

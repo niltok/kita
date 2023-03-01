@@ -1,44 +1,96 @@
 package ikuyo.utils;
 
+import ch.ethz.globis.phtree.PhTreeMultiMapF;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import io.vertx.await.Async;
+import ikuyo.api.Drawable;
+import ikuyo.api.Position;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.executeblocking.ExecuteBlocking;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Objects;
+import java.util.*;
 
 public class MsgDiffer {
+    static double CacheRange = 1500;
     String base;
-    JsonObject prev = new JsonObject();
+    Map<String, Drawable> prev = new HashMap<>();
+    PhTreeMultiMapF<String> tree = PhTreeMultiMapF.create(2);
+    Set<String> changed = new HashSet<>();
 
     public MsgDiffer(String base) {
         this.base = base;
     }
 
-    public Buffer next(JsonObject msg) {
-        if (msg.isEmpty()) return null;
-        patchInPlaceCompress(msg, prev);
-//        var diff = jsonDiff(prev, msg);
-//        if (diff.isEmpty()) return null;
-//        prev = msg;
-        return JsonObject.of(
-                "type", "seq.operate",
-                "target", base,
-                "data", msg
-        ).toBuffer();
+    public void next(JsonObject msg) {
+        changed.clear();
+        msg.getMap().forEach((k, v) -> {
+            changed.add(k);
+            if (v == null) {
+                var d = prev.get(k);
+                tree.remove(new double[]{d.x, d.y}, k.hashCode());
+                prev.remove(k);
+                return;
+            }
+            var d = ((JsonObject) v).mapTo(Drawable.class);
+            prev.put(k, d);
+            tree.put(new double[]{d.x, d.y}, k.hashCode(), k);
+        });
+    }
+
+    public String query(Position pos, boolean moved, Set<String> cache) {
+        Set<String> add = new HashSet<>(), delete = new HashSet<>();
+        if (moved) {
+            var res = tree.rangeQuery(CacheRange, pos.x, pos.y);
+            var set = new HashSet<String>();
+            res.forEachRemaining(set::add);
+            for (String s : set) {
+                if (!cache.contains(s)) add.add(s);
+            }
+            for (String s : cache) {
+                if (!set.contains(s)) delete.add(s);
+            }
+        }
+        for (String s : changed) {
+            if (cache.contains(s)) add.add(s);
+        }
+        cache.addAll(add);
+        for (String s : delete) cache.remove(s);
+        if (add.isEmpty() && delete.isEmpty()) return null;
+        try {
+            var outStream = new ByteArrayOutputStream();
+            var mapper = new ObjectMapper();
+            var writer = mapper.createGenerator(outStream);
+            writer.writeStartObject();
+            writer.writeStringField("type", "seq.operate");
+            writer.writeStringField("target", base);
+            writer.writeFieldName("data");
+            writer.writeStartObject();
+            for (String s : add) {
+                writer.writeObjectField(s, prev.get(s));
+            }
+            for (String s : delete) {
+                writer.writeNullField(s);
+            }
+            writer.writeEndObject();
+            writer.writeEndObject();
+            writer.close();
+            outStream.close();
+            return outStream.toString(Charset.defaultCharset());
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public Buffer prev() {
         return JsonObject.of(
                 "type", "seq.operate",
-                "target", base,
-                "data", compressedToString(prev)
+                "target", base
+//                "data", compressedToString(prev)
         ).toBuffer();
     }
 

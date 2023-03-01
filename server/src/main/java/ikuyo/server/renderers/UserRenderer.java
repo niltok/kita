@@ -20,7 +20,7 @@ public class UserRenderer implements DrawablesRenderer {
             var text = new Drawable.Text();
             text.y = -70;
             text.text = "#%d(%.1f, %.1f)".formatted(id, info.x, info.y);
-            text.style = JsonObject.of("fill", "red", "fontSize", 20);
+            text.style = "{\"fill\":\"red\",\"fontSize\":20}";
             var pic = new Drawable.Sprite();
             pic.bundle = "other";
             pic.asset = "paimon";

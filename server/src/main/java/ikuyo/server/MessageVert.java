@@ -1,5 +1,6 @@
 package ikuyo.server;
 
+import ikuyo.api.Position;
 import ikuyo.api.UserKeyInput;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
@@ -10,11 +11,15 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 class UserState {
     JsonObject specialCache = JsonObject.of();
+    Set<String> drawableCache = new HashSet<>();
+    Position camera = new Position();
     /** 发往这个地址的内容必须序列化为 Buffer 或 String */
     String socket;
     public UserState(String socket) {
@@ -52,7 +57,7 @@ public class MessageVert extends AsyncVerticle {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
                 userStates.put(json.getInteger("id"), new UserState(json.getString("socket")));
-                eventBus.send(json.getString("socket"), msgDiffer.prev());
+//                eventBus.send(json.getString("socket"), msgDiffer.prev());
                 await(eventBus.request(updaterId, json));
                 msg.reply(JsonObject.of("type", "user.add.success"));
             }
@@ -78,12 +83,9 @@ public class MessageVert extends AsyncVerticle {
         switch (json.getString("type")) {
             case "star.updated" -> {
                 var drawables = json.getJsonObject("commonSeq").getJsonObject("starDrawables");
-                var diff = msgDiffer.next(drawables);
+                msgDiffer.next(drawables);
                 var specials = json.getJsonObject("special");
                 userStates.forEach((id, userState) -> {
-                    if (diff != null) { // 只有 seq 变化、其他无变化则不用发送
-                        eventBus.send(userState.socket, diff);
-                    }
                     var state = specials.getJsonObject(id.toString());
                     if (state != null) {
                         var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
@@ -95,6 +97,20 @@ public class MessageVert extends AsyncVerticle {
                                     "payload", JsonObject.of("star", specialDiff)
                             ).toBuffer());
                         }
+                    }
+                    var camera_ = userState.specialCache.getJsonObject("camera");
+                    if (camera_ == null) {
+                        return;
+                    }
+                    var cx = camera_.getInteger("x");
+                    var cy = camera_.getInteger("y");
+                    var moved = cx != userState.camera.x || cy != userState.camera.y;
+                    userState.camera.x = cx;
+                    userState.camera.y = cy;
+                    var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
+                    if (diff != null) {
+//                        logger.info(diff);
+                        eventBus.send(userState.socket, diff);
                     }
                 });
             }

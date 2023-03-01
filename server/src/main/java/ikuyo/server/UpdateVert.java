@@ -148,14 +148,14 @@ public class UpdateVert extends AsyncVerticle {
             prevTime = startTime;
             mainBehavior.update(behaviorContext);
             behaviorContext.userKeyInputs().forEach((i, u) -> u.frame());
-            var seq = runBlocking(() -> commonSeqRenderer.render(rendererContext));
-            var spe = runBlocking(() -> specialRenderer.render(rendererContext));
+            var seq = commonSeqRenderer.render(rendererContext);
+            var spe = specialRenderer.render(rendererContext);
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
-                    "commonSeq", await(seq),
-                    "special", await(spe))));
+                    "commonSeq", seq,
+                    "special", spe)));
             updatedContext.clear();
             updateCount++;
             updateTime = System.nanoTime() - startTime;

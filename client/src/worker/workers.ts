@@ -8,14 +8,14 @@ export const renderer = new Renderer()
 
 workerCommon$.subscribe({
     next(state) {
-        preprocessor.postMessage(state)
+        // preprocessor.postMessage(state)
         renderer.postMessage(state)
     }
 })
 
-preprocessor.onmessage = (e: MessageEvent<ModifyEvent>) => renderer.postMessage({
-    ...e.data,
-    type: 'preprocessed'
-} as StateEvent)
+// preprocessor.onmessage = (e: MessageEvent<ModifyEvent>) => renderer.postMessage({
+//     ...e.data,
+//     type: 'preprocessed'
+// } as StateEvent)
 
 renderer.onmessage = e => rendererEvent$.next(e.data)
