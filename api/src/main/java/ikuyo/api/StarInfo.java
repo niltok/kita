@@ -132,16 +132,18 @@ public class StarInfo {
             info.blocks[i].type = 0;
         }
 
-//        地洞
-//        int index = realIndexOf(0, info.mintier);
-//        for (int i = 0; i < info.blocks.length; i++) {
-//            Position pos = posOf(index);
-//            if ( OpenSimplex2S.noise2(seed, pos.x/10, pos.y/10) * 2 > 1 ) {
-//                info.blocks[i] = new Block.Normal();
-//                info.blocks[i].type = 0;
-//            }
-//            index++;
-//        }
+//        地道儿
+        int index = realIndexOf(0, info.mintier);
+        for (int i = 0; i < groundnum; i++) {
+            Position pos = posOf(index);
+            double height = Math.hypot(pos.x, pos.y);
+            if (height <= info.star_r) {
+                if (OpenSimplex2S.noise2(seed, pos.x / 20, pos.y / 20) * 2 > 0.3) {
+                    info.blocks[i].type = 2;
+                }
+                index++;
+            }
+        }
 
 //        int[] test = new int[500];
 //        boolean a = true;

@@ -26,7 +26,7 @@ public class BlockRenderer implements DrawablesRenderer {
 
     private static void renderBlock(Map<String, Drawable> drawables, Star star, int i) {
         var block = star.starInfo().blocks[i];
-        if (true) {
+        if (block.isVisible) {
             var d = new Drawable.Sprite();
             Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().mintier));
 //                System.out.println("[x]: %f, [y]: %f".formatted(pos.x, pos.y));

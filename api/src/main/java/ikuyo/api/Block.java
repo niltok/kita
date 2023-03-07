@@ -7,6 +7,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 //        @JsonSubTypes.Type(value = Block.Normal.class, name = "normal")
 //})
 public abstract sealed class Block {
+    /**块类型<p/>
+     * 0: 空气<br/>
+     * 1: 土块<br/>
+     * 2: 石块<br/>*/
     public int type;
     /**可见性*/
     public boolean isVisible;
