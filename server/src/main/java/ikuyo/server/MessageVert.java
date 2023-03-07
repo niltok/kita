@@ -6,14 +6,12 @@ import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 class UserState {
@@ -84,9 +82,12 @@ public class MessageVert extends AsyncVerticle {
                 var drawables = json.getJsonObject("commonSeq").getJsonObject("starDrawables");
                 msgDiffer.next(drawables);
                 var specials = json.getJsonObject("special");
+//                var fs = new ArrayList<Future>();
                 userStates.forEach((id, userState) -> {
-                    runBlocking(() -> sendUserState(specials, id, userState));
+                    sendUserState(specials, id, userState);
+//                    fs.add(runBlocking(() -> sendUserState(specials, id, userState)));
                 });
+//                await(CompositeFuture.all(fs));
             }
         }
     }

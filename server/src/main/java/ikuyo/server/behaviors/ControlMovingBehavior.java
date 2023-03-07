@@ -33,7 +33,7 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
                 px -= dy;
                 py += dx;
             }
-            if (StarInfo.is_standable(
+            if (context.common().users().get(id).isAdmin() || StarInfo.is_standable(
                     px / Drawable.scaling,
                     py / Drawable.scaling,
                     60 / Drawable.scaling,
