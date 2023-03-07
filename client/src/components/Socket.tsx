@@ -5,14 +5,15 @@ import {AppDispatch} from "../store"
 import {sendSocket$, seqDrawables$, setPage$} from "../dbus"
 import {Subscription} from "rxjs"
 import {useAsyncEffect, useRefresh} from "../utils/react";
+import {useEffect} from "react";
 
 export default function Socket(prop: {children?: JSX.Element}) {
     const server = useAppSelector(state => state.gameState.server)
     const dispatch = useAppDispatch()
     const [flag, refCount, refresh, reset] = useRefresh(5)
+    useEffect(() => reset(), [])
     useAsyncEffect(async () => {
         if (!server) return
-        reset()
         const { token, url } = server
         const socket = new SockJS(url + '/socket')
         let subscribe: Subscription | null = null
