@@ -11,6 +11,7 @@ node {
 tasks.register('clientBuild', NpmTask) {
     inputs.files(fileTree('../client/node_modules'))
     inputs.files(fileTree('../client/src'))
+    inputs.files(fileTree('../client/public'))
     inputs.file('../client/package.json')
     inputs.file('../client/index.html')
     inputs.file('../client/vite.config.ts')

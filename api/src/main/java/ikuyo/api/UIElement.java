@@ -48,4 +48,12 @@ public class UIElement {
             this.stateName = stateName;
         }
     }
+
+    public static class Text extends UIElement {
+        public String text;
+        public Text(String text) {
+            super("text");
+            this.text = text;
+        }
+    }
 }

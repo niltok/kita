@@ -12,14 +12,14 @@ public class UserRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(RendererContext ctx, Map<String, Drawable> drawables) {
         ctx.updated().users().forEach(id -> {
-            var info = ctx.star().starInfo().starUsers.get(id);
+            var info = ctx.common().star().starInfo().starUsers.get(id);
             if (info == null || !info.online) {
                 drawables.put("user#%d.position".formatted(id), null);
                 return;
             }
             var text = new Drawable.Text();
             text.y = -70;
-            text.text = "#%d(%.1f, %.1f)".formatted(id, info.x, info.y);
+            text.text = "%s(%.1f, %.1f)".formatted(ctx.common().users().get(id).name(), info.x, info.y);
             text.style = "{\"fill\":\"red\",\"fontSize\":20}";
             var pic = new Drawable.Sprite();
             pic.bundle = "other";

@@ -85,33 +85,37 @@ public class MessageVert extends AsyncVerticle {
                 msgDiffer.next(drawables);
                 var specials = json.getJsonObject("special");
                 userStates.forEach((id, userState) -> {
-                    var state = specials.getJsonObject(id.toString());
-                    if (state != null) {
-                        var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
-                        if (!specialDiff.isEmpty()) { // 变化才发送
-                            userState.specialCache = state;
-                            eventBus.send(userState.socket, JsonObject.of(
-                                    "type", "state.dispatch",
-                                    "action", "gameState/diffGame",
-                                    "payload", JsonObject.of("star", specialDiff)
-                            ).toBuffer());
-                        }
-                    }
-                    var camera_ = userState.specialCache.getJsonObject("camera");
-                    if (camera_ == null) {
-                        return;
-                    }
-                    var cx = camera_.getInteger("x");
-                    var cy = camera_.getInteger("y");
-                    var moved = cx != userState.camera.x || cy != userState.camera.y;
-                    userState.camera.x = cx;
-                    userState.camera.y = cy;
-                    var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
-                    if (diff != null) {
-                        eventBus.send(userState.socket, diff);
-                    }
+                    runBlocking(() -> sendUserState(specials, id, userState));
                 });
             }
+        }
+    }
+
+    private void sendUserState(JsonObject specials, Integer id, UserState userState) {
+        var state = specials.getJsonObject(id.toString());
+        if (state != null) {
+            var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
+            if (!specialDiff.isEmpty()) { // 变化才发送
+                userState.specialCache = state;
+                eventBus.send(userState.socket, JsonObject.of(
+                        "type", "state.dispatch",
+                        "action", "gameState/diffGame",
+                        "payload", JsonObject.of("star", specialDiff)
+                ).toBuffer());
+            }
+        }
+        var camera_ = userState.specialCache.getJsonObject("camera");
+        if (camera_ == null) {
+            return;
+        }
+        var cx = camera_.getInteger("x");
+        var cy = camera_.getInteger("y");
+        var moved = cx != userState.camera.x || cy != userState.camera.y;
+        userState.camera.x = cx;
+        userState.camera.y = cy;
+        var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
+        if (diff != null) {
+            eventBus.send(userState.socket, diff);
         }
     }
 }

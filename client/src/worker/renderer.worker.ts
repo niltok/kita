@@ -34,6 +34,7 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
                 width: state.windowSize.width,
                 view: e.data.canvas,
                 antialias: false,
+                backgroundColor: "000030"
             })
             app.ticker.maxFPS = FPS
             camera = new pixi.Container()

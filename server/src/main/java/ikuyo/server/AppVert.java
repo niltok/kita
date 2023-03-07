@@ -12,7 +12,6 @@ public class AppVert extends AsyncVerticle {
 
     @Override
     public void start() {
-        eventBus.registerDefaultCodec(NoCopyBox.class, new NoCopyBox.Codec());
         starNone = eventBus.consumer("star.none", msg -> {
             var json = msg.body();
             switch (json.getString("type")) {

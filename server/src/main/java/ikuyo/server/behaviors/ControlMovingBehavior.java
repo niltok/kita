@@ -10,7 +10,7 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
     public void update(BehaviorContext context) {
         var speed = 5;
         context.userKeyInputs().forEach((id, input) -> {
-            var pos = context.star().starInfo().starUsers.get(id);
+            var pos = context.common().star().starInfo().starUsers.get(id);
             if (!pos.online) return;
             var z = Math.hypot(pos.x, pos.y);
             var dx = speed * (z == 0 ? 0 : pos.x / z);
@@ -37,7 +37,7 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
                     px / Drawable.scaling,
                     py / Drawable.scaling,
                     60 / Drawable.scaling,
-                    context.star().starInfo())) {
+                    context.common().star().starInfo())) {
                 if (pos.x != px || pos.y != py) context.updated().users().add(id);
                 pos.x = px;
                 pos.y = py;
