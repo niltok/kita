@@ -21,6 +21,8 @@ export function renderUI(elem: UIElement): JSX.Element {
         case "input.text":
             return (<input type={"text"} {...commonProp} onChange={e =>
                 elem.stateName && store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))}/>)
+        case "text":
+            return <>{elem.text}</>
         default:
             return <>{elem.type}</>
     }

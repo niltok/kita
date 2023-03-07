@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
+import ikuyo.api.User;
 import ikuyo.api.UserKeyInput;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.BehaviorContext;
+import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.RendererContext;
 import ikuyo.server.api.UpdatedContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
@@ -53,6 +55,7 @@ public class UpdateVert extends AsyncVerticle {
     );
     RendererContext rendererContext;
     UpdatedContext updatedContext;
+    CommonContext commonContext;
 
     @Override
     public void start() {
@@ -87,8 +90,9 @@ public class UpdateVert extends AsyncVerticle {
     private void loadStar(int id) {
         star = Star.get(pool, id);
         updatedContext = new UpdatedContext();
-        behaviorContext = new BehaviorContext(star, new HashMap<>(), updatedContext);
-        rendererContext = new RendererContext(vertx, star, updatedContext);
+        commonContext = new CommonContext(star, new HashMap<>());
+        behaviorContext = new BehaviorContext(new HashMap<>(), commonContext, updatedContext);
+        rendererContext = new RendererContext(vertx, commonContext, updatedContext);
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
@@ -111,6 +115,8 @@ public class UpdateVert extends AsyncVerticle {
             }
             case "user.add" -> {
                 var id = json.getInteger("id");
+                var user = User.getUserById(pool, id);
+                commonContext.users().put(id, user);
                 var users = star.starInfo().starUsers;
                 if (users.get(id) == null) users.put(id, new StarInfo.StarUserInfo());
                 users.get(id).online = true;

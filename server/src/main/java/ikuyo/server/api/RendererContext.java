@@ -1,7 +1,14 @@
 package ikuyo.server.api;
 
 import ikuyo.api.Star;
+import ikuyo.api.User;
 import io.vertx.core.Vertx;
 
-public record RendererContext(Vertx vertx, Star star, UpdatedContext updated) {
+import java.util.Map;
+
+public record RendererContext(
+        Vertx vertx,
+        CommonContext common,
+        UpdatedContext updated
+) {
 }

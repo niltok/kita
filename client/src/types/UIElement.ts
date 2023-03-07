@@ -7,4 +7,5 @@ export interface UIElement {
     classes: string[]
     callback?: any
     stateName?: string
+    text?: string
 }

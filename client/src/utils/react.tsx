@@ -13,9 +13,13 @@ export function useAsyncEffect(effect: () => Promise<void | (() => void)>, depen
     }, dependencies)
 }
 
-export function useRefresh(): [boolean, () => void] {
+export function useRefresh(initCount: number = -1): [boolean, number, () => void, () => void] {
     const [flag, setFlag] = useState(false)
-    return [flag, () => setFlag(flag => !flag)]
+    const [count, setCount] = useState(initCount)
+    return [flag, count, () => {
+        setCount(count => count > 0 ? count - 1 : count)
+        setFlag(flag => !flag)
+    }, () => setCount(initCount)]
 }
 
 export function useSubscribe<T>(obs: Observable<T>, callback: (val: T) => void) {
