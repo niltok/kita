@@ -113,12 +113,14 @@ public class StarInfo {
         index_out = realIndexOf(outline_roundnum, info.mintier);
         int surblock = info.mintier * (info.mintier - 1) * 3;
         for (var i = outline_roundnum; i < groundnum; i++) {
-            int[] blocklist = ntierAround(index_out, 1, info.mintier, info.maxtier)
-                    .stream().mapToInt(Integer::valueOf).toArray();
-            for (var b: blocklist ) {
-                if (info.blocks[b-surblock-1].type == 0) {
-                    info.blocks[i].type = 11;
-                    break;
+            if (info.blocks[i].isVisible) {
+                int[] blocklist = ntierAround(index_out, 1, info.mintier, info.maxtier)
+                        .stream().mapToInt(Integer::valueOf).toArray();
+                for (var b : blocklist) {
+                    if (info.blocks[b - surblock - 1].type == 0) {
+                        info.blocks[i].type = 11;
+                        break;
+                    }
                 }
             }
             index_out++;
