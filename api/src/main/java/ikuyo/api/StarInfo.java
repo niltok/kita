@@ -49,6 +49,7 @@ public class StarInfo {
         info.blocks = new Block[blocknum];
         for (int i = 0;i < info.blocks.length; i++) {
             info.blocks[i] = new Block.Normal();
+            info.blocks[i].variant = 0;
         }
         info.starUsers = new HashMap<>();
         int basetier = 30;
@@ -106,19 +107,37 @@ public class StarInfo {
                 info.blocks[i].isDestructible = true;
                 info.blocks[i].isInteractive = true;
                 info.blocks[i].isCollidable = true;
-            }else info.blocks[i].type = 0;
+            }else { info.blocks[i].type = 0; info.blocks[i].variant = 0; }
             index_out++;
         }
 
-        index_out = realIndexOf(outline_roundnum, info.mintier);
+//        表面
+        index_in = realIndexOf(0, info.mintier);
         int surblock = info.mintier * (info.mintier - 1) * 3;
+        for (var i = 0; i < inline_roundnum; i++) {
+            if (info.blocks[i].isVisible) {
+                int[] blocklist = ntierAround(index_in, 1, info.mintier, info.maxtier)
+                        .stream().mapToInt(Integer::valueOf).toArray();
+                for (var b : blocklist) {
+                    if (info.blocks[b - surblock - 1].type == 0) {
+                        info.blocks[i].isDestructible = false;
+                        info.blocks[i].isInteractive = false;
+                        break;
+                    }
+                }
+            }
+            index_in++;
+        }
+
+        index_out = realIndexOf(outline_roundnum, info.mintier);
         for (var i = outline_roundnum; i < groundnum; i++) {
             if (info.blocks[i].isVisible) {
                 int[] blocklist = ntierAround(index_out, 1, info.mintier, info.maxtier)
                         .stream().mapToInt(Integer::valueOf).toArray();
                 for (var b : blocklist) {
                     if (info.blocks[b - surblock - 1].type == 0) {
-                        info.blocks[i].type = 11;
+                        info.blocks[i].type = 1;
+                        info.blocks[i].variant = 1;
                         break;
                     }
                 }
@@ -132,17 +151,17 @@ public class StarInfo {
             info.blocks[i].type = 0;
         }
 
-//        地道儿
+//        石头
         int index = realIndexOf(0, info.mintier);
         for (int i = 0; i < groundnum; i++) {
             Position pos = posOf(index);
             double height = Math.hypot(pos.x, pos.y);
-            if (height <= info.star_r) {
-                if (OpenSimplex2S.noise2(seed, pos.x / 20, pos.y / 20) * 2 > 0.3) {
-                    info.blocks[i].type = 2;
-                }
-                index++;
+            if ((OpenSimplex2S.noise2(seed, pos.x / 10, pos.y / 10) + 1)
+                    > 2 * (Math.atan((height/info.star_r - 0.9) * 10) + Math.PI/2.0) / Math.PI) {
+                info.blocks[i].type = 2;
+                info.blocks[i].variant = 0;
             }
+            index++;
         }
 
 //        int[] test = new int[500];

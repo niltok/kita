@@ -19,20 +19,20 @@ export const manifest: ResolverManifest = {
             name: "blocks",
             assets: [
                 {
-                    name: ["0", "unknown"],
+                    name: ["0-0", "unknown"],
                     srcs: "../blocks/hexagon/blue.png"
                 },
                 {
-                    name: ["1"],
+                    name: ["1-0"],
                     srcs: "../blocks/hexagon/orange.png"
                 },
                 {
-                    name: ["2"],
-                    srcs: "../blocks/hexagon/gray.png"
+                    name: ["1-1"],
+                    srcs: "../blocks/hexagon/green.png"
                 },
                 {
-                    name: ["11"],
-                    srcs: "../blocks/hexagon/green.png"
+                    name: ["2-0"],
+                    srcs: "../blocks/hexagon/gray.png"
                 }
             ]
         },

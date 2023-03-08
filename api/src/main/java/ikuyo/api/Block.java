@@ -12,6 +12,8 @@ public abstract sealed class Block {
      * 1: 土块<br/>
      * 2: 石块<br/>*/
     public int type;
+    /**变体贴图*/
+    public int variant;
     /**可见性*/
     public boolean isVisible;
     /**可交互性*/

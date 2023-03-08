@@ -33,7 +33,7 @@ public class BlockRenderer implements DrawablesRenderer {
             d.x = pos.x * Drawable.scaling;
             d.y = pos.y * Drawable.scaling;
             d.bundle = "blocks";
-            d.asset = String.valueOf(block.type);
+            d.asset = block.type + "-" + block.variant;
             drawables.put(Buffer.buffer()
                     .appendString("block#")
                     .appendString(String.valueOf(i))
