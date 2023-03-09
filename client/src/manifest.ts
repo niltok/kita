@@ -24,7 +24,7 @@ export const manifest: ResolverManifest = {
                 },
                 {
                     name: ["1-0"],
-                    srcs: "../blocks/hexagon/orange.png"
+                    srcs: "../blocks/hexagon/brown.png"
                 },
                 {
                     name: ["1-1"],
@@ -33,6 +33,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: ["2-0"],
                     srcs: "../blocks/hexagon/gray.png"
+                },
+                {
+                    name: ["40-4"],
+                    srcs: "../blocks/hexagon/red.png"
                 }
             ]
         },
