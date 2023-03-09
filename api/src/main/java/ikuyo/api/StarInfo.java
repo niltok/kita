@@ -162,13 +162,14 @@ public class StarInfo {
 //        石头
         int index = realIndexOf(0, info.mintier);
         _seed = random.nextLong();
+        range = new Range(random.nextLong());
         for (int i = 0; i < groundnum; i++) {
             Position pos = posOf(index);
             double height = Math.hypot(pos.x, pos.y);
             double percent = angleOf(index) / Math.PI / 2.0;
             double Random = range.Random(percent);
             if ((OpenSimplex2S.noise2(_seed, pos.x / 10, pos.y / 10) + 1)
-                    > 2 * (Math.atan((height/info.star_r - (0.85 + 0.1 * Random)) * 10) + Math.PI/2.0) / Math.PI) {
+                    > 2 * (Math.atan((height/info.star_r - (0.8 + 0.2 * Random)) * 10) + Math.PI/2.0) / Math.PI) {
                 info.blocks[i].type = 2;
                 info.blocks[i].variant = 0;
             }

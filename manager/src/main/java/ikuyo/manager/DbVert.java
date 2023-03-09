@@ -8,7 +8,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 
-import java.util.Random;
 
 public class DbVert extends AsyncVerticle {
     final boolean SingleStar = true;
@@ -51,7 +50,7 @@ public class DbVert extends AsyncVerticle {
         )).execute());
         logger.info(JsonObject.of("type", "creating universe..."));
         int univId = Universe.insert(pool, !SingleStar);
-        if (SingleStar) Star.insert(pool, univId, 0, 0, 0, new Random().nextInt());
+        if (SingleStar) Star.insert(pool, univId, 0, 0, 0, 0);
         logger.info(JsonObject.of("type", "creating users..."));
         User.insert(pool, "admin", "admin", true, univId, 1);
         User.insert(pool, "user0", "user0", true, univId, 1);
