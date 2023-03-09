@@ -49,9 +49,10 @@ public class StarInfo {
         info.blocks = new Block[blocknum];
         for (int i = 0;i < info.blocks.length; i++) {
             info.blocks[i] = new Block.Normal();
+            info.blocks[i].variant = 0;
         }
         info.starUsers = new HashMap<>();
-        int basetier = 30;
+        int basetier = 50;
         double noiselength = 30.0;
 
 //        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
@@ -95,30 +96,89 @@ public class StarInfo {
         }
 
 //        圆角修饰部分_out
+        ArrayList<Double> list = new ArrayList<>();
+        double res = 0.0;
+        while (true) {
+            double r = random.nextDouble() * 0.15 + 0.05;
+            res += r;
+            if (res <= 1.0 ) {
+                list.add(random.nextDouble());
+                list.add(res);
+            }
+            else break;
+        }
+        list.add(random.nextDouble());
+        list.add(1.0);
+        Iterator<Double> It = list.iterator();
+
         int index_out = realIndexOf(outline_roundnum, info.mintier);
         info.star_r = heightOf(tiernum*(tiernum-1)*3+1) * tierdistance;
         double dropheight = basetier * StarInfo.tierdistance;
+
+        long _seed = random.nextLong();
+        double random1 = It.next();
+        double Range = It.next();
+        double random2 = It.next();
+        double Random = random1;
         for (var i = outline_roundnum; i < groundnum; i++) {
+            double percent = angleOf(index_out) / Math.PI / 2.0;
+            if (percent > Range) {
+                Range = It.next();
+                random1 = random2;
+                Random = random1;
+                if (It.hasNext()) {
+                    random2 = It.next();
+                }
+            }
+            if (Range == 1.0) {
+                Iterator<Double> li = list.iterator();
+                li.next();
+                if (percent < li.next()) {
+                    It = list.iterator();
+                    random1 = It.next();
+                    Range = It.next();
+                    random2 = It.next();
+                    Random = random1;
+                }
+            }
             if ( (heightOf(index_out) - info.star_r) * 2 / dropheight
-                    < OpenSimplex2S.noise2(seed, (angleOf(index_out) / Math.PI * 2) * noiselength, 0) + 1 ) {
+                    < (OpenSimplex2S.noise2(_seed, percent * noiselength * (0.5 + 0.5 * Random), 0) + 1) * Random) {
                 info.blocks[i].type = 1;
                 info.blocks[i].isVisible = true;
                 info.blocks[i].isDestructible = true;
                 info.blocks[i].isInteractive = true;
                 info.blocks[i].isCollidable = true;
-            }else info.blocks[i].type = 0;
+            }else { info.blocks[i].type = 0; info.blocks[i].variant = 0; }
             index_out++;
         }
 
-        index_out = realIndexOf(outline_roundnum, info.mintier);
+//        表面
+        index_in = realIndexOf(0, info.mintier);
         int surblock = info.mintier * (info.mintier - 1) * 3;
+        for (var i = 0; i < inline_roundnum; i++) {
+            if (info.blocks[i].isVisible) {
+                int[] blocklist = ntierAround(index_in, 1, info.mintier, info.maxtier)
+                        .stream().mapToInt(Integer::valueOf).toArray();
+                for (var b : blocklist) {
+                    if (info.blocks[b - surblock - 1].type == 0) {
+                        info.blocks[i].isDestructible = false;
+                        info.blocks[i].isInteractive = false;
+                        break;
+                    }
+                }
+            }
+            index_in++;
+        }
+
+        index_out = realIndexOf(outline_roundnum, info.mintier);
         for (var i = outline_roundnum; i < groundnum; i++) {
             if (info.blocks[i].isVisible) {
                 int[] blocklist = ntierAround(index_out, 1, info.mintier, info.maxtier)
                         .stream().mapToInt(Integer::valueOf).toArray();
                 for (var b : blocklist) {
                     if (info.blocks[b - surblock - 1].type == 0) {
-                        info.blocks[i].type = 11;
+                        info.blocks[i].type = 1;
+                        info.blocks[i].variant = 1;
                         break;
                     }
                 }
@@ -132,16 +192,19 @@ public class StarInfo {
             info.blocks[i].type = 0;
         }
 
-//        地洞
-//        int index = realIndexOf(0, info.mintier);
-//        for (int i = 0; i < info.blocks.length; i++) {
-//            Position pos = posOf(index);
-//            if ( OpenSimplex2S.noise2(seed, pos.x/10, pos.y/10) * 2 > 1 ) {
-//                info.blocks[i] = new Block.Normal();
-//                info.blocks[i].type = 0;
-//            }
-//            index++;
-//        }
+//        石头
+        int index = realIndexOf(0, info.mintier);
+        _seed = random.nextLong();
+        for (int i = 0; i < groundnum; i++) {
+            Position pos = posOf(index);
+            double height = Math.hypot(pos.x, pos.y);
+            if ((OpenSimplex2S.noise2(_seed, pos.x / 10, pos.y / 10) + 1)
+                    > 2 * (Math.atan((height/info.star_r - 0.9) * 10) + Math.PI/2.0) / Math.PI) {
+                info.blocks[i].type = 2;
+                info.blocks[i].variant = 0;
+            }
+            index++;
+        }
 
 //        int[] test = new int[500];
 //        boolean a = true;
@@ -191,6 +254,7 @@ public class StarInfo {
 //            System.out.println(OpenSimplex2S.noise2(0, i, 0) + 1);
 //        }
 //        System.out.println(OpenSimplex2S.noise2(0, 6, 0) + 1);
+        System.out.println(Math.tan(0.99));
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -224,6 +288,7 @@ public class StarInfo {
         return Math.hypot(pos.x, pos.y);
     }
 
+    /**ruturn angle in the range of 0 to 2pi.*/
     public static double angleOf(int realindex) {
         Position pos = posOf(realindex);
         return (Math.atan2(pos.y, pos.x) + Math.PI*2) % (Math.PI*2);
@@ -314,3 +379,56 @@ public class StarInfo {
 //        return MyStar;
 //    }
 }
+
+//class Range {
+//    ArrayList<Double> list;
+//    Iterator<Double> It;
+//    double random;
+//    double range;
+//    double random1,random2;
+//    Range(long seed) {
+//        list = new ArrayList<>();
+//        Random random = new Random(seed);
+//        double length = 0.0;
+//        while (true) {
+//            double r = random.nextDouble() * 0.15 + 0.05;
+//            length += r;
+//            if (length <= 1.0 ) {
+//                list.add(random.nextDouble());
+//                list.add(length);
+//            }
+//            else break;
+//        }
+//        list.add(random.nextDouble());
+//        list.add(1.0);
+//        It = list.iterator();
+//        random1 = It.next();
+//        range = It.next();
+//        random2 = It.next();
+//
+//    }
+//
+//    public double Random(double percent) {
+//        if (percent > range) {
+//            range = It.next();
+//            random1 = random2;
+//            random = random1;
+//            if (It.hasNext()) {
+//                random2 = It.next();
+//            }
+//        }
+//        if (range == 1.0) {
+//            Iterator<Double> li = list.iterator();
+//            li.next();
+//            if (percent < li.next()) {
+//                It = list.iterator();
+//                random1 = It.next();
+//                range = It.next();
+//                random2 = It.next();
+//                range = random1;
+//            }
+//        }
+//
+//        return random;
+//    }
+//}

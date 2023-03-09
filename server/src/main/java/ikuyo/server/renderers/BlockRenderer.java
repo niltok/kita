@@ -26,14 +26,14 @@ public class BlockRenderer implements DrawablesRenderer {
 
     private static void renderBlock(Map<String, Drawable> drawables, Star star, int i) {
         var block = star.starInfo().blocks[i];
-        if (true) {
+        if (block.isVisible) {
             var d = new Drawable.Sprite();
             Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().mintier));
 //                System.out.println("[x]: %f, [y]: %f".formatted(pos.x, pos.y));
             d.x = pos.x * Drawable.scaling;
             d.y = pos.y * Drawable.scaling;
             d.bundle = "blocks";
-            d.asset = String.valueOf(block.type);
+            d.asset = block.type + "-" + block.variant;
             drawables.put(Buffer.buffer()
                     .appendString("block#")
                     .appendString(String.valueOf(i))
