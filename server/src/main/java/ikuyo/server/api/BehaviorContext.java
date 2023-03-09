@@ -8,7 +8,6 @@ import java.util.Map;
 
 public record BehaviorContext(
         Map<Integer, UserKeyInput> userKeyInputs,
-        CommonContext common,
-        UpdatedContext updated
+        CommonContext common
 ) {
 }

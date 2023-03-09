@@ -10,7 +10,7 @@ public class CameraRenderer implements Renderer<RendererContext> {
     @Override
     public JsonObject render(RendererContext ctx) {
         var res = JsonObject.of();
-        ctx.updated().users().forEach(id -> {
+        ctx.common().updated().users().forEach(id -> {
             var pos = ctx.common().star().starInfo().starUsers.get(id);
             if (pos == null) res.putNull(id.toString());
             else res.put(id.toString(), JsonObject.of("camera", JsonObject.of(

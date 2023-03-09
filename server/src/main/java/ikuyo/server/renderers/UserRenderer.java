@@ -11,7 +11,7 @@ import java.util.Map;
 public class UserRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(RendererContext ctx, Map<String, Drawable> drawables) {
-        ctx.updated().users().forEach(id -> {
+        ctx.common().updated().users().forEach(id -> {
             var info = ctx.common().star().starInfo().starUsers.get(id);
             if (info == null || !info.online) {
                 drawables.put("user#%d.position".formatted(id), null);

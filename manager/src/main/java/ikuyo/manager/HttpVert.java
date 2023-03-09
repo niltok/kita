@@ -1,9 +1,18 @@
 package ikuyo.manager;
 
 import ikuyo.api.User;
+import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.behaviors.CompositeBehavior;
+import ikuyo.api.renderers.CompositeRenderer;
+import ikuyo.api.renderers.Renderer;
+import ikuyo.manager.api.*;
+import ikuyo.manager.behaviors.StarMapBehavior;
+import ikuyo.manager.renderers.StarMapRenderer;
+import ikuyo.manager.renderers.UIRenderer;
 import ikuyo.utils.AsyncVerticle;
+import io.reactivex.rxjava3.subjects.Subject;
+import io.reactivex.rxjava3.subjects.UnicastSubject;
 import io.vertx.core.eventbus.DeliveryOptions;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.AllowForwardHeaders;
@@ -23,17 +32,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static ikuyo.utils.MsgDiffer.jsonDiff;
+
 public class HttpVert extends AsyncVerticle {
     HttpServer server;
     PgPool pool;
     Router router;
     Map<String, User> socketCache = new HashMap<>();
+    Subject<Integer> render$ = UnicastSubject.create();
+    CommonContext commonContext;
+    UpdatedContext updatedContext;
+    BehaviorContext behaviorContext;
+    RendererContext rendererContext;
+    Renderer<RendererContext> uiRenderer = new UIRenderer.Composite(
+            new StarMapRenderer()
+    );
+    Behavior<BehaviorArgContext> mainBehavior = new CompositeBehavior<>(
+            new StarMapBehavior()
+    );
 
     @Override
     public void start() {
         pool = PgPool.pool(vertx, new PoolOptions());
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
+        updatedContext = new UpdatedContext();
+        commonContext = new CommonContext(updatedContext);
+        rendererContext = new RendererContext(commonContext);
+        behaviorContext = new BehaviorContext(render$, commonContext);
+        render$.subscribe(i -> renderUI());
         router = Router.router(vertx);
         router.allowForward(AllowForwardHeaders.ALL);
         // sockjs handler 前面不能加任何 async handler 所以别改这段代码
@@ -118,16 +145,40 @@ public class HttpVert extends AsyncVerticle {
                 }
                 registerUser(user, socket.writeHandlerID(), 3);
                 socketCache.put(socket.writeHandlerID(), user);
+                commonContext.userState().put(user.id(), new UserState(socket.writeHandlerID(), user));
+                mainBehavior.update(new BehaviorArgContext(user.id(), msg, behaviorContext));
+                renderUI();
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
             default -> {
+                var id = socketCache.get(socket.writeHandlerID()).id();
+                mainBehavior.update(new BehaviorArgContext(id, msg, behaviorContext));
+                renderUI();
                 eventBus.send(socketAddress(socket), JsonObject.of(
                         "type", "user.message",
                         "socket", socket.writeHandlerID(),
-                        "userId", socketCache.get(socket.writeHandlerID()).id(),
+                        "userId", id,
                         "msg", msg));
             }
         }
+    }
+
+    private void renderUI() {
+        uiRenderer.render(rendererContext).forEach(e -> {
+            var id = Integer.valueOf(e.getKey());
+            var json = (JsonObject) e.getValue();
+            var state = commonContext.userState().get(id);
+            var diff = jsonDiff(state.cache, json);
+            if (!diff.isEmpty()) {
+                state.cache = json;
+                eventBus.send(state.socket, JsonObject.of(
+                        "type", "state.dispatch",
+                        "action", "gameState/diffGame",
+                        "payload", diff
+                ).toBuffer());
+            }
+        });
+        updatedContext.clear();
     }
 
     @NotNull

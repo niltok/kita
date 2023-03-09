@@ -4,7 +4,8 @@ import {store} from "../store";
 import {diffGame} from "../stores/gameState";
 import React from "react";
 
-export function renderUI(elem: UIElement): JSX.Element {
+export function renderUI(elem: UIElement | undefined): JSX.Element {
+    if (!elem) return <></>
     const commonProp = {
         style: elem.style,
         className: elem.classes.join(' '),

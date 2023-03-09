@@ -7,7 +7,9 @@ import {useKeyboard, useSubscribe, useWindowSize} from "../utils/react";
 import {renderer} from "../worker/workers";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
-const keyMapper = {
+
+type KeyType = string | { action: string, value: number } | { type: string, [key: string]: any };
+const keyMapper: { [key: string]: KeyType } = {
     "KeyW": {action: "up", value: 2},
     "KeyW!": "up",
     "KeyS": {action: "down", value: 2},
@@ -16,9 +18,10 @@ const keyMapper = {
     "KeyA!": "left",
     "KeyD": {action: "right", value: 2},
     "KeyD!": "right",
+    "KeyM": {type: "starMap.toggle"},
 }
 
-function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: string | {action: string, value: number} }) {
+function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {
     const action = mapper[getKeyCode(e)]
     if (typeof action == 'undefined') return
     if (typeof action == 'string')
@@ -88,7 +91,7 @@ export const Stage = () => {
         }
     }, [canvas])
     return (<>
-        <div className={"client-info"}>{JSON.stringify(info)}</div>
+        <div className={"absolute debug-info"}>{JSON.stringify(info)}</div>
         <canvas ref={setCanvas}></canvas>
     </>)
 }

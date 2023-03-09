@@ -13,8 +13,8 @@ public class BlockRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(RendererContext ctx, Map<String, Drawable> drawables) {
         var star = ctx.common().star();
-        if (!ctx.updated().init().get()) {
-            ctx.updated().blocks().forEach(id -> {
+        if (!ctx.common().updated().init().get()) {
+            ctx.common().updated().blocks().forEach(id -> {
                 renderBlock(drawables, star, id);
             });
             return;

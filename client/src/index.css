@@ -63,12 +63,33 @@ input[type='text'], input[type='password'] {
     cursor: text;
 }
 
-.client-info {
+.absolute {
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.fullscreen {
+    height: 100vh;
+    width: 100vw;
+}
+
+.debug-info {
     color: #ffffff;
     mix-blend-mode: difference;
+}
+
+.starmap-container {
+    position: absolute;
+    left: 20%;
+    right: 20%;
+    top: 20%;
+    bottom: 20%;
+}
+
+.background {
+    background-color: #242424;
+    border-radius: 8px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -81,5 +102,8 @@ input[type='text'], input[type='password'] {
     }
     button, input[type='text'], input[type='password'] {
         background-color: #f9f9f9;
+    }
+    .background {
+        background-color: #ffffff;
     }
 }

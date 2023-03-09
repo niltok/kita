@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import ikuyo.api.Drawable;
 import ikuyo.api.Position;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -89,7 +88,7 @@ public class MsgDiffer {
     public static JsonObject jsonPatchInplace(JsonObject from, JsonObject to) {
         from.getMap().forEach((key, fv) -> {
             var tv = to.getMap().get(key);
-            if (fv instanceof JsonArray fa) fv = arrayToObject(fa);
+            if (fv instanceof JsonArray fa) fv = jsonArrayToObject(fa);
             if (fv instanceof JsonObject fj && tv instanceof JsonObject tj)
                 jsonPatchInplace(fj, tj);
             else to.put(key, fv);
@@ -105,14 +104,14 @@ public class MsgDiffer {
         var merged = Sets.union(to.fieldNames(), from.fieldNames());
         var diff = JsonObject.of();
         for (var k : merged) {
-            Object fv = from.getMap().get(k), tv = to.getMap().get(k);
+            Object fv = from.getValue(k), tv = to.getValue(k);
             if (fv == null && tv != null) diff.put(k, tv);
             else if (fv != null && tv == null) diff.putNull(k);
             else if (fv instanceof JsonObject fj && tv instanceof JsonObject tj && deep > 0) {
                 var ft = jsonDiff(fj, tj, deep - 1);
                 if (!ft.isEmpty()) diff.put(k, ft);
             } else if (fv instanceof JsonArray fa && tv instanceof JsonArray ta && deep > 0) {
-                var ft = jsonDiff(arrayToObject(fa), arrayToObject(ta), deep - 1);
+                var ft = jsonDiff(jsonArrayToObject(fa), jsonArrayToObject(ta), deep - 1);
                 if (!ft.isEmpty()) diff.put(k, ft);
             } else if (!Objects.equals(fv, tv)) diff.put(k, tv);
         }
@@ -122,7 +121,7 @@ public class MsgDiffer {
     public static JsonObject jsonDiff(JsonObject from, JsonObject to) {
         return jsonDiff(from, to, Integer.MAX_VALUE);
     }
-    private static JsonObject arrayToObject(JsonArray array) {
+    private static JsonObject jsonArrayToObject(JsonArray array) {
         var json = JsonObject.of();
         for (var i = 0; i < array.size(); i++)
             json.put(String.valueOf(i), array.getValue(i));

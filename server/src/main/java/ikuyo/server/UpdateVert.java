@@ -90,9 +90,9 @@ public class UpdateVert extends AsyncVerticle {
     private void loadStar(int id) {
         star = Star.get(pool, id);
         updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(star, new HashMap<>());
-        behaviorContext = new BehaviorContext(new HashMap<>(), commonContext, updatedContext);
-        rendererContext = new RendererContext(vertx, commonContext, updatedContext);
+        commonContext = new CommonContext(star, new HashMap<>(), updatedContext);
+        behaviorContext = new BehaviorContext(new HashMap<>(), commonContext);
+        rendererContext = new RendererContext(vertx, commonContext);
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
@@ -117,11 +117,8 @@ public class UpdateVert extends AsyncVerticle {
                 var id = json.getInteger("id");
                 var user = User.getUserById(pool, id);
                 commonContext.users().put(id, user);
-                var users = star.starInfo().starUsers;
-                if (users.get(id) == null) users.put(id, new StarInfo.StarUserInfo());
-                users.get(id).online = true;
-                if (behaviorContext.userKeyInputs().get(id) == null)
-                    behaviorContext.userKeyInputs().put(id, new UserKeyInput());
+                star.starInfo().starUsers.computeIfAbsent(id, i -> new StarInfo.StarUserInfo()).online = true;
+                behaviorContext.userKeyInputs().computeIfAbsent(id, i -> new UserKeyInput());
                 updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
             }

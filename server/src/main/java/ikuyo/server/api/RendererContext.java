@@ -8,7 +8,6 @@ import java.util.Map;
 
 public record RendererContext(
         Vertx vertx,
-        CommonContext common,
-        UpdatedContext updated
+        CommonContext common
 ) {
 }

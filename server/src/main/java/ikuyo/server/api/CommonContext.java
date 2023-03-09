@@ -7,6 +7,7 @@ import java.util.Map;
 
 public record CommonContext(
         Star star,
-        Map<Integer, User> users
+        Map<Integer, User> users,
+        UpdatedContext updated
 ) {
 }

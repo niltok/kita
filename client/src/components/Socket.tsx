@@ -5,9 +5,9 @@ import {AppDispatch} from "../store"
 import {sendSocket$, seqDrawables$, setPage$} from "../dbus"
 import {Subscription} from "rxjs"
 import {useAsyncEffect, useRefresh} from "../utils/react";
-import {useEffect} from "react";
+import {ReactNode, useEffect} from "react";
 
-export default function Socket(prop: {children?: JSX.Element}) {
+export default function Socket(prop: {children?: ReactNode}) {
     const server = useAppSelector(state => state.gameState.server)
     const dispatch = useAppDispatch()
     const [flag, refCount, refresh, reset] = useRefresh(5)
@@ -53,7 +53,7 @@ export default function Socket(prop: {children?: JSX.Element}) {
             socket.close()
         }
     }, [server?.token, flag])
-    return prop.children || (<></>)
+    return <>{prop.children}</>
 }
 
 function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
