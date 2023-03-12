@@ -1,5 +1,6 @@
 package ikuyo.manager;
 
+import ikuyo.api.Star;
 import ikuyo.api.User;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
@@ -57,7 +58,7 @@ public class HttpVert extends AsyncVerticle {
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
         updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(updatedContext);
+        commonContext = new CommonContext(pool, updatedContext);
         rendererContext = new RendererContext(commonContext);
         behaviorContext = new BehaviorContext(render$, commonContext);
         render$.subscribe(i -> renderUI());
@@ -97,6 +98,7 @@ public class HttpVert extends AsyncVerticle {
             eventBus.send(socketAddress(socket), JsonObject.of(
                     "type", "user.disconnect",
                     "id", socketCache.get(socket.writeHandlerID()).id()));
+            commonContext.userState().remove(socketCache.get(socket.writeHandlerID()).id());
             socketCache.remove(socket.writeHandlerID());
         });
     }
@@ -118,10 +120,12 @@ public class HttpVert extends AsyncVerticle {
 
     void registerUser(User user, String socket, int retry) {
         try {
-            var loaded = await(pool.preparedQuery("""
-                select * from star where index = $1 and vert_id is not null
-                """).execute(Tuple.of(user.star()))).rowCount() == 1;
-            if (!loaded) {
+            var summery = Star.getSummery(pool, user.star());
+            assert summery != null;
+            async(() -> Star.query(pool, user.universe(),
+                    summery.x() - Star.viewRange, summery.x() + Star.viewRange,
+                    summery.y() - Star.viewRange, summery.y() + Star.viewRange));
+            if (summery.vertId() == null) {
                 await(eventBus.request("star.none", JsonObject.of(
                         "type", "star.load", "id", user.star()
                 ), new DeliveryOptions().setSendTimeout(5000)));
