@@ -1,18 +1,18 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="runBundle" type="JarApplication">
+  <configuration default="false" name="runBundle(reset)" type="JarApplication">
     <option name="JAR_PATH" value="$PROJECT_DIR$/bundle/build/libs/bundle-rolling-all.jar" />
     <option name="VM_PARAMETERS" value="--enable-preview --add-opens java.base/java.lang=ALL-UNNAMED -Xlog:gc -XX:+UseZGC -XX:+PrintCommandLineFlags" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <envs>
-      <env name="DB_RESET" value="empty" />
+      <env name="DB_RESET" value="always" />
       <env name="PGDATABASE" value="postgres" />
       <env name="PGHOST" value="localhost" />
       <env name="PGPASSWORD" value="kita" />
       <env name="PGUSER" value="postgres" />
     </envs>
     <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="false" tasks="shadowJar" externalProjectPath="$PROJECT_DIR$/bundle" vmOptions="" scriptParameters="" />
-      <option name="RunConfigurationTask" enabled="false" run_configuration_name="runPSql" run_configuration_type="docker-deploy" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="shadowJar" externalProjectPath="$PROJECT_DIR$/bundle" vmOptions="" scriptParameters="" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="runPSql" run_configuration_type="docker-deploy" />
     </method>
   </configuration>
 </component>

@@ -48,11 +48,18 @@ public class StarMapRenderer implements UIRenderer, AsyncHelper {
                 "top", "calc(50%% + %fpx + 2px)".formatted(displayScale * dy),
                 "left", "calc(50%% + %fpx + 2px)".formatted(displayScale * dx));
         var dotStyle = JsonObject.of();
-        if (base.index() == star.index()) dotStyle.put("background-color", "yellow");
+        if (base.index() == star.index()) {
+            dotStyle.put("background-color", "yellow");
+        } else {
+            boxStyle.put("cursor", "pointer");
+        }
         var text = base.index() == star.index() ?
                 star.name() :
                 "%s(%.1fly)".formatted(star.name(), Math.hypot(dx, dy));
-        return new UIElement("div",
+        var callback = base.index() == star.index() ?
+                JsonObject.of() :
+                JsonObject.of("type", "user.move", "target", star.index());
+        return new UIElement.Callback("div", callback,
                 new UIElement("div").withClass("starmap-dot").withStyle(dotStyle),
                 new UIElement.Text(text)).withClass("starmap-label").withStyle(boxStyle);
     }

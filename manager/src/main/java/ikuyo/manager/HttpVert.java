@@ -134,12 +134,16 @@ public class HttpVert extends AsyncVerticle {
                     "type", "user.add", "socket", socket, "id", user.id()
             ), new DeliveryOptions().setSendTimeout(1000)));
         } catch (Exception e) {
+            await(pool.preparedQuery("""
+                update star set vert_id = null where index = $1
+                """).execute(Tuple.of(user.star())));
             if (retry > 0) registerUser(user, socket, retry - 1);
             else throw new RuntimeException("server busy");
         }
     }
 
     private void socketHandler(SockJSSocket socket, @NotNull JsonObject msg) {
+        logger.info(msg);
         switch (msg.getString("type")) {
             case "auth.request" -> {
                 var user = User.getByToken(pool, msg.getString("token"));
@@ -153,6 +157,23 @@ public class HttpVert extends AsyncVerticle {
                 mainBehavior.update(new BehaviorArgContext(user.id(), msg, behaviorContext));
                 renderUI();
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
+            }
+            case "user.move" -> {
+                var target = msg.getInteger("target");
+                var id = socketCache.get(socket.writeHandlerID()).id();
+                await(eventBus.request(socketAddress(socket), JsonObject.of(
+                        "type", "user.remove", "id", id)));
+                await(pool.preparedQuery("""
+                    update "user" set star = $2 where id = $1
+                    """).execute(Tuple.of(id, target)));
+                var user = User.getUserById(pool, id);
+                assert user != null;
+                registerUser(user, socket.writeHandlerID(), 3);
+                socketCache.put(socket.writeHandlerID(), user);
+                commonContext.userState().get(id).user = user;
+                commonContext.updated().users().add(id);
+                renderUI();
+                await(socket.write(JsonObject.of("type", "move.success").toBuffer()));
             }
             default -> {
                 var id = socketCache.get(socket.writeHandlerID()).id();

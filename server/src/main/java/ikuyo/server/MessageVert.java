@@ -58,6 +58,22 @@ public class MessageVert extends AsyncVerticle {
                 await(eventBus.request(updaterId, json));
                 msg.reply(JsonObject.of("type", "user.add.success"));
             }
+            case "user.remove" -> {
+                var id = json.getInteger("id");
+                var userState = userStates.get(id);
+                await(eventBus.request(updaterId, json));
+                eventBus.send(userState.socket, JsonObject.of(
+                        "type", "state.dispatch",
+                        "action", "gameState/diffGame",
+                        "payload", JsonObject.of("star",
+                                MsgDiffer.jsonDiff(userState.specialCache, JsonObject.of()))
+                ).toBuffer());
+                eventBus.send(userState.socket, msgDiffer.buildDiff(new HashSet<>(), userState.drawableCache));
+                userStates.remove(id);
+                if (userStates.isEmpty())
+                    eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                msg.reply(JsonObject.of("type", "success"));
+            }
             case "user.disconnect" -> {
                 userStates.remove(json.getInteger("id"));
                 await(eventBus.request(updaterId, json));

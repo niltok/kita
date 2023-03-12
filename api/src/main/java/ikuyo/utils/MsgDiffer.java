@@ -58,6 +58,10 @@ public class MsgDiffer {
         cache.addAll(add);
         for (String s : delete) cache.remove(s);
         if (add.isEmpty() && delete.isEmpty()) return null;
+        return buildDiff(add, delete);
+    }
+
+    public String buildDiff(Set<String> add, Set<String> delete) {
         try {
             var outStream = new ByteArrayOutputStream();
             var mapper = new ObjectMapper();

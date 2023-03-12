@@ -73,6 +73,8 @@ public class UpdateVert extends AsyncVerticle {
                 async(this::stopPool)));
         logger.info(JsonObject.of(
                 "type", "updater.undeploy",
+                "starId", star.index(),
+                "starName", star.name(),
                 "updateCount", updateCount,
                 "averageDeltaTime", (System.nanoTime() - startTime) / 1000_000.0 / updateCount,
                 "averageUpdateTime", updateTotalTime / 1000_000.0 / updateCount));
@@ -96,7 +98,7 @@ public class UpdateVert extends AsyncVerticle {
         await(pool.preparedQuery(
                 "update star set vert_id = $2 where index = $1"
         ).execute(Tuple.of(id, deploymentID())));
-        logger.info("star." + id + " loaded");
+        logger.info(JsonObject.of("type", "star.loaded", "id", id, "name", star.name()));
         vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
         msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
@@ -126,6 +128,16 @@ public class UpdateVert extends AsyncVerticle {
                 var id = json.getInteger("id");
                 var users = star.starInfo().starUsers;
                 users.get(id).online = false;
+                commonContext.users().remove(id);
+                behaviorContext.userKeyInputs().remove(id);
+                updatedContext.users().add(id);
+                msg.reply(JsonObject.of("type", "success"));
+            }
+            case "user.remove" -> {
+                var id = json.getInteger("id");
+                star.starInfo().starUsers.remove(id);
+                commonContext.users().remove(id);
+                behaviorContext.userKeyInputs().remove(id);
                 updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
             }

@@ -11,7 +11,7 @@ export function renderUI(elem: UIElement | undefined): JSX.Element {
         className: elem.classes.join(' '),
         children: elem.children.map(e => renderUI(e))
     }
-    const clickCallback = elem.callback ? {
+    const clickCallback = elem.callback && JSON.stringify(elem.callback) != "{}" ? {
         onClick: () => sendSocket$.next(elem.callback)
     } : {}
     switch (elem.type) {

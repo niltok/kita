@@ -32,7 +32,7 @@ public record Universe(int index, int seed, boolean autoExpand) {
                 "insert into universe(auto_expand) values ($1) returning index;"
         ).execute(Tuple.of(autoExpand))).iterator().next().getInteger(0);
         if (!autoExpand) return id;
-        Star.query(client, id, 0, 0, 0, 0);
+        Star.query(client, id, -5 * Star.cover, 5 * Star.cover, -5 * Star.cover, 5 * Star.cover);
         return id;
     }
 }
