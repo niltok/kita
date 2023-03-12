@@ -1,5 +1,6 @@
 package ikuyo.server.renderers;
 
+import ikuyo.api.Drawable;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.server.api.RendererContext;
 import io.vertx.core.json.JsonObject;
@@ -14,8 +15,8 @@ public class CameraRenderer implements Renderer<RendererContext> {
             var pos = ctx.common().star().starInfo().starUsers.get(id);
             if (pos == null) res.putNull(id.toString());
             else res.put(id.toString(), JsonObject.of("camera", JsonObject.of(
-                    "x", pos.x,
-                    "y", pos.y
+                    "x", pos.x * Drawable.scaling,
+                    "y", pos.y * Drawable.scaling
             )));
         });
         return res;

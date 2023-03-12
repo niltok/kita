@@ -209,7 +209,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y = 300 * Drawable.scaling;
+        public double x, y = 300;
         public boolean online;
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
