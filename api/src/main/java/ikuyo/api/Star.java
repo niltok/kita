@@ -25,7 +25,7 @@ import static io.vertx.await.Async.await;
  * @param z -1 ~ 1 (ly)
  * @param starInfo 以文本保存的详细信息（无需索引）
  */
-public record Star(int index, String name, int universe, double x, double y, double z, StarInfo starInfo, String vertId) {
+public record Star(int index, String name, int universe, double x, double y, double z, StarInfo starInfo, int seed, String vertId) {
     public static final double cover = 40, viewRange = 20;
     static final int nameLength = 5;
     /**
@@ -86,7 +86,8 @@ public record Star(int index, String name, int universe, double x, double y, dou
             x double precision not null,
             y double precision not null,
             z double precision not null,
-            star_info bytea not null,
+            star_info bytea default null,
+            seed int not null,
             vert_id text
         );
         """;
@@ -101,13 +102,13 @@ public record Star(int index, String name, int universe, double x, double y, dou
                 row.getInteger("index"), row.getString("name"), row.getInteger("universe"),
                 row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
                 StarInfo.fromJson(row.getBuffer("star_info")),
-                row.getString("vert_id"));
+                row.getInteger("seed"), row.getString("vert_id"));
     }
 
     public static Star getSummery(SqlClient client, int index) {
         var rows = await(client.preparedQuery("""
-            select index, name, universe, x, y, z, vert_id 
-            from star 
+            select index, name, universe, x, y, z, seed, vert_id
+            from star
             where index = $1
             """).execute(Tuple.of(index)));
         if (rows.rowCount() == 0) return null;
@@ -115,12 +116,12 @@ public record Star(int index, String name, int universe, double x, double y, dou
         return new Star(
                 row.getInteger("index"), row.getString("name"), row.getInteger("universe"),
                 row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
-                null, row.getString("vert_id"));
+                null, row.getInteger("seed"), row.getString("vert_id"));
     }
 
     public static void insert(SqlClient client, int universe, double x, double y, double z, int seed) {
-        Buffer starInfo = await(Vertx.currentContext().executeBlocking(p ->
-                p.complete(StarInfo.gen(seed).toBuffer()), false));
+//        Buffer starInfo = await(Vertx.currentContext().executeBlocking(p ->
+//                p.complete(StarInfo.gen(seed).toBuffer()), false));
         var rand = new Random(seed);
         var sb = new StringBuilder(nameLength);
         for (int i = 0; i < nameLength; i++) {
@@ -128,9 +129,9 @@ public record Star(int index, String name, int universe, double x, double y, dou
             sb.append((char)(v < 10 ? '0' + v : 'A' + v - 10));
         }
         await(client.preparedQuery("""
-            insert into star(name, universe, x, y, z, star_info)
+            insert into star(name, universe, x, y, z, seed)
             values ($1, $2, $3, $4, $5, $6)
-            """).execute(Tuple.of(sb.toString(), universe, x, y, z, starInfo)));
+            """).execute(Tuple.of(sb.toString(), universe, x, y, z, seed)));
     }
 
     /** 不包含 starInfo, vertId 的 Star 位置信息，若所属 universe 启用了 autoExpand 则会自动生成未访问过的星星 */
@@ -153,7 +154,7 @@ public record Star(int index, String name, int universe, double x, double y, dou
             await(CompositeFuture.all(fs));
         }
         var rows = await(client.preparedQuery("""
-                    select index, name, universe, x, y, z
+                    select index, name, universe, x, y, z, seed
                     from star
                     where universe = $1 and (x between $2 and $3) and (y between $4 and $5);""")
                 .execute(Tuple.of(universe, x1, x2, y1, y2)));
@@ -162,7 +163,7 @@ public record Star(int index, String name, int universe, double x, double y, dou
         for (Row row : rows) {
             res[i] = new Star(row.getInteger("index"), row.getString("name"), universe,
                     row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
-                    null, null);
+                    null, row.getInteger("seed"), null);
             i++;
         }
         return res;

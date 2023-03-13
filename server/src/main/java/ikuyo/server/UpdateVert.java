@@ -23,6 +23,9 @@ import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
@@ -32,10 +35,15 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static io.vertx.await.Async.await;
 
 public class UpdateVert extends AsyncVerticle {
     public static final double MaxFps = 80;
     Star star;
+    boolean loaded = false;
     MessageConsumer<JsonObject> vertEvents;
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
     String msgVertId;
@@ -91,25 +99,49 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     private void loadStar(int id) {
-        star = Star.get(pool, id);
+        // 乐观锁
+        var locked = await(pool.preparedQuery(
+                "update star set vert_id = $2 where index = $1 and vert_id is null"
+        ).execute(Tuple.of(id, deploymentID()))).rowCount() == 1;
+        if (!locked) {
+            vertx.undeploy(deploymentID());
+            return;
+        }
+        vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
+        msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
+                .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
+        try {
+            star = Star.get(pool, id);
+        } catch (Exception e) {
+            star = Star.getSummery(pool, id);
+            assert star != null;
+            logger.info(JsonObject.of("type", "star.generating", "id", id, "name", star.name()));
+            Buffer starInfo = await(Vertx.currentContext().executeBlocking(p ->
+                    p.complete(StarInfo.gen(star.seed()).toBuffer()), false));
+            await(pool.preparedQuery("""
+                update star set star_info = $2 where index = $1 returning index
+                """).execute(Tuple.of(id, starInfo)));
+            star = Star.get(pool, id);
+            assert star != null;
+            logger.info(JsonObject.of("type", "star.generated", "id", id, "name", star.name()));
+        }
         updatedContext = new UpdatedContext();
         commonContext = new CommonContext(star, new HashMap<>(), updatedContext, new PhysicsEngine());
         behaviorContext = new BehaviorContext(new HashMap<>(), commonContext);
         rendererContext = new RendererContext(vertx, commonContext);
-        await(pool.preparedQuery(
-                "update star set vert_id = $2 where index = $1"
-        ).execute(Tuple.of(id, deploymentID())));
-        logger.info(JsonObject.of("type", "star.loaded", "id", id, "name", star.name()));
-        vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
-        msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
-                .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
         startTime = System.nanoTime();
         prevTime = startTime;
         mainLoopId = vertx.setTimer(1, v -> mainLoop());
         writeBackId = vertx.setPeriodic(20 * 60 * 1000, ignore -> writeBack());
+        logger.info(JsonObject.of("type", "star.loaded", "id", id, "name", star.name()));
+        loaded = true;
     }
 
     private void vertEventsHandler(Message<JsonObject> msg) {
+        while (!loaded) {
+            healthCheck();
+            doEvents();
+        }
         var json = msg.body();
         logger.info(json);
         switch (json.getString("type")) {
@@ -163,6 +195,7 @@ public class UpdateVert extends AsyncVerticle {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
+            healthCheck();
             mainBehavior.update(behaviorContext);
             behaviorContext.userKeyInputs().forEach((i, u) -> u.frame());
             var seq = commonSeqRenderer.render(rendererContext);
@@ -172,7 +205,7 @@ public class UpdateVert extends AsyncVerticle {
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
                     "commonSeq", seq,
-                    "special", spe)));
+                    "special", spe)), new DeliveryOptions().setLocalOnly(true));
             updatedContext.clear();
             updateCount++;
             updateTime = System.nanoTime() - startTime;
@@ -185,6 +218,7 @@ public class UpdateVert extends AsyncVerticle {
                     "msg", e.getLocalizedMessage()));
             e.printStackTrace();
             vertx.undeploy(deploymentID());
+            return;
         }
         if (logger.isTraceEnabled())
             logger.trace(JsonObject.of(
@@ -194,6 +228,19 @@ public class UpdateVert extends AsyncVerticle {
                 "deltaTime", deltaTime / 1000_000.0));
     }
 
+    private void healthCheck() { // health check (db connection & ownership)
+        var summery = Star.getSummery(pool, star.index());
+        assert summery != null;
+        if (!Objects.equals(summery.vertId(), deploymentID())) {
+            logger.error(JsonObject.of(
+                    "type", "heathCheck.failed",
+                    "star", star.name(),
+                    "ownership", summery.vertId()));
+            vertx.undeploy(deploymentID());
+        }
+    }
+
+    // TODO: fix write back blocking
     void writeBack() {
         logger.info(JsonObject.of("type", "star.writeBack.start"));
         var start = System.nanoTime();

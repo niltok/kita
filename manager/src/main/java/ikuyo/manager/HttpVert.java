@@ -29,10 +29,12 @@ import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static ikuyo.utils.AsyncStatic.delay;
 import static ikuyo.utils.MsgDiffer.jsonDiff;
 
 public class HttpVert extends AsyncVerticle {
@@ -118,6 +120,7 @@ public class HttpVert extends AsyncVerticle {
         await(req.response().end(token));
     }
 
+    static final int timeout = 5000;
     void registerUser(User user, String socket, int retry) {
         try {
             var summery = Star.getSummery(pool, user.star());
@@ -128,16 +131,20 @@ public class HttpVert extends AsyncVerticle {
             if (summery.vertId() == null) {
                 await(eventBus.request("star.none", JsonObject.of(
                         "type", "star.load", "id", user.star()
-                ), new DeliveryOptions().setSendTimeout(5000)));
+                ), new DeliveryOptions().setSendTimeout(timeout)));
             }
             await(eventBus.request("star." + user.star(), JsonObject.of(
                     "type", "user.add", "socket", socket, "id", user.id()
-            )/*, new DeliveryOptions().setSendTimeout(1000)*/));
+            ), new DeliveryOptions().setSendTimeout(timeout)));
         } catch (Exception e) {
-            await(pool.preparedQuery("""
+            // 尝试切换节点再加载
+            if (retry < 3) await(pool.preparedQuery("""
                 update star set vert_id = null where index = $1
                 """).execute(Tuple.of(user.star())));
-            if (retry > 0) registerUser(user, socket, retry - 1);
+            if (retry > 0) {
+                await(delay(Duration.ofSeconds(1)));
+                registerUser(user, socket, retry - 1);
+            }
             else throw new RuntimeException("server busy");
         }
     }
@@ -151,7 +158,7 @@ public class HttpVert extends AsyncVerticle {
                     socket.close(4000, "auth.failed");
                     return;
                 }
-                registerUser(user, socket.writeHandlerID(), 3);
+                registerUser(user, socket.writeHandlerID(), 5);
                 socketCache.put(socket.writeHandlerID(), user);
                 commonContext.userState().put(user.id(), new UserState(socket.writeHandlerID(), user));
                 mainBehavior.update(new BehaviorArgContext(user.id(), msg, behaviorContext));
