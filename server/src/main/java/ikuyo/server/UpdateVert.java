@@ -6,7 +6,6 @@ import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.User;
 import ikuyo.api.UserKeyInput;
-import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.behaviors.Behavior;
@@ -15,6 +14,8 @@ import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.RendererContext;
 import ikuyo.server.api.UpdatedContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
+import ikuyo.server.api.PhysicsEngine;
+import ikuyo.server.behaviors.PhysicsEngineBehavior;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.DataStatic;
@@ -29,19 +30,19 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class UpdateVert extends AsyncVerticle {
-    final double MaxFps = 80;
+    public static final double MaxFps = 80;
     Star star;
     MessageConsumer<JsonObject> vertEvents;
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
     String msgVertId;
     PgPool pool;
     Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
-            new ControlMovingBehavior()
+            new ControlMovingBehavior(),
+            new PhysicsEngineBehavior()
     );
     BehaviorContext behaviorContext;
     Renderer<RendererContext> commonSeqRenderer = new ParallelRenderer(false,
@@ -92,7 +93,7 @@ public class UpdateVert extends AsyncVerticle {
     private void loadStar(int id) {
         star = Star.get(pool, id);
         updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(star, new HashMap<>(), updatedContext);
+        commonContext = new CommonContext(star, new HashMap<>(), updatedContext, new PhysicsEngine(star));
         behaviorContext = new BehaviorContext(new HashMap<>(), commonContext);
         rendererContext = new RendererContext(vertx, commonContext);
         await(pool.preparedQuery(
@@ -120,6 +121,7 @@ public class UpdateVert extends AsyncVerticle {
                 var user = User.getUserById(pool, id);
                 commonContext.users().put(id, user);
                 star.starInfo().starUsers.computeIfAbsent(id, i -> new StarInfo.StarUserInfo()).online = true;
+                commonContext.engine().addUser(Map.entry(id, commonContext.star().starInfo().starUsers.get(id)));
                 behaviorContext.userKeyInputs().computeIfAbsent(id, i -> new UserKeyInput());
                 updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));

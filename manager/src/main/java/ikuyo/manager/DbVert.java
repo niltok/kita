@@ -10,7 +10,7 @@ import io.vertx.sqlclient.PoolOptions;
 
 
 public class DbVert extends AsyncVerticle {
-    final boolean SingleStar = false;
+    final boolean SingleStar = true;
     PgPool pool;
 
     //language=PostgreSQL

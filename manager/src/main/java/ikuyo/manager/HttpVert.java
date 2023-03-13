@@ -132,7 +132,7 @@ public class HttpVert extends AsyncVerticle {
             }
             await(eventBus.request("star." + user.star(), JsonObject.of(
                     "type", "user.add", "socket", socket, "id", user.id()
-            ), new DeliveryOptions().setSendTimeout(1000)));
+            )/*, new DeliveryOptions().setSendTimeout(1000)*/));
         } catch (Exception e) {
             await(pool.preparedQuery("""
                 update star set vert_id = null where index = $1
