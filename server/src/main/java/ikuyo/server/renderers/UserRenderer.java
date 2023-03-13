@@ -11,8 +11,8 @@ import java.util.Map;
 public class UserRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(RendererContext ctx, Map<String, Drawable> drawables) {
-        ctx.common().updated().users().forEach(id -> {
-            var info = ctx.common().star().starInfo().starUsers.get(id);
+        ctx.common().star().starInfo().starUsers.forEach((id, info) -> {
+//            var info = ctx.common().star().starInfo().starUsers.get(id);
             if (info == null || !info.online) {
                 drawables.put("user#%d.position".formatted(id), null);
                 return;
@@ -25,9 +25,9 @@ public class UserRenderer implements DrawablesRenderer {
             pic.bundle = "other";
             pic.asset = "paimon";
             var drawable = new Drawable.Container();
-            drawable.x = info.x;
-            drawable.y = info.y;
-            drawable.angle = Math.atan2(info.x, -info.y);
+            drawable.x = info.x * Drawable.scaling;
+            drawable.y = info.y * Drawable.scaling;
+            drawable.angle = Math.atan2(drawable.x, -drawable.y);
             drawable.zIndex = 1;
             drawable.children = new Drawable[] {pic, text};
             drawables.put("user#%d.position".formatted(id), drawable);
