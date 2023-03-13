@@ -23,7 +23,7 @@ public class StarInfoTest {
     }
     @Test
     public void Test_singleBlock() {
-        int index = 0;
+        int index = 1;
         Position pos = StarInfo.posOf(index);
         pos.y -= 0.49;
         System.out.printf("[index]: %d, [tier]: %d, [x]: %f, [y]: %f, [angle]: %f%n",

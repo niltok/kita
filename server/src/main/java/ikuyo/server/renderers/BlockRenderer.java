@@ -11,15 +11,15 @@ import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
     @Override
-    public void renderDrawables(RendererContext ctx, Map<String, Drawable> drawables) {
-        var star = ctx.common().star();
-        if (!ctx.common().updated().init().get()) {
-            ctx.common().updated().blocks().forEach(id -> {
+    public void renderDrawables(RendererContext context, Map<String, Drawable> drawables) {
+        var star = context.common().star();
+        if (!context.common().updated().init().get()) {
+            context.common().updated().blocks().forEach(id -> {
                 renderBlock(drawables, star, id);
             });
-            return;
         }
-        for (var i = 0; i < star.starInfo().blocks.length; i++) {
+        else for (var i = 0; i < star.starInfo().blocks.length; i++) {
+//            if (context.common().engine().surfaceBlocks.containsKey(i))
             renderBlock(drawables, star, i);
         }
     }
@@ -28,7 +28,7 @@ public class BlockRenderer implements DrawablesRenderer {
         var block = star.starInfo().blocks[i];
         if (block.isVisible) {
             var d = new Drawable.Sprite();
-            Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().mintier));
+            Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().minTier));
 //                System.out.println("[x]: %f, [y]: %f".formatted(pos.x, pos.y));
             d.x = pos.x * Drawable.scaling;
             d.y = pos.y * Drawable.scaling;

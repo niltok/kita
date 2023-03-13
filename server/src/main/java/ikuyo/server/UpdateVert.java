@@ -93,7 +93,7 @@ public class UpdateVert extends AsyncVerticle {
     private void loadStar(int id) {
         star = Star.get(pool, id);
         updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(star, new HashMap<>(), updatedContext, new PhysicsEngine(star));
+        commonContext = new CommonContext(star, new HashMap<>(), updatedContext, new PhysicsEngine());
         behaviorContext = new BehaviorContext(new HashMap<>(), commonContext);
         rendererContext = new RendererContext(vertx, commonContext);
         await(pool.preparedQuery(

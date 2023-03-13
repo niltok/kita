@@ -16,21 +16,8 @@ public class PhysicsEngineBehavior  implements Behavior<BehaviorContext> {
     public void update(BehaviorContext context) {
         PhysicsEngine PE = context.common().engine();
 
-//        if (context.common().updated().init().get())
-//            for (var user: context.common().users().values()) {
-//                engine.Initialize(context.common().star());
-//            }
-//        for (var id: context.common().updated().users()) {
-//            if (!context.common().star().starInfo().starUsers.get(id).online) {
-////                Body body = PE.users.get(id);
-////                PE.world.removeBody(body);
-////                PE.users.remove(id, body);
-//            }else {
-//                if (PE.users.get(id) == null) {
-//                    PE.addUser(Map.entry(id, context.common().star().starInfo().starUsers.get(id)));
-//                }
-//            }
-//        }
+        if (context.common().updated().init().get())
+            PE.Initialize(context.common().star());
 
         PE.world.step(1);
         for (var user: context.common().star().starInfo().starUsers.entrySet()) {
