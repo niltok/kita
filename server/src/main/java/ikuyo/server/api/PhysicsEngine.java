@@ -21,7 +21,7 @@ public class PhysicsEngine{
     public Map<Integer, Body> surfaceBlocks;
     protected static final Polygon hexagon = Geometry
             .createPolygon(getVertices());
-    private static final Vector2 Gravity = new Vector2(-1000, 0);
+    public static final Vector2 Gravity = new Vector2(-1000, 0);
     protected Filter userFilter = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
@@ -44,7 +44,7 @@ public class PhysicsEngine{
             if (star.starInfo().blocks[b].isCollidable) {
                 Body body = new Body();
                 BodyFixture fixture = body.addFixture(hexagon);
-                fixture.setFriction(0.5);
+                fixture.setFriction(0.1);
                 Position pos = StarInfo.posOf(StarInfo.realIndexOf(b, star.starInfo().minTier));
                 body.translate(pos.x, pos.y);
                 body.setMass(MassType.INFINITE);
@@ -77,7 +77,7 @@ public class PhysicsEngine{
         if (!users.containsKey(user.id())) {
             Body body = new Body();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
-            fixture.setFriction(0.5);
+            fixture.setFriction(0.1);
             fixture.setFilter(userFilter);
             if (user.isAdmin()) fixture.setFilter(filter -> false);
             body.translate(userInfo.x, userInfo.y);
@@ -86,6 +86,7 @@ public class PhysicsEngine{
 //            {Rectangle} [inertia]: mass * (height * height + width * width) / 12.0;
             body.setMass(new Mass(new Vector2(), 50,
                     (double) 50 * 50 / 12));
+            body.setLinearDamping(1);
             users.put(user.id(), Map.entry(user, body));
             world.addBody(body);
         }
