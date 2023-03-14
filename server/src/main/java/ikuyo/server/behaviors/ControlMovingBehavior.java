@@ -17,23 +17,26 @@ public class ControlMovingBehavior implements Behavior<BehaviorContext> {
             if (!pos.online) return;
 
             double angle = (Math.atan2(pos.x, pos.y) + Math.PI * 2) % (Math.PI * 2);
-            Vector2 speed = new Vector2(0, 100);
-            Vector2 force = new Vector2(0, 0);
+            final Vector2 speed = new Vector2(10000, 0);
+            Vector2 force = new Vector2();
             if (input.up > 0) {
-                force = force.add(speed);
+                force.add(speed);
             }
             if (input.down > 0) {
-                force = force.add(speed.rotate(Math.PI));
+                force.add(speed.rotate(Math.PI));
             }
             if (input.left > 0) {
-                force = force.add(speed.rotate(-Math.PI / 2));
+                force.add(speed.rotate(Math.PI / 2));
             }
             if (input.right > 0) {
-                force = force.add(speed.rotate(Math.PI / 2));
+                force.add(speed.rotate(-Math.PI / 2));
             }
             if (!force.equals(0.0, 0.0)) {
-                Body body = context.common().engine().users.get(id);
-                body.setLinearVelocity(force.inverseRotate(angle));
+                Body body = context.common().engine().users
+                        .get(id).getValue();
+                force.rotate(angle);
+                force.y *= -1;
+                body.applyForce(force);
 //                System.out.println("{ControlMoving} [x]: %f, [y]: %f".formatted(body.getWorldCenter().x, body.getWorldCenter().y));
             }
         });

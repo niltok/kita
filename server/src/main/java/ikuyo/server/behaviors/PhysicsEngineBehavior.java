@@ -23,7 +23,7 @@ public class PhysicsEngineBehavior  implements Behavior<BehaviorContext> {
 
         for (var user: context.common().star().starInfo().starUsers.entrySet()) {
             if (user.getValue().online) {
-                Body body = PE.users.get(user.getKey());
+                Body body = PE.users.get(user.getKey()).getValue();
                 if (/*!Objects.equals(body.getChangeInPosition(), new Vector2(0, 0))*/ true) {
                     var pos = context.common().star().starInfo().starUsers.get(user.getKey());
                     pos.x = body.getWorldCenter().x;
