@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from "react"
-import {keyEvents$, sendSocket$, seqDrawables$, workerCommon$} from "../dbus"
+import {keyEvents$, mouseEvents$, sendSocket$, seqDrawables$, workerCommon$} from "../dbus"
 import {Drawable} from "../types/Drawable"
-import {getKeyCode} from "../utils/common"
+import {FPS, getKeyCode} from "../utils/common"
 import {store} from "../store"
-import {useKeyboard, useSubscribe, useWindowSize} from "../utils/react";
+import {useKeyboard, useMouse, useSubscribe, useWindowSize} from "../utils/react";
 import {renderer} from "../worker/workers";
+import {useAppSelector} from "../storeHook";
+import {throttleTime} from "rxjs";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 
@@ -19,6 +21,7 @@ const keyMapper: { [key: string]: KeyType } = {
     "KeyD": {action: "right", value: 2},
     "KeyD!": "right",
     "KeyM": {type: "starMap.toggle"},
+    "Space": "jump"
 }
 
 function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {
@@ -37,11 +40,16 @@ function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {
 }
 
 export const Stage = () => {
-    useKeyboard();
-    useWindowSize();
+    useKeyboard()
+    useMouse()
+    useWindowSize()
     useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
     const [info, setInfo] = useState<any>({})
+    const camera = useAppSelector(state => state.gameState.star.camera)
+    useSubscribe(mouseEvents$.pipe(throttleTime(1000 / FPS)), e => {
+        // sendSocket$.next({})
+    })
     useEffect(() => {
         if (canvas == null) return
         const cache: any = {

@@ -9,6 +9,7 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.*;
@@ -68,7 +69,9 @@ public class MessageVert extends AsyncVerticle {
                         "payload", JsonObject.of("star",
                                 MsgDiffer.jsonDiff(userState.specialCache, JsonObject.of()))
                 ).toBuffer());
-                eventBus.send(userState.socket, msgDiffer.buildDiff(new HashSet<>(), userState.drawableCache));
+                eventBus.send(userState.socket, JsonObject.of(
+                        "type", "seq.operate",
+                        "data", msgDiffer.buildDiff(new HashSet<>(), userState.drawableCache)).toBuffer());
                 userStates.remove(id);
                 if (userStates.isEmpty())
                     eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
@@ -109,16 +112,17 @@ public class MessageVert extends AsyncVerticle {
     }
 
     private void sendUserState(JsonObject specials, Integer id, UserState userState) {
+        var msg = JsonArray.of();
         var state = specials.getJsonObject(id.toString());
         if (state != null) {
             var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
             if (!specialDiff.isEmpty()) { // 变化才发送
                 userState.specialCache = state;
-                eventBus.send(userState.socket, JsonObject.of(
+                msg.add(JsonObject.of(
                         "type", "state.dispatch",
                         "action", "gameState/diffGame",
                         "payload", JsonObject.of("star", specialDiff)
-                ).toBuffer());
+                ));
             }
         }
         var camera_ = userState.specialCache.getJsonObject("camera");
@@ -132,7 +136,11 @@ public class MessageVert extends AsyncVerticle {
         userState.camera.y = cy;
         var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
         if (diff != null) {
-            eventBus.send(userState.socket, diff);
+            msg.add(JsonObject.of(
+                    "type", "seq.operate",
+                    "data", diff
+            ));
         }
+        if (!msg.isEmpty()) eventBus.send(userState.socket, msg.toBuffer());
     }
 }

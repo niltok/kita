@@ -120,7 +120,7 @@ public class HttpVert extends AsyncVerticle {
         await(req.response().end(token));
     }
 
-    static final int timeout = 5000;
+    static final int timeout = 10000;
     void registerUser(User user, String socket, int retry) {
         try {
             var summery = Star.getSummery(pool, user.star());
@@ -138,11 +138,15 @@ public class HttpVert extends AsyncVerticle {
             ), new DeliveryOptions().setSendTimeout(timeout)));
         } catch (Exception e) {
             // 尝试切换节点再加载
-            if (retry < 3) await(pool.preparedQuery("""
-                update star set vert_id = null where index = $1
-                """).execute(Tuple.of(user.star())));
+            if (retry < 3) {
+                await(pool.preparedQuery("""
+                        update star set vert_id = null where index = $1
+                        """).execute(Tuple.of(user.star())));
+                logger.info(JsonObject.of("type", "star.ownership.release", "starId", user.star()));
+            }
             if (retry > 0) {
                 await(delay(Duration.ofSeconds(1)));
+                logger.info(JsonObject.of("type", "user.register.retry", "remain", retry));
                 registerUser(user, socket, retry - 1);
             }
             else throw new RuntimeException("server busy");

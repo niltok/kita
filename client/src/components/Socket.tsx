@@ -18,6 +18,7 @@ export default function Socket(prop: {children?: ReactNode}) {
         const socket = new SockJS(url + '/socket')
         let subscribe: Subscription | null = null
         socket.onmessage = e => {
+            // console.log(JSON.parse(e.data))
             onMsg(socket, JSON.parse(e.data), dispatch)
         }
         socket.onclose = e => {
@@ -57,6 +58,10 @@ export default function Socket(prop: {children?: ReactNode}) {
 }
 
 function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
+    if (Array.isArray(json)) {
+        json.forEach(e => onMsg(socket, e, dispatch))
+        return
+    }
     switch (json['type']) {
         case 'auth.pass': {
             dispatch(diffGame({ connection: { state: 'connected' } }))

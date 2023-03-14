@@ -2,10 +2,7 @@ package ikuyo.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ikuyo.api.Star;
-import ikuyo.api.StarInfo;
-import ikuyo.api.User;
-import ikuyo.api.UserKeyInput;
+import ikuyo.api.*;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.behaviors.Behavior;
@@ -107,6 +104,7 @@ public class UpdateVert extends AsyncVerticle {
             vertx.undeploy(deploymentID());
             return;
         }
+        logger.info(JsonObject.of("type", "star.ownership.lock", "starId", id));
         vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
         msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
@@ -186,6 +184,11 @@ public class UpdateVert extends AsyncVerticle {
                 var id = json.getInteger("userId");
                 behaviorContext.userKeyInputs().get(id).input(
                         msg.getString("action"), msg.getInteger("value", 1));
+            }
+            case "star.operate.mouse" -> {
+                var id = json.getInteger("userId");
+                behaviorContext.userKeyInputs().get(id).position =
+                        new Position(json.getDouble("x"), json.getInteger("y"));
             }
         }
     }

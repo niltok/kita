@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {keyEvents$} from "../dbus";
+import {keyEvents$, mouseEvents$} from "../dbus";
 import {Observable} from "rxjs";
 import {useDiffGame} from "../stores/gameState";
 import {isDraft, original} from "@reduxjs/toolkit";
@@ -46,12 +46,26 @@ export function useKeyboard() {
             if (e.repeat) return
             keyEvents$.next(e)
         }
-
         document.body.addEventListener('keydown', handleKeyEvent)
         document.body.addEventListener('keyup', handleKeyEvent)
         return () => {
             document.body.removeEventListener('keydown', handleKeyEvent)
             document.body.removeEventListener('keyup', handleKeyEvent)
+        }
+    }, [])
+}
+
+export function useMouse() {
+    useEffect(() => {
+        function handleKeyEvent(e: PointerEvent) {
+            if (!e.isPrimary) return
+            mouseEvents$.next(e)
+        }
+        document.body.addEventListener('pointermove', handleKeyEvent, {
+            passive: true
+        })
+        return () => {
+            document.body.removeEventListener('pointermove', handleKeyEvent)
         }
     }, [])
 }

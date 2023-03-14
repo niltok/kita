@@ -39,7 +39,7 @@ public class MsgDiffer {
         });
     }
 
-    public String query(Position pos, boolean moved, Set<String> cache) {
+    public JsonObject query(Position pos, boolean moved, Set<String> cache) {
         Set<String> add = new HashSet<>(), delete = new HashSet<>();
         if (moved) {
             var res = tree.rangeQuery(CacheRange, pos.x, pos.y);
@@ -61,32 +61,15 @@ public class MsgDiffer {
         return buildDiff(add, delete);
     }
 
-    public String buildDiff(Set<String> add, Set<String> delete) {
-        try {
-            var outStream = new ByteArrayOutputStream();
-            var mapper = new ObjectMapper();
-            var writer = mapper.createGenerator(outStream);
-            writer.writeStartObject();
-            writer.writeStringField("type", "seq.operate");
-            writer.writeStringField("target", base);
-            writer.writeFieldName("data");
-            writer.writeStartObject();
-            for (String s : add) {
-                writer.writeObjectField(s, prev.get(s));
-            }
-            for (String s : delete) {
-                writer.writeNullField(s);
-            }
-            writer.writeEndObject();
-            writer.writeEndObject();
-            writer.close();
-            outStream.close();
-            return outStream.toString(Charset.defaultCharset());
-        } catch (Exception e) {
-            System.err.println(e.getLocalizedMessage());
-            e.printStackTrace();
-            return null;
+    public JsonObject buildDiff(Set<String> add, Set<String> delete) {
+        var json = JsonObject.of();
+        for (String s : add) {
+            json.put(s, JsonObject.mapFrom(prev.get(s)));
         }
+        for (String s : delete) {
+            json.putNull(s);
+        }
+        return json;
     }
 
     public static JsonObject jsonPatchInplace(JsonObject from, JsonObject to) {
