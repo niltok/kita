@@ -19,20 +19,18 @@ public class PhysicsEngineBehavior  implements Behavior<BehaviorContext> {
         if (context.common().updated().init().get())
             PE.Initialize(context.common().star());
 
-        PE.world.step(1);
+        PE.EngineStep(1);
+
         for (var user: context.common().star().starInfo().starUsers.entrySet()) {
             if (user.getValue().online) {
-                Body body = PE.users.get(user.getKey());
-                if (body == null) {
-//                    System.out.println("!!!!!NO BODY!!!!! [userid]: %d".formatted(user.getKey()));
-                }else {
-                    if (/*!Objects.equals(body.getChangeInPosition(), new Vector2(0, 0))*/ true) {
-                        var pos = context.common().star().starInfo().starUsers.get(user.getKey());
-                        pos.x = body.getWorldCenter().x;
-                        pos.y = body.getWorldCenter().y;
+                Body body = PE.users.get(user.getKey()).getValue();
+                if (/*!Objects.equals(body.getChangeInPosition(), new Vector2(0, 0))*/ true) {
+                    var pos = context.common().star().starInfo().starUsers.get(user.getKey());
+                    pos.x = body.getWorldCenter().x;
+                    pos.y = body.getWorldCenter().y;
 //                        System.out.println("{EngineBehavior} [x]: %f, [y]: %f".formatted(body.getWorldCenter().x, body.getWorldCenter().y));
-                        context.common().updated().users().add(user.getKey());
-                    }
+                    context.common().updated().users().add(user.getKey());
+
                 }
             }
         }

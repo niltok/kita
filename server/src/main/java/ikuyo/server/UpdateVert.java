@@ -151,7 +151,8 @@ public class UpdateVert extends AsyncVerticle {
                 var user = User.getUserById(pool, id);
                 commonContext.users().put(id, user);
                 star.starInfo().starUsers.computeIfAbsent(id, i -> new StarInfo.StarUserInfo()).online = true;
-                commonContext.engine().addUser(Map.entry(id, commonContext.star().starInfo().starUsers.get(id)));
+                assert user != null;
+                commonContext.engine().addUser(user, commonContext.star().starInfo().starUsers.get(id));
                 behaviorContext.userKeyInputs().computeIfAbsent(id, i -> new UserKeyInput());
                 updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
@@ -161,6 +162,7 @@ public class UpdateVert extends AsyncVerticle {
                 var users = star.starInfo().starUsers;
                 users.get(id).online = false;
                 commonContext.users().remove(id);
+                commonContext.engine().removeUser(id);
                 behaviorContext.userKeyInputs().remove(id);
                 updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
@@ -169,6 +171,7 @@ public class UpdateVert extends AsyncVerticle {
                 var id = json.getInteger("id");
                 star.starInfo().starUsers.remove(id);
                 commonContext.users().remove(id);
+                commonContext.engine().removeUser(id);
                 behaviorContext.userKeyInputs().remove(id);
                 updatedContext.users().add(id);
                 msg.reply(JsonObject.of("type", "success"));
