@@ -1,6 +1,6 @@
 package ikuyo.manager.api;
 
-import io.reactivex.rxjava3.core.Observer;
+import io.vertx.core.json.JsonObject;
 
-public record BehaviorContext(Observer<Integer> render$, CommonContext common) {
+public record BehaviorContext(Integer id, JsonObject event, CommonContext context) {
 }

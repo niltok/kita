@@ -1,19 +1,19 @@
 package ikuyo.server;
 
 import ikuyo.api.Position;
-import ikuyo.api.UserKeyInput;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.time.Duration;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static ikuyo.utils.AsyncStatic.delay;
 
 class UserState {
     JsonObject specialCache = JsonObject.of();
@@ -51,7 +51,7 @@ public class MessageVert extends AsyncVerticle {
 
     private void starEventsHandler(Message<JsonObject> msg) {
         var json = msg.body();
-        logger.info(json);
+//        logger.info(json);
         switch (json.getString("type")) {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
@@ -73,15 +73,21 @@ public class MessageVert extends AsyncVerticle {
                         "type", "seq.operate",
                         "data", msgDiffer.buildDiff(new HashSet<>(), userState.drawableCache)).toBuffer());
                 userStates.remove(id);
-                if (userStates.isEmpty())
-                    eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                if (userStates.isEmpty()) {
+                    await(delay(Duration.ofMinutes(5)));
+                    if (userStates.isEmpty())
+                        eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                }
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
                 userStates.remove(json.getInteger("id"));
                 await(eventBus.request(updaterId, json));
-                if (userStates.isEmpty())
-                    eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                if (userStates.isEmpty()) {
+                    await(delay(Duration.ofMinutes(5)));
+                    if (userStates.isEmpty())
+                        eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                }
             }
             case "user.message" -> userEventHandler(json);
         }

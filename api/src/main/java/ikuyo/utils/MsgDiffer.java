@@ -29,6 +29,7 @@ public class MsgDiffer {
             changed.add(k);
             if (v == null) {
                 var d = prev.get(k);
+                if (d == null) return;
                 tree.remove(new double[]{d.x, d.y}, k.hashCode());
                 prev.remove(k);
                 return;

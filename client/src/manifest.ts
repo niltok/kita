@@ -46,6 +46,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: "paimon",
                     srcs: "../other/paimon.png"
+                },
+                {
+                    name: "greenCircle",
+                    srcs: "../other/greenCircle.png"
                 }
             ]
         }

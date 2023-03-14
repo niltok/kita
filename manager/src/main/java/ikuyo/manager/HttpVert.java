@@ -4,7 +4,6 @@ import ikuyo.api.Star;
 import ikuyo.api.User;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
-import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.manager.api.*;
 import ikuyo.manager.behaviors.StarMapBehavior;
@@ -45,12 +44,10 @@ public class HttpVert extends AsyncVerticle {
     Subject<Integer> render$ = UnicastSubject.create();
     CommonContext commonContext;
     UpdatedContext updatedContext;
-    BehaviorContext behaviorContext;
-    RendererContext rendererContext;
-    Renderer<RendererContext> uiRenderer = new UIRenderer.Composite(
+    Renderer<CommonContext> uiRenderer = new UIRenderer.Composite(
             new StarMapRenderer()
     );
-    Behavior<BehaviorArgContext> mainBehavior = new CompositeBehavior<>(
+    Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
             new StarMapBehavior()
     );
 
@@ -60,9 +57,7 @@ public class HttpVert extends AsyncVerticle {
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
         updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(pool, updatedContext);
-        rendererContext = new RendererContext(commonContext);
-        behaviorContext = new BehaviorContext(render$, commonContext);
+        commonContext = new CommonContext(render$, pool, updatedContext);
         render$.subscribe(i -> renderUI());
         router = Router.router(vertx);
         router.allowForward(AllowForwardHeaders.ALL);
@@ -145,7 +140,7 @@ public class HttpVert extends AsyncVerticle {
                 logger.info(JsonObject.of("type", "star.ownership.release", "starId", user.star()));
             }
             if (retry > 0) {
-                await(delay(Duration.ofSeconds(1)));
+                await(delay(Duration.ofSeconds(3)));
                 logger.info(JsonObject.of("type", "user.register.retry", "remain", retry));
                 registerUser(user, socket, retry - 1);
             }
@@ -154,7 +149,7 @@ public class HttpVert extends AsyncVerticle {
     }
 
     private void socketHandler(SockJSSocket socket, @NotNull JsonObject msg) {
-        logger.info(msg);
+//        logger.info(msg);
         switch (msg.getString("type")) {
             case "auth.request" -> {
                 var user = User.getByToken(pool, msg.getString("token"));
@@ -162,10 +157,10 @@ public class HttpVert extends AsyncVerticle {
                     socket.close(4000, "auth.failed");
                     return;
                 }
-                registerUser(user, socket.writeHandlerID(), 5);
+                registerUser(user, socket.writeHandlerID(), 6);
                 socketCache.put(socket.writeHandlerID(), user);
                 commonContext.userState().put(user.id(), new UserState(socket.writeHandlerID(), user));
-                mainBehavior.update(new BehaviorArgContext(user.id(), msg, behaviorContext));
+                mainBehavior.update(new BehaviorContext(user.id(), msg, commonContext));
                 renderUI();
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
@@ -188,7 +183,7 @@ public class HttpVert extends AsyncVerticle {
             }
             default -> {
                 var id = socketCache.get(socket.writeHandlerID()).id();
-                mainBehavior.update(new BehaviorArgContext(id, msg, behaviorContext));
+                mainBehavior.update(new BehaviorContext(id, msg, commonContext));
                 renderUI();
                 eventBus.send(socketAddress(socket), JsonObject.of(
                         "type", "user.message",
@@ -200,7 +195,7 @@ public class HttpVert extends AsyncVerticle {
     }
 
     private void renderUI() {
-        uiRenderer.render(rendererContext).forEach(e -> {
+        uiRenderer.render(commonContext).forEach(e -> {
             var id = Integer.valueOf(e.getKey());
             var json = (JsonObject) e.getValue();
             var state = commonContext.userState().get(id);

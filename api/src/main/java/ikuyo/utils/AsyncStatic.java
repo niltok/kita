@@ -8,6 +8,7 @@ import io.vertx.core.Vertx;
 import io.vertx.executeblocking.ExecuteBlocking;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
@@ -38,12 +39,9 @@ public interface AsyncStatic {
     }
 
     static Future<Void> delay(Duration timeout) {
+        var startTime = Instant.now();
         return async(() -> {
-            try {
-                Thread.sleep(timeout);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            while (Instant.now().isBefore(startTime.plus(timeout))) doEvents();
         });
     }
 

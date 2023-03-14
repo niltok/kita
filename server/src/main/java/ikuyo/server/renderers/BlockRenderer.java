@@ -4,17 +4,17 @@ import ikuyo.api.Drawable;
 import ikuyo.api.Position;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
-import ikuyo.server.api.RendererContext;
+import ikuyo.server.api.CommonContext;
 import io.vertx.core.buffer.Buffer;
 
 import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
     @Override
-    public void renderDrawables(RendererContext context, Map<String, Drawable> drawables) {
-        var star = context.common().star();
-        if (!context.common().updated().init().get()) {
-            context.common().updated().blocks().forEach(id -> {
+    public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
+        var star = context.star();
+        if (!context.updated().init().get()) {
+            context.updated().blocks().forEach(id -> {
                 renderBlock(drawables, star, id);
             });
         }

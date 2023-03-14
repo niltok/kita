@@ -46,9 +46,15 @@ export const Stage = () => {
     useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
     const [info, setInfo] = useState<any>({})
-    const camera = useAppSelector(state => state.gameState.star.camera)
+    const windowSize = useAppSelector(state => state.gameState.windowSize)
     useSubscribe(mouseEvents$.pipe(throttleTime(1000 / FPS)), e => {
-        // sendSocket$.next({})
+        if (!windowSize) return
+        const dx = (e.clientX - windowSize.width / 2) * window.devicePixelRatio
+        const dy = (e.clientY - windowSize.height / 2) * window.devicePixelRatio
+        if (dx && dy) sendSocket$.next({
+            type: "star.operate.mouse",
+            x: dx, y: dy
+        })
     })
     useEffect(() => {
         if (canvas == null) return

@@ -86,7 +86,8 @@ public class PhysicsEngine{
 //            {Rectangle} [inertia]: mass * (height * height + width * width) / 12.0;
             body.setMass(new Mass(new Vector2(), 50,
                     (double) 50 * 50 / 12));
-            body.setLinearDamping(1);
+            body.setLinearDamping(5);
+            body.setAtRest(true);
             users.put(user.id(), Map.entry(user, body));
             world.addBody(body);
         }

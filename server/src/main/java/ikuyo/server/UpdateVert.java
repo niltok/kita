@@ -3,16 +3,14 @@ package ikuyo.server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.*;
+import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.server.api.BehaviorContext;
 import ikuyo.server.api.CommonContext;
-import ikuyo.server.api.RendererContext;
-import ikuyo.server.api.UpdatedContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
-import ikuyo.server.api.PhysicsEngine;
 import ikuyo.server.behaviors.PhysicsEngineBehavior;
+import ikuyo.server.behaviors.PointerMovingBehavior;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.DataStatic;
@@ -30,11 +28,9 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
+import static ikuyo.api.Drawable.scaling;
 import static io.vertx.await.Async.await;
 
 public class UpdateVert extends AsyncVerticle {
@@ -45,22 +41,20 @@ public class UpdateVert extends AsyncVerticle {
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
     String msgVertId;
     PgPool pool;
-    Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
+    Behavior<CommonContext> mainBehavior = new CompositeBehavior<>(
             new ControlMovingBehavior(),
-            new PhysicsEngineBehavior()
+            new PhysicsEngineBehavior(),
+            new PointerMovingBehavior()
     );
-    BehaviorContext behaviorContext;
-    Renderer<RendererContext> commonSeqRenderer = new ParallelRenderer(false,
-            new ParallelRenderer(false,
+    Renderer<CommonContext> commonSeqRenderer = new CompositeRenderer<>(false,
+            new DrawablesRenderer.Composite(
                     new BlockRenderer(),
                     new UserRenderer()
             ).withName("starDrawables")
     );
-    Renderer<RendererContext> specialRenderer = new ParallelRenderer(true,
+    Renderer<CommonContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer()
     );
-    RendererContext rendererContext;
-    UpdatedContext updatedContext;
     CommonContext commonContext;
 
     @Override
@@ -105,7 +99,15 @@ public class UpdateVert extends AsyncVerticle {
             return;
         }
         logger.info(JsonObject.of("type", "star.ownership.lock", "starId", id));
-        vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
+        vertEvents = eventBus.localConsumer(deploymentID(), v -> {
+            try {
+                vertEventsHandler(v);
+            } catch (Exception e) {
+                logger.warn(v.body());
+                logger.error(e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        });
         msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
         try {
@@ -123,10 +125,7 @@ public class UpdateVert extends AsyncVerticle {
             assert star != null;
             logger.info(JsonObject.of("type", "star.generated", "id", id, "name", star.name()));
         }
-        updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(star, new HashMap<>(), updatedContext, new PhysicsEngine());
-        behaviorContext = new BehaviorContext(new HashMap<>(), commonContext);
-        rendererContext = new RendererContext(vertx, commonContext);
+        commonContext = new CommonContext(vertx, star);
         startTime = System.nanoTime();
         prevTime = startTime;
         mainLoopId = vertx.setTimer(1, v -> mainLoop());
@@ -141,7 +140,7 @@ public class UpdateVert extends AsyncVerticle {
             doEvents();
         }
         var json = msg.body();
-        logger.info(json);
+//        logger.info(json);
         switch (json.getString("type")) {
             case "vert.undeploy" -> {
                 vertx.undeploy(deploymentID());
@@ -149,31 +148,22 @@ public class UpdateVert extends AsyncVerticle {
             case "user.add" -> {
                 var id = json.getInteger("id");
                 var user = User.getUserById(pool, id);
-                commonContext.users().put(id, user);
                 star.starInfo().starUsers.computeIfAbsent(id, i -> new StarInfo.StarUserInfo()).online = true;
                 assert user != null;
-                commonContext.engine().addUser(user, commonContext.star().starInfo().starUsers.get(id));
-                behaviorContext.userKeyInputs().computeIfAbsent(id, i -> new UserKeyInput());
-                updatedContext.users().add(id);
+                commonContext.add(id, user);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
                 var id = json.getInteger("id");
                 var users = star.starInfo().starUsers;
                 users.get(id).online = false;
-                commonContext.users().remove(id);
-                commonContext.engine().removeUser(id);
-                behaviorContext.userKeyInputs().remove(id);
-                updatedContext.users().add(id);
+                commonContext.remove(id);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.remove" -> {
                 var id = json.getInteger("id");
                 star.starInfo().starUsers.remove(id);
-                commonContext.users().remove(id);
-                commonContext.engine().removeUser(id);
-                behaviorContext.userKeyInputs().remove(id);
-                updatedContext.users().add(id);
+                commonContext.remove(id);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.message" -> userEventHandler(json);
@@ -185,13 +175,17 @@ public class UpdateVert extends AsyncVerticle {
         switch (msg.getString("type")) {
             case "star.operate.key" -> {
                 var id = json.getInteger("userId");
-                behaviorContext.userKeyInputs().get(id).input(
+                commonContext.userInputs().get(id).input(
                         msg.getString("action"), msg.getInteger("value", 1));
+                commonContext.updated().users().add(id);
             }
             case "star.operate.mouse" -> {
                 var id = json.getInteger("userId");
-                behaviorContext.userKeyInputs().get(id).position =
-                        new Position(json.getDouble("x"), json.getInteger("y"));
+                var pos = commonContext.userInputs().get(id).relativePointer;
+                if (msg.getDouble("x") == null || msg.getDouble("y") == null) break;
+                pos.x = msg.getDouble("x") / scaling;
+                pos.y = msg.getDouble("y") / scaling;
+                commonContext.updated().users().add(id);
             }
         }
     }
@@ -202,17 +196,16 @@ public class UpdateVert extends AsyncVerticle {
             deltaTime = startTime - prevTime;
             prevTime = startTime;
             healthCheck();
-            mainBehavior.update(behaviorContext);
-            behaviorContext.userKeyInputs().forEach((i, u) -> u.frame());
-            var seq = commonSeqRenderer.render(rendererContext);
-            var spe = specialRenderer.render(rendererContext);
+            mainBehavior.update(commonContext);
+            var seq = commonSeqRenderer.render(commonContext);
+            var spe = specialRenderer.render(commonContext);
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
                     "commonSeq", seq,
                     "special", spe)), new DeliveryOptions().setLocalOnly(true));
-            updatedContext.clear();
+            commonContext.frame();
             updateCount++;
             updateTime = System.nanoTime() - startTime;
             updateTotalTime += updateTime;

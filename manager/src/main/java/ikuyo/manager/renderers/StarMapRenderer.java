@@ -2,7 +2,7 @@ package ikuyo.manager.renderers;
 
 import ikuyo.api.Star;
 import ikuyo.api.UIElement;
-import ikuyo.manager.api.RendererContext;
+import ikuyo.manager.api.CommonContext;
 import ikuyo.utils.AsyncHelper;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -14,16 +14,16 @@ import java.util.*;
 public class StarMapRenderer implements UIRenderer, AsyncHelper {
     static final double displayScale = 20;
     @Override
-    public void renderUI(RendererContext context, Map<Integer, List<UIElement>> result) {
+    public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         var fs = new HashMap<Integer, Future<Pair<Star, Star[]>>>();
-        for (Integer id : context.common().updated().users()) {
+        for (Integer id : context.updated().users()) {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
-            if (!context.common().userState().get(id).mapDisplay) {
+            if (!context.userState().get(id).mapDisplay) {
                 ui.add(new UIElement("div").withClass("placeholder"));
                 continue;
             }
-            var user = context.common().userState().get(id).user;
-            var client = context.common().sql();
+            var user = context.userState().get(id).user;
+            var client = context.sql();
             fs.put(id, async(() -> {
                 var summery = Star.getSummery(client, user.star());
                 assert summery != null;

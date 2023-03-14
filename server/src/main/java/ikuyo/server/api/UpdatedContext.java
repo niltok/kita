@@ -2,12 +2,12 @@ package ikuyo.server.api;
 
 import ikuyo.utils.Property;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-public record UpdatedContext(Property<Boolean> init, List<Integer> blocks, List<Integer> users) {
+public record UpdatedContext(Property<Boolean> init, Set<Integer> blocks, Set<Integer> users) {
     public UpdatedContext() {
-        this(new Property<>(true), new ArrayList<>(), new ArrayList<>());
+        this(new Property<>(true), new HashSet<>(), new HashSet<>());
     }
     public void clear() {
         init.set(false);

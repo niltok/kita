@@ -4,12 +4,7 @@ import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.ser.std.RawSerializer;
 import ikuyo.utils.RawDeserializer;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-
-import java.util.Arrays;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
@@ -25,9 +20,7 @@ public sealed abstract class Drawable {
     public int zIndex = 0;
     public boolean interaction = false;
     public static final double scaling = 20.0;
-    public JsonObject toJson() {
-        return JsonObject.mapFrom(this);
-    }
+
     public static sealed class Sprite extends Drawable {
         public String bundle, asset;
     }

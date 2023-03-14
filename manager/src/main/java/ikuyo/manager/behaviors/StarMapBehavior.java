@@ -1,15 +1,15 @@
 package ikuyo.manager.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.manager.api.BehaviorArgContext;
+import ikuyo.manager.api.BehaviorContext;
 
-public class StarMapBehavior implements Behavior<BehaviorArgContext> {
+public class StarMapBehavior implements Behavior<BehaviorContext> {
     @Override
-    public void update(BehaviorArgContext context) {
+    public void update(BehaviorContext context) {
         switch (context.event().getString("type")) {
             case "starMap.toggle" -> {
-                context.context().common().updated().users().add(context.id());
-                var state = context.context().common().userState().get(context.id());
+                context.context().updated().users().add(context.id());
+                var state = context.context().userState().get(context.id());
                 state.mapDisplay = !state.mapDisplay;
             }
         }

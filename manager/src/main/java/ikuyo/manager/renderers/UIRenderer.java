@@ -2,21 +2,23 @@ package ikuyo.manager.renderers;
 
 import ikuyo.api.UIElement;
 import ikuyo.api.renderers.Renderer;
-import ikuyo.manager.api.RendererContext;
+import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public interface UIRenderer {
-    void renderUI(RendererContext context, Map<Integer, List<UIElement>> result);
+    void renderUI(CommonContext context, Map<Integer, List<UIElement>> result);
 
-    class Composite implements Renderer<RendererContext> {
+    class Composite implements Renderer<CommonContext> {
         UIRenderer[] renderers;
         public Composite(UIRenderer... renderers) {
             this.renderers = renderers;
         }
         @Override
-        public JsonObject render(RendererContext context) {
+        public JsonObject render(CommonContext context) {
             Map<Integer, List<UIElement>> map = new HashMap<>();
             for (var renderer : renderers) {
                 renderer.renderUI(context, map);

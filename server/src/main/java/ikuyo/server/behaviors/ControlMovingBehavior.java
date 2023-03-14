@@ -1,34 +1,29 @@
 package ikuyo.server.behaviors;
 
-import ikuyo.api.Drawable;
-import ikuyo.api.Position;
-import ikuyo.api.StarInfo;
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.server.api.BehaviorContext;
-import ikuyo.server.api.PhysicsEngine;
+import ikuyo.server.api.CommonContext;
 import org.dyn4j.dynamics.Body;
-import org.dyn4j.dynamics.Force;
 import org.dyn4j.geometry.Vector2;
 
-public class ControlMovingBehavior implements Behavior<BehaviorContext> {
+public class ControlMovingBehavior implements Behavior<CommonContext> {
     /**单一方向上施加力的速度上限*/
     private static final double speed = 3000;
     /**单一方向上施加的力的最大值*/
-    private static final double maxForce = 100000;
+    private static final double maxForce = 10000;
     /**单位向量，计算用*/
     private static final Vector2 i = new Vector2(1, 0);
     @Override
-    public void update(BehaviorContext context) {
-        context.userKeyInputs().forEach((id, input) -> {
-            var pos = context.common().star().starInfo().starUsers.get(id);
+    public void update(CommonContext context) {
+        context.userInputs().forEach((id, input) -> {
+            var pos = context.star().starInfo().starUsers.get(id);
             if (!pos.online) return;
 
             double angle = (Math.atan2(pos.y, pos.x) + Math.PI * 2) % (Math.PI * 2);
             Vector2 force = new Vector2();
-            Body body = context.common().engine().users
+            Body body = context.engine().users
                     .get(id).getValue();
 
-            if (context.common().users().get(id).isAdmin()) {
+            if (context.users().get(id).isAdmin()) {
                 if (input.up > 0) {
                     force.add(new Vector2(i));
                 }
