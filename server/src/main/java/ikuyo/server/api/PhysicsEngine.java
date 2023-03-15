@@ -14,16 +14,15 @@ import org.dyn4j.geometry.*;
 import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class PhysicsEngine{
     protected World<Body> world;
     public Map<Integer, Map.Entry<User, Body>> users;
     public Map<Integer, Body> surfaceBlocks;
-    public List<Body> bullets;
+    public Map<String, Body> bullets;
     /**重力加速度*/
     public static final Vector2 Gravity = new Vector2(-1000, 0);
     private static final Polygon hexagon = Geometry
@@ -31,15 +30,10 @@ public class PhysicsEngine{
     private final Filter userFilter = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
-            return !filter.equals(this);
+            return !filter.equals(this) && !filter.equals(bulletFilter);
         }
     };
-    private final Filter bulletFilter = new Filter() {
-        @Override
-        public boolean isAllowed(Filter filter) {
-            return !filter.equals(userFilter);
-        }
-    };
+    private final Filter bulletFilter = filter -> !filter.equals(userFilter);
     public PhysicsEngine() {
         world = new World<>();
         Settings settings = new Settings();
@@ -49,7 +43,7 @@ public class PhysicsEngine{
 
         users = new HashMap<>();
         surfaceBlocks = new HashMap<>();
-        bullets = new ArrayList<>();
+        bullets = new HashMap<>();
     }
     public void Initialize(Star star) {
 
@@ -124,11 +118,12 @@ public class PhysicsEngine{
 
     public Body addBullet(Position pos) {
         Body body = new Body();
-        BodyFixture fixture = body.addFixture(Geometry.createCircle(0.5));
+        BodyFixture fixture = body.addFixture(Geometry.createCircle(0.3));
         fixture.setFriction(0.1);
+        fixture.setFilter(bulletFilter);
         body.translate(pos.x, pos.y);
         body.setMass(MassType.NORMAL);
-        bullets.add(body);
+        bullets.put(UUID.randomUUID().toString(), body);
         world.addBody(body);
 
         return body;

@@ -23,8 +23,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                 v.normalize();
                 v.multiply(3000);
                 bullet.setLinearVelocity(v);
-
-                //todo: Add drawable
+                bullet.setUserData(context.users().get(id).id());
             }
         });
     }

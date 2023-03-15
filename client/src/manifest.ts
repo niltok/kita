@@ -41,6 +41,15 @@ export const manifest: ResolverManifest = {
             ]
         },
         {
+            name: "bullet",
+            assets: [
+                {
+                    name: ["1"],
+                    srcs: "../blocks/hexagon/red.png"
+                }
+            ]
+        },
+        {
             name: "other",
             assets: [
                 {
