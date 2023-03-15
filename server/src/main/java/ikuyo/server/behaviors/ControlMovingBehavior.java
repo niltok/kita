@@ -9,7 +9,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
     /**单一方向上施加力的速度上限*/
     private static final double speed = 3000;
     /**单一方向上施加的力的最大值*/
-    private static final double maxForce = 10000;
+    private static final double maxForce = 100000;
     /**单位向量，计算用*/
     private static final Vector2 i = new Vector2(1, 0);
     @Override

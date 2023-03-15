@@ -1,6 +1,9 @@
 package ikuyo.server.api;
 
-import ikuyo.api.*;
+import ikuyo.api.Position;
+import ikuyo.api.Star;
+import ikuyo.api.StarInfo;
+import ikuyo.api.User;
 import ikuyo.server.UpdateVert;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.Body;
@@ -10,22 +13,31 @@ import org.dyn4j.dynamics.Settings;
 import org.dyn4j.geometry.*;
 import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
-import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PhysicsEngine{
     protected World<Body> world;
     public Map<Integer, Map.Entry<User, Body>> users;
     public Map<Integer, Body> surfaceBlocks;
-    protected static final Polygon hexagon = Geometry
-            .createPolygon(getVertices());
+    public List<Body> bullets;
+    /**重力加速度*/
     public static final Vector2 Gravity = new Vector2(-1000, 0);
-    protected Filter userFilter = new Filter() {
+    private static final Polygon hexagon = Geometry
+            .createPolygon(getVertices());
+    private final Filter userFilter = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
             return !filter.equals(this);
+        }
+    };
+    private final Filter bulletFilter = new Filter() {
+        @Override
+        public boolean isAllowed(Filter filter) {
+            return !filter.equals(userFilter);
         }
     };
     public PhysicsEngine() {
@@ -37,18 +49,20 @@ public class PhysicsEngine{
 
         users = new HashMap<>();
         surfaceBlocks = new HashMap<>();
+        bullets = new ArrayList<>();
     }
     public void Initialize(Star star) {
 
-        for (var b: StarInfo.SurfaceBlocks(0, 0, star.starInfo().maxTier, star.starInfo())) {
-            if (star.starInfo().blocks[b].isCollidable) {
+//        表面块 body 创建
+        for (int i = 0; i < star.starInfo().blocks.length; i++) {
+            if (star.starInfo().blocks[i].isSurface && star.starInfo().blocks[i].isCollisible) {
                 Body body = new Body();
                 BodyFixture fixture = body.addFixture(hexagon);
                 fixture.setFriction(0.1);
-                Position pos = StarInfo.posOf(StarInfo.realIndexOf(b, star.starInfo().minTier));
+                Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().minTier));
                 body.translate(pos.x, pos.y);
                 body.setMass(MassType.INFINITE);
-                surfaceBlocks.put(b, body);
+                surfaceBlocks.put(i, body);
                 world.addBody(body);
             }
         }
@@ -79,14 +93,19 @@ public class PhysicsEngine{
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
             fixture.setFriction(0.1);
             fixture.setFilter(userFilter);
-            if (user.isAdmin()) fixture.setFilter(filter -> false);
             body.translate(userInfo.x, userInfo.y);
 
 //            {Circle} [double]: mass * r2 * 0.5
 //            {Rectangle} [inertia]: mass * (height * height + width * width) / 12.0;
             body.setMass(new Mass(new Vector2(), 50,
                     (double) 50 * 50 / 12));
-            body.setLinearDamping(5);
+            body.setLinearDamping(1);
+
+            if (user.isAdmin()) {
+                fixture.setFilter(filter -> false);
+                body.setLinearDamping(10);
+            }
+
             body.setAtRest(true);
             users.put(user.id(), Map.entry(user, body));
             world.addBody(body);
@@ -101,6 +120,18 @@ public class PhysicsEngine{
             world.removeBody(body);
             users.remove(id);
         }
+    }
+
+    public Body addBullet(Position pos) {
+        Body body = new Body();
+        BodyFixture fixture = body.addFixture(Geometry.createCircle(0.5));
+        fixture.setFriction(0.1);
+        body.translate(pos.x, pos.y);
+        body.setMass(MassType.NORMAL);
+        bullets.add(body);
+        world.addBody(body);
+
+        return body;
     }
 
     public void addForce(Body body, Force force) {

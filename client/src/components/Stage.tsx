@@ -21,7 +21,8 @@ const keyMapper: { [key: string]: KeyType } = {
     "KeyD": {action: "right", value: 2},
     "KeyD!": "right",
     "KeyM": {type: "starMap.toggle"},
-    "Space": "jump"
+    "Space": "jump",
+    "Enter": "shot"
 }
 
 function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {

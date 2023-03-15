@@ -21,6 +21,8 @@ public abstract sealed class Block {
     /**可破坏性*/
     public boolean isDestructible;
     /**可碰撞性*/
-    public boolean isCollidable;
+    public boolean isCollisible;
+    /**是否是表面块*/
+    public boolean isSurface;
     public static final class Normal extends Block {}
 }

@@ -2,16 +2,22 @@ package ikuyo.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ikuyo.api.*;
+import ikuyo.api.Star;
+import ikuyo.api.StarInfo;
+import ikuyo.api.User;
+import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
-import ikuyo.api.behaviors.CompositeBehavior;
-import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.behaviors.ControlMovingBehavior;
 import ikuyo.server.behaviors.PhysicsEngineBehavior;
 import ikuyo.server.behaviors.PointerMovingBehavior;
-import ikuyo.server.renderers.*;
+import ikuyo.server.behaviors.UserAttackBehavior;
+import ikuyo.server.renderers.BlockRenderer;
+import ikuyo.server.renderers.CameraRenderer;
+import ikuyo.server.renderers.DrawablesRenderer;
+import ikuyo.server.renderers.UserRenderer;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.DataStatic;
 import ikuyo.utils.NoCopyBox;
@@ -31,7 +37,6 @@ import io.vertx.sqlclient.Tuple;
 import java.util.Objects;
 
 import static ikuyo.api.Drawable.scaling;
-import static io.vertx.await.Async.await;
 
 public class UpdateVert extends AsyncVerticle {
     public static final double MaxFps = 80;
@@ -44,7 +49,8 @@ public class UpdateVert extends AsyncVerticle {
     Behavior<CommonContext> mainBehavior = new CompositeBehavior<>(
             new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
-            new PointerMovingBehavior()
+            new PointerMovingBehavior(),
+            new UserAttackBehavior()
     );
     Renderer<CommonContext> commonSeqRenderer = new CompositeRenderer<>(false,
             new DrawablesRenderer.Composite(
