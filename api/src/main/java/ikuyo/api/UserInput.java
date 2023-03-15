@@ -8,7 +8,7 @@ import java.util.Objects;
  * 1 means set & auto clear,
  * 2 means set but keep through frames */
 public class UserInput {
-    public int up, down, left, right, jump;
+    public int up, down, left, right, jump, shot;
     public Position relativePointer = new Position(), pointAt = new Position();
 
     public boolean input(String fieldName, int value) {
