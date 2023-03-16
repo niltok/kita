@@ -25,7 +25,17 @@ import static io.vertx.await.Async.await;
  * @param z -1 ~ 1 (ly)
  * @param starInfo 以文本保存的详细信息（无需索引）
  */
-public record Star(int index, String name, int universe, double x, double y, double z, StarInfo starInfo, int seed, String vertId) {
+public record Star(
+        int index,
+        String name,
+        int universe,
+        double x,
+        double y,
+        double z,
+        StarInfo starInfo,
+        int seed,
+        String vertId
+) {
     public static final double cover = 40, viewRange = 20;
     static final int nameLength = 5;
     /**

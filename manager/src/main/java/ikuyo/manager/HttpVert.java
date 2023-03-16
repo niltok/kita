@@ -7,7 +7,9 @@ import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.manager.api.*;
 import ikuyo.manager.behaviors.StarMapBehavior;
+import ikuyo.manager.behaviors.TechTrainerBehavior;
 import ikuyo.manager.renderers.StarMapRenderer;
+import ikuyo.manager.renderers.TechTrainerRenderer;
 import ikuyo.manager.renderers.UIRenderer;
 import ikuyo.utils.AsyncVerticle;
 import io.reactivex.rxjava3.subjects.Subject;
@@ -44,11 +46,13 @@ public class HttpVert extends AsyncVerticle {
     Subject<Integer> render$ = UnicastSubject.create();
     CommonContext commonContext;
     UpdatedContext updatedContext;
-    Renderer<CommonContext> uiRenderer = new UIRenderer.Composite(
-            new StarMapRenderer()
-    );
     Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
-            new StarMapBehavior()
+            new StarMapBehavior(),
+            new TechTrainerBehavior()
+    );
+    Renderer<CommonContext> uiRenderer = new UIRenderer.Composite(
+            new StarMapRenderer(),
+            new TechTrainerRenderer()
     );
 
     @Override
@@ -57,7 +61,7 @@ public class HttpVert extends AsyncVerticle {
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
         updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(render$, pool, updatedContext);
+        commonContext = new CommonContext(render$, pool, eventBus, updatedContext);
         render$.subscribe(i -> renderUI());
         router = Router.router(vertx);
         router.allowForward(AllowForwardHeaders.ALL);

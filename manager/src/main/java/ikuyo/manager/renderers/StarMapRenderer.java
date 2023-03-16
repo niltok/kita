@@ -3,7 +3,6 @@ package ikuyo.manager.renderers;
 import ikuyo.api.Star;
 import ikuyo.api.UIElement;
 import ikuyo.manager.api.CommonContext;
-import ikuyo.utils.AsyncHelper;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -11,14 +10,14 @@ import org.apache.commons.math3.util.Pair;
 
 import java.util.*;
 
-public class StarMapRenderer implements UIRenderer, AsyncHelper {
+public class StarMapRenderer implements UIRenderer {
     static final double displayScale = 20;
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         var fs = new HashMap<Integer, Future<Pair<Star, Star[]>>>();
         for (Integer id : context.updated().users()) {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
-            if (!context.userState().get(id).mapDisplay) {
+            if (!context.userState().get(id).starMapDisplay) {
                 ui.add(new UIElement("div").withClass("placeholder"));
                 continue;
             }
@@ -35,9 +34,10 @@ public class StarMapRenderer implements UIRenderer, AsyncHelper {
         await(CompositeFuture.all(fs.values().stream().map(x -> (Future)x).toList()));
         fs.forEach((id, fut) -> {
             var pair = await(fut);
-            result.get(id).add(new UIElement("div", Arrays.stream(pair.getSecond()).map(star -> {
-                return renderStar(pair.getFirst(), star);
-            }).toArray(UIElement[]::new)).withClass("starmap-container", "background"));
+            result.get(id).add(new UIElement("div", Arrays.stream(pair.getSecond())
+                    .map(star -> renderStar(pair.getFirst(), star))
+                    .toArray(UIElement[]::new))
+                    .withClass("popout-container", "background"));
         });
     }
 
@@ -61,6 +61,6 @@ public class StarMapRenderer implements UIRenderer, AsyncHelper {
                 JsonObject.of("type", "user.move", "target", star.index());
         return new UIElement.Callback("div", callback,
                 new UIElement("div").withClass("starmap-dot").withStyle(dotStyle),
-                new UIElement.Text(text)).withClass("starmap-label").withStyle(boxStyle);
+                new UIElement.Text(text)).withClass("hover-label", "absolute").withStyle(boxStyle);
     }
 }

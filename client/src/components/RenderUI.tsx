@@ -17,6 +17,8 @@ export function renderUI(elem: UIElement | undefined): JSX.Element {
     switch (elem.type) {
         case "div":
             return (<div {...commonProp} {...clickCallback} />)
+        case "span":
+            return (<span {...commonProp} {...clickCallback} />)
         case "button":
             return (<button {...commonProp} {...clickCallback} />)
         case "input.text":

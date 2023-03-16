@@ -89,6 +89,9 @@ public class MessageVert extends AsyncVerticle {
                         eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
                 }
             }
+            case "user.update" -> {
+                eventBus.send(updaterId, json);
+            }
             case "user.message" -> userEventHandler(json);
         }
     }

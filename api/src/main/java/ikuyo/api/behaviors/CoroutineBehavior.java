@@ -21,8 +21,13 @@ public class CoroutineBehavior<T> implements Behavior<T> {
             CoroutineContext(Enumerator<Void, Void>.Context eCtx) {
                 this.eCtx = eCtx;
             }
+            /** 等待到下一帧开始的时候再继续执行 */
             public void nextFrame() {
                 eCtx.yield(null);
+            }
+            /** 等待 frames 帧后继续执行 */
+            public void waitFrames(int frames) {
+                while (frames --> 0) nextFrame();
             }
             /** Careful use it, every frame should be computed exactly most of the time */
             public void waitTime(Duration duration) {
@@ -34,6 +39,7 @@ public class CoroutineBehavior<T> implements Behavior<T> {
             enumerator = new Enumerator<Void, Void>(ctx -> task.handle(new CoroutineContext(ctx)));
         }
     }
+    /** 启动一个可跨帧运行的函数 */
     public final void startCoroutine(Handler<Coroutine.CoroutineContext> task) {
         var coroutine = new Coroutine(task);
         coroutines.add(coroutine);
