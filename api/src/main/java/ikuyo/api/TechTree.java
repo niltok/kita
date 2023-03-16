@@ -21,7 +21,7 @@ public class TechTree {
          *  -1 代表没在训练 */
         public long trainFinishAt = -1;
         public boolean isTrained() {
-            return trainPercent == 1 || trainFinishAt <= Instant.now().toEpochMilli();
+            return trainPercent == 1 || trainFinishAt != -1 && trainFinishAt <= Instant.now().toEpochMilli();
         }
     }
     /** 用于遍历的原始状态信息（请不要写入数据） */
