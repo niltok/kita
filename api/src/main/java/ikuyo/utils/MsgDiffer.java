@@ -54,7 +54,9 @@ public class MsgDiffer {
             }
         }
         for (String s : changed) {
-            if (cache.contains(s)) add.add(s);
+            var d = prev.get(s);
+            if (Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange)
+                add.add(s);
         }
         cache.addAll(add);
         for (String s : delete) cache.remove(s);

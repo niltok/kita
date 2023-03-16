@@ -32,7 +32,7 @@ public class DbVert extends AsyncVerticle {
     }
 
     private void resetDB() {
-        await(delay(Duration.ofSeconds(20)));
+        await(delay(Duration.ofSeconds(10)));
         var resetMode = System.getenv("DB_RESET");
         switch (resetMode) {
             case "empty" -> {

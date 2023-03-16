@@ -21,7 +21,8 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                 Body bullet = context.engine().addBullet(userPos);
                 Vector2 v = new Vector2(point.x - userPos.x, point.y - userPos.y);
                 v.normalize();
-                v.multiply(3000);
+                v.multiply(300000000);
+//                v.add(context.engine().users.get(id).getValue().getLinearVelocity());
                 bullet.setLinearVelocity(v);
                 bullet.setUserData(context.users().get(id).id());
             }

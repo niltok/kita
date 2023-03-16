@@ -14,10 +14,10 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
     /**层级最大值*/
-    public int maxTier = 500;
+    public static int maxTier = 500;
     /**<p>层级最小值<p/>
      * [Warn]: Plz make sure mintier > 0*/
-    public int minTier = 10;
+    public static int minTier = 10;
     /**层级间距*/
     public static final double tierDistance = Math.pow(3,1.0/2)/2;
     /**星球半径*/
@@ -196,7 +196,7 @@ public class StarInfo {
     }
 
     public static class StarUserInfo {
-        public double x, y = 300;
+        public double x, y = maxTier;
         public boolean online;
         public int weaponType = 1;
         public StarUserInfo() {}

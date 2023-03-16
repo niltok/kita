@@ -119,10 +119,11 @@ public class PhysicsEngine{
     public Body addBullet(Position pos) {
         Body body = new Body();
         BodyFixture fixture = body.addFixture(Geometry.createCircle(0.3));
-        fixture.setFriction(0.1);
+        fixture.setFriction(0);
         fixture.setFilter(bulletFilter);
         body.translate(pos.x, pos.y);
         body.setMass(MassType.NORMAL);
+        body.setLinearDamping(0);
         bullets.put(UUID.randomUUID().toString(), body);
         world.addBody(body);
 
