@@ -7,9 +7,9 @@ import org.dyn4j.geometry.Vector2;
 
 public class ControlMovingBehavior implements Behavior<CommonContext> {
     /**单一方向上施加力的速度上限*/
-    private static final double speed = 3000;
-    /**单一方向上施加的力的最大值*/
-    private static final double maxForce = 100000;
+    private static final double speed = 100;
+    /**单一方向上施加的加速度的最大值*/
+    private static final double maxAcc = 1000;
     /**单位向量，计算用*/
     private static final Vector2 i = new Vector2(1, 0);
     @Override
@@ -45,7 +45,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             if (!force.equals(0.0, 0.0)) {
                 force.rotate(angle);
                 force.normalize();
-                force.multiply(maxForce *
+                force.multiply(maxAcc * context.engine().users.get(id).getValue().getMass().getMass() *
                         Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / speed, 5), 0));
                 body.applyForce(force);
 //                System.out.println("{ControlMoving} [x]: %f, [y]: %f".formatted(force.x, force.y));
