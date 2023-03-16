@@ -24,7 +24,7 @@ public class PhysicsEngine{
     public Map<Integer, Body> surfaceBlocks;
     public Map<String, Body> bullets;
     /**重力加速度*/
-    public static final Vector2 Gravity = new Vector2(-1000, 0);
+    public static final Vector2 GravitationalAcc = new Vector2(-1000, 0);
     private static final Polygon hexagon = Geometry
             .createPolygon(getVertices());
     private final Filter userFilter = new Filter() {
@@ -38,6 +38,7 @@ public class PhysicsEngine{
         world = new World<>();
         Settings settings = new Settings();
         settings.setStepFrequency(1 / UpdateVert.MaxFps);
+        settings.setMaximumTranslation(100);
         world.setSettings(settings);
         world.setGravity(PhysicsWorld.ZERO_GRAVITY);
 
@@ -65,14 +66,14 @@ public class PhysicsEngine{
         for (int i = 0; i < step; i++) {
 //            Gravity
             for(var body: world.getBodies()) {
-                body.applyForce(new Vector2(Gravity.x * body.getMass().getMass(), Gravity.y)
+                body.applyForce(new Vector2(GravitationalAcc.x * body.getMass().getMass(), GravitationalAcc.y)
                         .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
             }
 
             for (var user: users.entrySet()) {
                 if (user.getValue().getKey().isAdmin()) {
                     Body body = user.getValue().getValue();
-                    body.applyForce(new Vector2(-Gravity.x * body.getMass().getMass(), -Gravity.y)
+                    body.applyForce(new Vector2(-GravitationalAcc.x * body.getMass().getMass(), -GravitationalAcc.y)
                             .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
                 }
             }
