@@ -3,27 +3,14 @@ import {keyEvents$, mouseEvents$, sendSocket$, seqDrawables$, workerCommon$} fro
 import {Drawable} from "../types/Drawable"
 import {FPS, getKeyCode} from "../utils/common"
 import {store} from "../store"
-import {useKeyboard, useMouse, useSubscribe, useWindowSize} from "../utils/react";
-import {renderer} from "../worker/workers";
-import {useAppSelector} from "../storeHook";
-import {throttleTime} from "rxjs";
+import {useKeyboard, useMouse, useSubscribe, useWindowSize} from "../utils/react"
+import {renderer} from "../worker/workers"
+import {useAppSelector} from "../storeHook"
+import {throttleTime} from "rxjs"
+import './Stage.css'
+import {keyMapper, KeyType} from "../keyMapper";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
-
-type KeyType = string | { action: string, value: number } | { type: string, [key: string]: any };
-const keyMapper: { [key: string]: KeyType } = {
-    "KeyW": {action: "up", value: 2},
-    "KeyW!": "up",
-    "KeyS": {action: "down", value: 2},
-    "KeyS!": "down",
-    "KeyA": {action: "left", value: 2},
-    "KeyA!": "left",
-    "KeyD": {action: "right", value: 2},
-    "KeyD!": "right",
-    "KeyM": {type: "starMap.toggle"},
-    "Space": "jump",
-    "Enter": "shot"
-}
 
 function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {
     const action = mapper[getKeyCode(e)]

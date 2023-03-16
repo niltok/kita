@@ -1,5 +1,6 @@
 package ikuyo.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlClient;
@@ -7,7 +8,16 @@ import io.vertx.sqlclient.Tuple;
 
 import static io.vertx.await.Async.await;
 
-public record User(int id, String name, String pwd, boolean isAdmin, String token, int universe, int star) {
+public record User(
+        int id,
+        String name,
+        String pwd,
+        boolean isAdmin,
+        String token,
+        int universe,
+        int star,
+        TechTree techTree
+) {
     //language=PostgreSQL
     static final String getByIdSql = """
             select * from "user" where id = $1;
@@ -53,10 +63,15 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
     private static User getUser(RowSet<Row> rows) {
         if (rows.rowCount() == 0) return null;
         var row = rows.iterator().next();
-        return new User(row.getInteger("id"), row.getString("name"),
-                row.getString("pwd"), row.getBoolean("is_admin"),
-                row.getString("token"),
-                row.getInteger("universe"), row.getInteger("star"));
+        try {
+            return new User(row.getInteger("id"), row.getString("name"),
+                    row.getString("pwd"), row.getBoolean("is_admin"),
+                    row.getString("token"),
+                    row.getInteger("universe"), row.getInteger("star"),
+                    new TechTree(row.getString("tech_tree")));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //language=PostgreSQL
@@ -68,7 +83,8 @@ public record User(int id, String name, String pwd, boolean isAdmin, String toke
                 is_admin bool not null default false,
                 token text not null default '',
                 universe int references universe not null default 1,
-                star int references star not null default 1
+                star int references star not null default 1,
+                tech_tree text not null default '{}'
             );
             """;
 

@@ -11,7 +11,7 @@ import java.util.*;
  *  常用函数 <br>
  *  {@link TechTree#getTechStatus(TechItem)}<br>
  *  {@link TechTree#getTrainQueue()}<br>
- *  {@link TechTree#setTrainQueue(Iterable)}<br>
+ *  {@link TechTree#setTrainQueue(Iterable, boolean)}<br>
  *  科技项详见 {@link TechItem} */
 public class TechTree {
     public static class Data {
@@ -56,6 +56,11 @@ public class TechTree {
         var info = TechItem.get(index);
         if (info == null || info.isDisable()) return -2;
         var cost = info.cost.toMillis();
+        if (cost == 0) {
+            data.trainFinishAt = -1;
+            data.trainPercent = 1;
+            return 1;
+        }
         if (data.trainFinishAt - cost >= now) return -1;
         data.trainPercent = (double) (cost - (data.trainFinishAt - now)) / cost;
         return 0;
@@ -73,12 +78,14 @@ public class TechTree {
         var res = new TreeMap<Long, String>();
         treeInfo.forEach((k, v) -> {
             var state = update(k);
-            if (state < 1) res.put(v.trainFinishAt, k);
+            if (state < 1 && state > -2) res.put(v.trainFinishAt, k);
         });
         return res.values().toArray(String[]::new);
     }
-    /** 更新训练状态并覆盖当前训练队列（将会自动解析依赖并插入到被依赖的科技之前） */
-    public void setTrainQueue(Iterable<String> queue) {
+    /** 更新训练状态并覆盖当前训练队列<br>
+     * @param dependencies 是否解析依赖？如果为 true 将会自动解析依赖并插入到被依赖的训练项之前，
+     * 否则会移除依赖不满足的训练项。 */
+    public void setTrainQueue(Iterable<String> queue, boolean dependencies) {
         var trained = new HashSet<String>();
         treeInfo.forEach((k, v) -> {
             var state = update(k);
@@ -88,7 +95,7 @@ public class TechTree {
         var startTime = Instant.now().toEpochMilli();
         var trainList = new ArrayList<String>();
         for (String s : queue) {
-            resolveDependency(s, trained, trainList);
+            resolveDependency(s, trained, trainList, dependencies);
         }
         for (String s : trainList) {
             var data = getData(s);
@@ -100,12 +107,14 @@ public class TechTree {
             data.trainFinishAt = startTime;
         }
     }
-    void resolveDependency(String s, Set<String> trained, List<String> trainList) {
+    void resolveDependency(String s, Set<String> trained, List<String> trainList, boolean recursion) {
         var info = TechItem.get(s);
         if (info == null || info.isDisable()) return;
         for (var dep : info.dependencies) {
             if (trained.contains(dep.name())) continue;
-            resolveDependency(dep.name(), trained, trainList);
+            // 处理依赖
+            if (!recursion) return;
+            resolveDependency(dep.name(), trained, trainList, true);
         }
         trained.add(s);
         trainList.add(s);

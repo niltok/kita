@@ -3,13 +3,14 @@ package ikuyo.manager.renderers;
 import ikuyo.api.UIElement;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.manager.api.CommonContext;
+import ikuyo.utils.AsyncHelper;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface UIRenderer {
+public interface UIRenderer extends AsyncHelper {
     void renderUI(CommonContext context, Map<Integer, List<UIElement>> result);
 
     class Composite implements Renderer<CommonContext> {

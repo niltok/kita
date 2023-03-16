@@ -10,7 +10,7 @@ public class StarMapBehavior implements Behavior<BehaviorContext> {
             case "starMap.toggle" -> {
                 context.context().updated().users().add(context.id());
                 var state = context.context().userState().get(context.id());
-                state.mapDisplay = !state.mapDisplay;
+                state.starMapDisplay = !state.starMapDisplay;
             }
         }
     }

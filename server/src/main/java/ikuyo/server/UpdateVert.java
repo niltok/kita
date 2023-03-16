@@ -170,6 +170,10 @@ public class UpdateVert extends AsyncVerticle {
                 commonContext.remove(id);
                 msg.reply(JsonObject.of("type", "success"));
             }
+            case "user.update" -> {
+                var id = json.getInteger("id");
+                commonContext.users().put(id, User.getUserById(pool, id));
+            }
             case "user.message" -> userEventHandler(json);
         }
     }

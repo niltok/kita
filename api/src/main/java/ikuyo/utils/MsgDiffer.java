@@ -55,7 +55,7 @@ public class MsgDiffer {
         }
         for (String s : changed) {
             var d = prev.get(s);
-            if (Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange)
+            if (cache.contains(s) || Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange)
                 add.add(s);
         }
         cache.addAll(add);

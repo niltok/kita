@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 
 import java.lang.reflect.Modifier;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TechItem {
     /*====================================================================
@@ -35,6 +37,9 @@ public class TechItem {
     public boolean isDisable() {
         return !enable;
     }
+    public boolean isEnable() {
+        return enable;
+    }
     /** 该科技项在 {@link TechItem} 中被定义时所使用的字段名（系统初始化时依靠反射获取） */
     public String name() {
         return name;
@@ -47,19 +52,25 @@ public class TechItem {
     }
     public static TechItem get(String index) {
         try {
-            return (TechItem) TechTree.class.getField(index).get(null);
+            return (TechItem) TechItem.class.getField(index).get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }
     }
+    /** 所有已定义的科技项列表 */
+    public static final ImmutableList<TechItem> techList;
     /* Auto set TechItem's name */
     static {
+        var temp = new ArrayList<TechItem>();
         for (var field : TechItem.class.getFields()) {
             try {
                 if (Modifier.isStatic(field.getModifiers()) && field.getType().equals(TechItem.class)) {
-                    ((TechItem) field.get(null)).name = field.getName();
+                    var tech = (TechItem) field.get(null);
+                    temp.add(tech);
+                    tech.name = field.getName();
                 }
             } catch (Exception ignore) {}
         }
+        techList = ImmutableList.copyOf(temp);
     }
 }
