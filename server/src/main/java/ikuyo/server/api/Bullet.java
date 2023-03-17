@@ -17,7 +17,7 @@ public class Bullet {
     public int type;
     public Iterator<DetectResult<Body, BodyFixture>> colligionIterator;
 
-    public Bullet(int type, Position pos, World<Body> world) {
+    public Bullet(int type, Position pos) {
         this.type = type;
         body = new Body();
         BodyFixture fixture = body.addFixture(Geometry.createCircle(0.3));
@@ -26,10 +26,5 @@ public class Bullet {
         body.translate(pos.x, pos.y);
         body.setMass(MassType.NORMAL);
         body.setLinearDamping(0);
-
-        colligionIterator = world.detectIterator(
-            body.getFixture(0).getShape(),
-            body.getTransform(),
-            new DetectFilter(true, true, null));
     }
 }

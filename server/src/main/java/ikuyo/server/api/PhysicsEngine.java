@@ -11,6 +11,7 @@ import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Settings;
 import org.dyn4j.geometry.*;
 import org.dyn4j.world.CollisionData;
+import org.dyn4j.world.DetectFilter;
 import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
 import org.dyn4j.world.result.DetectResult;
@@ -131,9 +132,10 @@ public class PhysicsEngine{
     }
 
     public Bullet addBullet(int type, Position pos) {
-        Bullet bullet = new Bullet(type, pos, this.world);
+        Bullet bullet = new Bullet(type, pos);
         bullets.put(UUID.randomUUID().toString(), bullet);
         world.addBody(bullet.body);
+        this.updateBullet(bullet);
 
         return bullet;
     }
@@ -142,6 +144,12 @@ public class PhysicsEngine{
         Bullet bullet = bullets.get(id);
         world.removeBody(bullet.body);
         bullets.remove(id);
+    }
+    public void updateBullet(Bullet bullet) {
+        bullet.colligionIterator = world.detectIterator(
+                bullet.body.getFixture(0).getShape(),
+                bullet.body.getTransform(),
+                new DetectFilter(true, true, null));
     }
 
     public boolean bulletCheck(Bullet bullet) {
