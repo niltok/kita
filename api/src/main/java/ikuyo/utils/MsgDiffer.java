@@ -52,10 +52,10 @@ public class MsgDiffer {
         }
         for (String s : changed) {
             var d = prev.get(s);
-            if (cache.contains(s) || Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange) {
+            if (d != null && (Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange || cache.contains(s))) {
                 add.add(s);
             }
-            if (cache.contains(s) && Math.hypot(pos.x - d.x, pos.y - d.y) > CacheRange) {
+            if ((d == null || Math.hypot(pos.x - d.x, pos.y - d.y) > CacheRange) && cache.contains(s)) {
                 delete.add(s);
             }
         }

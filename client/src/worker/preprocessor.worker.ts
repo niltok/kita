@@ -11,12 +11,15 @@ const state: State = {
 const drawables = new Map<string, Drawable>()
 let prev = new Set<string>()
 
+const update$ = new Subject<any>()
+
 onmessage = async (e: MessageEvent<StateEvent>) => {
     switch (e.data.type) {
         case 'patch': {
             // @ts-ignore
             delete e.data.type
             applyObjectDiff(state, e.data)
+            update$.next(null)
             break
         }
         case 'draw': {
@@ -28,18 +31,20 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
                     else applyObjectDiff(d, vd)
                 }
             }
+            update$.next(null)
             break
         }
         case 'clear': {
             drawables.clear()
             prev.clear()
+            update$.next(null)
             return
         }
         default: return
     }
 }
 
-setInterval( () => {
+update$.pipe(throttleTime(1000 / FPS)).subscribe( () => {
     const res = new Set<string>()
     const wh = state.windowSize.height * 0.51
     const ww = state.windowSize.width * 0.51
@@ -57,4 +62,4 @@ setInterval( () => {
     })
     prev = res
     if (data.add.length || data.delete.length) postMessage(data)
-}, 1)
+})

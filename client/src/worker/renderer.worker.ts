@@ -70,10 +70,16 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             if (!app || !camera) return
             for (const key of e.data.add!) {
                 const cached = cache.get(key)
-                const display = renderDrawable(drawables.get(key)!, cached)
-                if (!cached) {
-                    camera.addChild(display)
-                    cache.set(key, display)
+                const drawable = drawables.get(key)
+                if (!drawable) continue
+                try {
+                    const display = renderDrawable(drawable!, cached)
+                    if (!cached) {
+                        camera.addChild(display)
+                        cache.set(key, display)
+                    }
+                } catch (e) {
+                    console.log(e, { key, drawable })
                 }
             }
             for (const key of e.data.delete!) {
@@ -102,7 +108,7 @@ function renderDrawable(drawable: Drawable, cache?: pixi.DisplayObject) {
         display.x = drawable.x
         display.y = drawable.y
         display.zIndex = drawable.zIndex
-        display.rotation = drawable.angle
+        display.rotation = drawable.rotation
         display.pivot.set(0.5, 0.5)
         if (display instanceof pixi.Sprite) display.anchor.set(.5, .5)
     }
