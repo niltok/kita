@@ -8,11 +8,12 @@ import ikuyo.server.UpdateVert;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Settings;
 import org.dyn4j.geometry.*;
+import org.dyn4j.world.CollisionData;
 import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
+import org.dyn4j.world.result.DetectResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,18 +23,18 @@ public class PhysicsEngine{
     protected World<Body> world;
     public Map<Integer, Map.Entry<User, Body>> users;
     public Map<Integer, Body> surfaceBlocks;
-    public Map<String, Body> bullets;
+    public Map<String, Bullet> bullets;
     /**重力加速度*/
     public static final Vector2 GravitationalAcc = new Vector2(-1000, 0);
     private static final Polygon hexagon = Geometry
             .createPolygon(getVertices());
-    private final Filter userFilter = new Filter() {
+    private static final Filter userFilter = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
             return !filter.equals(this) && !filter.equals(bulletFilter);
         }
     };
-    private final Filter bulletFilter = filter -> !filter.equals(userFilter);
+    public static final Filter bulletFilter = filter -> !filter.equals(userFilter);
     public PhysicsEngine() {
         world = new World<>();
         Settings settings = new Settings();
@@ -45,6 +46,18 @@ public class PhysicsEngine{
         users = new HashMap<>();
         surfaceBlocks = new HashMap<>();
         bullets = new HashMap<>();
+
+        Body body = new Body();
+        body.translate(0,0);
+//        Iterator<DetectResult<Body, BodyFixture>> resultIterator = world.detectIterator(
+//                body.getFixture(0).getShape(),
+//                body.getTransform(),
+//                new DetectFilter(true, true, null));
+//
+//        CollisionData data = world.getCollisionData();
+//        data.isManifoldCollision();
+//        data.
+
     }
     public void Initialize(Star star) {
 
@@ -54,7 +67,7 @@ public class PhysicsEngine{
                 Body body = new Body();
                 BodyFixture fixture = body.addFixture(hexagon);
                 fixture.setFriction(0.1);
-                Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().minTier));
+                Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, StarInfo.minTier));
                 body.translate(pos.x, pos.y);
                 body.setMass(MassType.INFINITE);
                 surfaceBlocks.put(i, body);
@@ -117,22 +130,33 @@ public class PhysicsEngine{
         }
     }
 
-    public Body addBullet(Position pos) {
-        Body body = new Body();
-        BodyFixture fixture = body.addFixture(Geometry.createCircle(0.3));
-        fixture.setFriction(0);
-        fixture.setFilter(bulletFilter);
-        body.translate(pos.x, pos.y);
-        body.setMass(MassType.NORMAL);
-        body.setLinearDamping(0);
-        bullets.put(UUID.randomUUID().toString(), body);
-        world.addBody(body);
+    public Bullet addBullet(int type, Position pos) {
+        Bullet bullet = new Bullet(type, pos, this.world);
+        bullets.put(UUID.randomUUID().toString(), bullet);
+        world.addBody(bullet.body);
 
-        return body;
+        return bullet;
     }
 
-    public void addForce(Body body, Force force) {
-        body.applyForce(force);
+    public void removeBullet(String id) {
+        Bullet bullet = bullets.get(id);
+        world.removeBody(bullet.body);
+        bullets.remove(id);
+    }
+
+    public boolean bulletCheck(Bullet bullet) {
+        while (bullet.colligionIterator.hasNext()) {
+            DetectResult<Body, BodyFixture> result = bullet.colligionIterator.next().copy();
+
+            CollisionData<Body, BodyFixture> data = world.getCollisionData(
+                    bullet.body,
+                    bullet.body.getFixture(0),
+                    result.getBody(),
+                    result.getFixture());
+
+            if (data != null && data.isManifoldCollision()) return true;
+        }
+        return false;
     }
 
     private static Vector2[] getVertices() {
