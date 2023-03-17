@@ -15,7 +15,7 @@ public class TechTrainerBehavior implements Behavior<BehaviorContext> {
             case "techTrainer.toggle" -> {
                 context.context().updated().users().add(context.id());
                 var state = context.context().userState().get(context.id());
-                state.techTrainerDisplay = !state.techTrainerDisplay;
+                state.page = "techTrainer".equals(state.page) ? "" : "techTrainer";
             }
             case "techTrainer.add" -> {
                 context.context().updated().users().add(context.id());

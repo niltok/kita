@@ -17,7 +17,7 @@ public class StarMapRenderer implements UIRenderer {
         var fs = new HashMap<Integer, Future<Pair<Star, Star[]>>>();
         for (Integer id : context.updated().users()) {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
-            if (!context.userState().get(id).starMapDisplay) {
+            if (!"starMap".equals(context.userState().get(id).page)) {
                 ui.add(new UIElement("div").withClass("placeholder"));
                 continue;
             }
