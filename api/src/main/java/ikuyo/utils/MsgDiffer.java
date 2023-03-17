@@ -1,15 +1,12 @@
 package ikuyo.utils;
 
 import ch.ethz.globis.phtree.PhTreeMultiMapF;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import ikuyo.api.Drawable;
 import ikuyo.api.Position;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 import java.util.*;
 
 public class MsgDiffer {
@@ -55,8 +52,12 @@ public class MsgDiffer {
         }
         for (String s : changed) {
             var d = prev.get(s);
-            if (cache.contains(s) || Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange)
+            if (cache.contains(s) || Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange) {
                 add.add(s);
+            }
+            if (cache.contains(s) && Math.hypot(pos.x - d.x, pos.y - d.y) > CacheRange) {
+                delete.add(s);
+            }
         }
         cache.addAll(add);
         for (String s : delete) cache.remove(s);
