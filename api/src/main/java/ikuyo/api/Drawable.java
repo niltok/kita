@@ -16,7 +16,7 @@ import ikuyo.utils.RawDeserializer;
 public sealed abstract class Drawable {
     public double x, y;
     /** 单位：弧度 */
-    public double angle;
+    public double rotation;
     public int zIndex = 0;
     public boolean interaction = false;
     public static final double scaling = 20.0;

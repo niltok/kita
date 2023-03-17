@@ -108,7 +108,7 @@ function renderDrawable(drawable: Drawable, cache?: pixi.DisplayObject) {
         display.x = drawable.x
         display.y = drawable.y
         display.zIndex = drawable.zIndex
-        display.rotation = drawable.angle
+        display.rotation = drawable.rotation
         display.pivot.set(0.5, 0.5)
         if (display instanceof pixi.Sprite) display.anchor.set(.5, .5)
     }

@@ -25,7 +25,7 @@ public class UserRenderer implements DrawablesRenderer {
             var drawable = new Drawable.Container();
             drawable.x = info.x * Drawable.scaling;
             drawable.y = info.y * Drawable.scaling;
-            drawable.angle = Math.atan2(drawable.x, -drawable.y);
+            drawable.rotation = Math.atan2(drawable.x, -drawable.y);
             drawable.zIndex = 1;
             drawable.children = new Drawable[] {pic, text};
             drawables.put("user#%d.position".formatted(id), drawable);
