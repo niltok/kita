@@ -51,15 +51,6 @@ public class PhysicsEngine{
 
         Body body = new Body();
         body.translate(0,0);
-//        Iterator<DetectResult<Body, BodyFixture>> resultIterator = world.detectIterator(
-//                body.getFixture(0).getShape(),
-//                body.getTransform(),
-//                new DetectFilter(true, true, null));
-//
-//        CollisionData data = world.getCollisionData();
-//        data.isManifoldCollision();
-//        data.
-
     }
     public void Initialize(Star star) {
 //        表面块 body 创建
@@ -71,6 +62,8 @@ public class PhysicsEngine{
     }
 
     public void addBlock(int id) {
+        if (surfaceBlocks.get(id) != null)
+            world.removeBody(surfaceBlocks.get(id));
         Body body = new Body();
         BodyFixture fixture = body.addFixture(hexagon);
         fixture.setFriction(0.1);
@@ -108,16 +101,17 @@ public class PhysicsEngine{
             fixture.setFriction(0.1);
             fixture.setFilter(userFilter);
             body.translate(userInfo.x, userInfo.y);
+            body.setLinearDamping(1);
 
 //            {Circle} [double]: mass * r2 * 0.5
 //            {Rectangle} [inertia]: mass * (height * height + width * width) / 12.0;
             body.setMass(new Mass(new Vector2(), 50,
                     (double) 50 * 50 / 12));
-            body.setLinearDamping(1);
 
             if (user.isAdmin()) {
-                fixture.setFilter(filter -> false);
-                body.setLinearDamping(10);
+//                fixture.setFilter(filter -> false);
+                fixture.setFilter(userFilter);
+                body.setLinearDamping(5);
             }
 
             body.setAtRest(true);
