@@ -12,6 +12,10 @@ public class Position {
         this.y = y;
     }
 
+    public double distance(Position pos) {
+        return Math.hypot(pos.x - x, pos.y - y);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

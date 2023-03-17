@@ -10,10 +10,7 @@ import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.server.api.CommonContext;
-import ikuyo.server.behaviors.ControlMovingBehavior;
-import ikuyo.server.behaviors.PhysicsEngineBehavior;
-import ikuyo.server.behaviors.PointerMovingBehavior;
-import ikuyo.server.behaviors.UserAttackBehavior;
+import ikuyo.server.behaviors.*;
 import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.DataStatic;
@@ -47,7 +44,8 @@ public class UpdateVert extends AsyncVerticle {
             new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
             new PointerMovingBehavior(),
-            new UserAttackBehavior()
+            new UserAttackBehavior(),
+            new BulletBehavior()
     );
     Renderer<CommonContext> commonSeqRenderer = new CompositeRenderer<>(false,
             new DrawablesRenderer.Composite(

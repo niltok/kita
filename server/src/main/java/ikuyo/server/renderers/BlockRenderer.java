@@ -13,6 +13,13 @@ public class BlockRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
         var star = context.star();
+
+//        Surface only mode
+//        context.engine().surfaceBlocks.forEach((id, body) -> {
+//            renderBlock(drawables, star, id);
+//        });
+//        if(true) return;
+
         if (!context.updated().init().get()) {
             context.updated().blocks().forEach(id -> {
                 renderBlock(drawables, star, id);
@@ -38,6 +45,12 @@ public class BlockRenderer implements DrawablesRenderer {
                     .appendString("block#")
                     .appendString(String.valueOf(i))
                     .appendString(".image").toString(), d);
+        } else {
+            drawables.put(Buffer.buffer()
+                    .appendString("block#")
+                    .appendString(String.valueOf(i))
+                    .appendString(".image").toString(), null);
+
         }
     }
 }

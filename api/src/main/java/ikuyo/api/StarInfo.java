@@ -14,12 +14,14 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
     /**层级最大值*/
-    public static int maxTier = 500;
+    public static final int maxTier = 500;
     /**<p>层级最小值<p/>
      * [Warn]: Plz make sure mintier > 0*/
-    public static int minTier = 10;
+    public static final int minTier = 10;
     /**层级间距*/
-    public static final double tierDistance = Math.pow(3,1.0/2)/2;
+    public static final double tierDistance = Math.sqrt(3)/2;
+    /**六边形块边长*/
+    public static final double edgeLength = 1 / Math.sqrt(3);
     /**星球半径*/
     protected double star_r;
 
@@ -46,7 +48,7 @@ public class StarInfo {
     public static StarInfo gen(int seed) {
         var info = new StarInfo();
         Random random = new Random(seed);
-        int blockNum = info.maxTier *(info.maxTier +1)*3 - info.minTier *(info.minTier -1)*3;
+        int blockNum = maxTier *(maxTier +1)*3 - minTier *(minTier -1)*3;
         info.blocks = new Block[blockNum];
         for (int i = 0;i < info.blocks.length; i++) {
             info.blocks[i] = new Block.Normal();
@@ -61,10 +63,10 @@ public class StarInfo {
 
 
  //        圆角修饰部分_in
-        int index_in = realIndexOf(0, info.minTier);
+        int index_in = realIndexOf(0, minTier);
         double r_in = heightOf(index_in);
-        int inline_tier = (int)((Math.pow(3,1.0/2)*2/3-1) * r_in) + 1 + info.minTier;
-        int inline_roundnum = inline_tier*(inline_tier+1)*3 - info.minTier *(info.minTier -1)*3;
+        int inline_tier = (int)((Math.sqrt(3)*2/3-1) * r_in) + 1 + minTier;
+        int inline_roundnum = inline_tier*(inline_tier+1)*3 - minTier *(minTier -1)*3;
         if (inline_roundnum > blockNum) inline_roundnum = blockNum;
         for (var i = 0; i < inline_roundnum; i++) {
             if ( heightOf(index_in) < r_in ) info.blocks[i].type = 0;
@@ -79,12 +81,12 @@ public class StarInfo {
         }
 
 //        计算地表
-        int tierNum = (int)(random.nextDouble()*(info.maxTier -info.minTier)*0.5
-                + (info.maxTier -info.minTier)*0.25)
-                + info.minTier;
+        int tierNum = (int)(random.nextDouble()*(maxTier - minTier)*0.5
+                + (maxTier - minTier)*0.25)
+                + minTier;
         int roundStartTier = (int)(tierNum * tierDistance) - 1;
-        int groundNum =  (tierNum + baseTier) * ((tierNum+baseTier)+1) * 3 - info.minTier * (info.minTier -1) * 3;
-        int outline_roundnum = roundStartTier*(roundStartTier+1)*3 - info.minTier *(info.minTier -1)*3;
+        int groundNum =  (tierNum + baseTier) * ((tierNum+baseTier)+1) * 3 - minTier * (minTier -1) * 3;
+        int outline_roundnum = roundStartTier*(roundStartTier+1)*3 - minTier *(minTier -1)*3;
         if (outline_roundnum < 0) outline_roundnum = 0;
 
 //        纯地面生成
@@ -97,7 +99,7 @@ public class StarInfo {
         }
 
 //        圆角修饰部分_out
-        int index_out = realIndexOf(outline_roundnum, info.minTier);
+        int index_out = realIndexOf(outline_roundnum, minTier);
         info.star_r = heightOf(tierNum*(tierNum-1)*3+1) * tierDistance;
         double dropHeight = baseTier * StarInfo.tierDistance;
 
@@ -122,7 +124,7 @@ public class StarInfo {
 
 //        表面
 
-        for (var i: surfaceBlocks(0, info.minTier, inline_tier, info)) {
+        for (var i: surfaceBlocks(0, minTier, inline_tier, info)) {
             info.blocks[i].isDestructible = false;
             info.blocks[i].isInteractive = false;
             info.blocks[i].isSurface = true;
@@ -136,12 +138,12 @@ public class StarInfo {
 
 
 //        纯天空生成
-        for (var i = groundNum; i < blockNum; i++) {
-            info.blocks[i].type = 0;
-        }
+//        for (var i = groundNum; i < blockNum; i++) {
+//            info.blocks[i].type = 0;
+//        }
 
 //        石头
-        int index = realIndexOf(0, info.minTier);
+        int index = realIndexOf(0, minTier);
         _seed = random.nextLong();
         range = new Range(random.nextLong());
         for (int i = 0; i < groundNum; i++) {
@@ -220,7 +222,7 @@ public class StarInfo {
     }
 
     public static int tierOf(int realIndex) {
-        double result = 0.5 + Math.pow((12*realIndex+9), 1.0/2)/6.0;
+        double result = 0.5 + Math.sqrt(12*realIndex+9)/6.0;
         int tier = (int)result;
         if (result - tier == 0.0) tier--;
         return tier;
@@ -255,14 +257,14 @@ public class StarInfo {
 
     public static boolean isStandable(double x, double y, double r, StarInfo star) {
         boolean res = true;
-        if (Math.hypot(x,y) < star.maxTier * tierDistance) {
+        if (Math.hypot(x,y) < maxTier * tierDistance) {
             int index = realIndexOf(x, y);
 //            System.out.println("[index]: %d".formatted(index));
             Position pos = posOf(index);
             double rr = Math.hypot(pos.x - x, pos.y - y) + r;
             int tiers = (int) (rr / tierDistance) + 1;
 
-            int[] blocklist = nTierAround(index, tiers, star.minTier, star.maxTier)
+            int[] blocklist = nTierAround(index, tiers)
                     .stream().mapToInt(Integer::valueOf).toArray();
 
 //            System.out.println("[r]: %f, [rr]: %f, [tier]: %d, [blocks]: %d".formatted(r, rr, tiers, blocklist.length));
@@ -321,11 +323,11 @@ public class StarInfo {
 
 /** <p>realIndex 周围 n 层的块的真实编号<p/>
  * 返回的List中存储可以直接调用的 index , 而不是 realIndex*/
-    public static ArrayList<Integer> nTierAround(int realIndex, int n, int minTier, int maxTier) {
+    public static ArrayList<Integer> nTierAround(int realIndex, int n) {
         ArrayList<Integer> res = new ArrayList<>();
         Position pos = posOf(realIndex);
         int extraBlock = minTier * (minTier - 1) * 3;
-        for (int i = 0; i < n*(n+1)*3; i++) {
+        for (int i = 0; i < n * (n + 1) * 3; i++) {
             Position posI = posOf(i+1);
             int index = realIndexOf(pos.x + posI.x, pos.y + posI.y);
             int tier = tierOf(index);
@@ -334,23 +336,38 @@ public class StarInfo {
         return res;
     }
 
+    public static ArrayList<Integer> nTierAround(Position position, double r) {
+        ArrayList<Integer> res = new ArrayList<>();
+        Position pos = posOf(realIndexOf(position.x, position.y));
+        int extraBlock = minTier * (minTier - 1) * 3;
+        int nTier = (int)((r + edgeLength) / tierDistance) + 1;
+        for (int i = 0; i < nTier * (nTier + 1) * 3 + 1; i++) {
+            Position posI = posOf(i);
+            int index = realIndexOf(pos.x + posI.x, pos.y + posI.y);
+            int tier = tierOf(index);
+            if (tier >= minTier && tier <= maxTier && position.distance(posOf(index)) <= r)
+                res.add(index - extraBlock - 1);
+        }
+        return res;
+    }
+
     public static ArrayList<Integer> surfaceBlocks(int realIndex, int startTier, int endTier, StarInfo star) {
         ArrayList<Integer> result = new ArrayList<>();
         Position pos = posOf(realIndex);
 
-        for (int i = (startTier == 0 ? 0 : startTier * (startTier - 1) * 3 + 1);
+        for (int i = (startTier <= 0 ? 0 : startTier * (startTier - 1) * 3 + 1);
              i < endTier * (endTier + 1) * 3 + 1; i++) {
             Position posI = posOf(i);
             int index = realIndexOf(pos.x + posI.x, pos.y + posI.y);
             int tier = tierOf(index);
 
-            if( tier >= star.minTier && tier <= star.maxTier) {
-                if (star.blocks[indexOf(index, star.minTier)].isVisible) {
-                    int[] blocklist = nTierAround(index, 1, star.minTier, star.maxTier)
+            if( tier >= minTier && tier <= maxTier) {
+                if (star.blocks[indexOf(index, minTier)].isVisible) {
+                    int[] blocklist = nTierAround(index, 1)
                             .stream().mapToInt(Integer::valueOf).toArray();
                     for (var b : blocklist) {
                         if (star.blocks[b].type == 0) {
-                            result.add(indexOf(index, star.minTier));
+                            result.add(indexOf(index, minTier));
                             break;
                         }
                     }

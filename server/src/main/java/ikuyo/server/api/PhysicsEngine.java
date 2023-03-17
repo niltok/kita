@@ -17,6 +17,7 @@ import org.dyn4j.world.World;
 import org.dyn4j.world.result.DetectResult;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,21 +62,25 @@ public class PhysicsEngine{
 
     }
     public void Initialize(Star star) {
-
 //        表面块 body 创建
         for (int i = 0; i < star.starInfo().blocks.length; i++) {
             if (star.starInfo().blocks[i].isSurface && star.starInfo().blocks[i].isCollisible) {
-                Body body = new Body();
-                BodyFixture fixture = body.addFixture(hexagon);
-                fixture.setFriction(0.1);
-                Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, StarInfo.minTier));
-                body.translate(pos.x, pos.y);
-                body.setMass(MassType.INFINITE);
-                surfaceBlocks.put(i, body);
-                world.addBody(body);
+                addBlock(i);
             }
         }
     }
+
+    public void addBlock(int id) {
+        Body body = new Body();
+        BodyFixture fixture = body.addFixture(hexagon);
+        fixture.setFriction(0.1);
+        Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
+        body.translate(pos.x, pos.y);
+        body.setMass(MassType.INFINITE);
+        surfaceBlocks.put(id, body);
+        world.addBody(body);
+    }
+
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
 //            Gravity
@@ -140,21 +145,19 @@ public class PhysicsEngine{
         return bullet;
     }
 
-    public void removeBullet(String id) {
-        Bullet bullet = bullets.get(id);
-        world.removeBody(bullet.body);
-        bullets.remove(id);
+    public void removeBody(Body body) {
+        world.removeBody(body);
     }
-    public void updateBullet(Bullet bullet) {
-        bullet.colligionIterator = world.detectIterator(
+    public Iterator<DetectResult<Body, BodyFixture>> updateBullet(Bullet bullet) {
+        return world.detectIterator(
                 bullet.body.getFixture(0).getShape(),
                 bullet.body.getTransform(),
                 new DetectFilter(true, true, null));
     }
 
-    public boolean bulletCheck(Bullet bullet) {
-        while (bullet.colligionIterator.hasNext()) {
-            DetectResult<Body, BodyFixture> result = bullet.colligionIterator.next().copy();
+    public boolean bulletCheck(Bullet bullet, Iterator<DetectResult<Body, BodyFixture>> iterator) {
+        while (iterator.hasNext()) {
+            DetectResult<Body, BodyFixture> result = iterator.next().copy();
 
             CollisionData<Body, BodyFixture> data = world.getCollisionData(
                     bullet.body,
@@ -170,7 +173,7 @@ public class PhysicsEngine{
     private static Vector2[] getVertices() {
         Vector2[] vertices = new Vector2[6];
         for (int i = 0; i < 6; i++) {
-            vertices[i] = new Vector2(1 / Math.pow(3, 1 / 2.0), 0).rotate(Math.PI / 3 * i);
+            vertices[i] = new Vector2(StarInfo.edgeLength, 0).rotate(Math.PI / 3 * i);
         }
         return vertices;
     }

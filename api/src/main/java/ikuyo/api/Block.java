@@ -11,18 +11,18 @@ public abstract sealed class Block {
      * 0: 空气<br/>
      * 1: 土块<br/>
      * 2: 石块<br/>*/
-    public int type;
+    public int type = 0;
     /**变体贴图*/
-    public int variant;
+    public int variant = 0;
     /**可见性*/
-    public boolean isVisible;
+    public boolean isVisible = false;
     /**可交互性*/
-    public boolean isInteractive;
+    public boolean isInteractive = false;
     /**可破坏性*/
-    public boolean isDestructible;
+    public boolean isDestructible = false;
     /**可碰撞性*/
-    public boolean isCollisible;
+    public boolean isCollisible = false;
     /**是否是表面块*/
-    public boolean isSurface;
+    public boolean isSurface = false;
     public static final class Normal extends Block {}
 }
