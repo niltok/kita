@@ -9,9 +9,9 @@ import org.dyn4j.geometry.MassType;
 
 public class Bullet {
     public Body body;
-    public int type;
+    public String type;
 
-    public Bullet(int type, Position pos) {
+    public Bullet(String type, Position pos) {
         this.type = type;
         body = new Body();
         BodyFixture fixture = body.addFixture(Geometry.createCircle(0.3));

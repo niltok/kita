@@ -18,7 +18,7 @@ public class BulletRenderer implements DrawablesRenderer {
                 newBullet.x = pos.x * Drawable.scaling;
                 newBullet.y = pos.y * Drawable.scaling;
                 newBullet.bundle = "bullet";
-                newBullet.asset = String.format("%d", bullet.type);
+                newBullet.asset = bullet.type;
                 newBullet.zIndex = 3;
 
                 drawables.put(id, newBullet);

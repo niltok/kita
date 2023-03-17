@@ -200,7 +200,7 @@ public class StarInfo {
     public static class StarUserInfo {
         public double x, y = maxTier;
         public boolean online;
-        public int weaponType = 1;
+        public String weaponType = "defaultWeapon";
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
             this.x = x;

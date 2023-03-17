@@ -37,6 +37,7 @@ public class PhysicsEngine{
         }
     };
     public static final Filter bulletFilter = filter -> !filter.equals(userFilter);
+
     public PhysicsEngine() {
         world = new World<>();
         Settings settings = new Settings();
@@ -52,6 +53,7 @@ public class PhysicsEngine{
         Body body = new Body();
         body.translate(0,0);
     }
+
     public void Initialize(Star star) {
 //        表面块 body 创建
         for (int i = 0; i < star.starInfo().blocks.length; i++) {
@@ -59,19 +61,6 @@ public class PhysicsEngine{
                 addBlock(i);
             }
         }
-    }
-
-    public void addBlock(int id) {
-        if (surfaceBlocks.get(id) != null)
-            world.removeBody(surfaceBlocks.get(id));
-        Body body = new Body();
-        BodyFixture fixture = body.addFixture(hexagon);
-        fixture.setFriction(0.1);
-        Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
-        body.translate(pos.x, pos.y);
-        body.setMass(MassType.INFINITE);
-        surfaceBlocks.put(id, body);
-        world.addBody(body);
     }
 
     public void EngineStep(int step) {
@@ -94,6 +83,10 @@ public class PhysicsEngine{
         }
     }
 
+    public void removeBody(Body body) {
+        world.removeBody(body);
+    }
+
     public void addUser(User user, StarInfo.StarUserInfo userInfo) {
         if (!users.containsKey(user.id())) {
             Body body = new Body();
@@ -102,6 +95,7 @@ public class PhysicsEngine{
             fixture.setFilter(userFilter);
             body.translate(userInfo.x, userInfo.y);
             body.setLinearDamping(1);
+            body.setAngularDamping(Double.MAX_VALUE);
 
 //            {Circle} [double]: mass * r2 * 0.5
 //            {Rectangle} [inertia]: mass * (height * height + width * width) / 12.0;
@@ -118,8 +112,6 @@ public class PhysicsEngine{
             users.put(user.id(), Map.entry(user, body));
             world.addBody(body);
         }
-//        System.out.println("!!!!!ADD BODY!!!!! [userid]: %d, [BODY]:%b".formatted(user.getKey(), users.get(user.getKey()) != null));
-//        System.out.println("[x]: %f, [y]: %f".formatted(users.get(user.getKey()).getWorldCenter().x, users.get(user.getKey()).getWorldCenter().y));
     }
 
     public void removeUser(int id) {
@@ -130,7 +122,7 @@ public class PhysicsEngine{
         }
     }
 
-    public Bullet addBullet(int type, Position pos) {
+    public Bullet addBullet(String type, Position pos) {
         Bullet bullet = new Bullet(type, pos);
         bullets.put(UUID.randomUUID().toString(), bullet);
         world.addBody(bullet.body);
@@ -139,14 +131,17 @@ public class PhysicsEngine{
         return bullet;
     }
 
-    public void removeBody(Body body) {
-        world.removeBody(body);
-    }
-    public Iterator<DetectResult<Body, BodyFixture>> updateBullet(Bullet bullet) {
-        return world.detectIterator(
-                bullet.body.getFixture(0).getShape(),
-                bullet.body.getTransform(),
-                new DetectFilter(true, true, null));
+    public void addBlock(int id) {
+        if (surfaceBlocks.get(id) != null)
+            world.removeBody(surfaceBlocks.get(id));
+        Body body = new Body();
+        BodyFixture fixture = body.addFixture(hexagon);
+        fixture.setFriction(0.1);
+        Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
+        body.translate(pos.x, pos.y);
+        body.setMass(MassType.INFINITE);
+        surfaceBlocks.put(id, body);
+        world.addBody(body);
     }
 
     public boolean bulletCheck(Bullet bullet, Iterator<DetectResult<Body, BodyFixture>> iterator) {
@@ -162,6 +157,13 @@ public class PhysicsEngine{
             if (data != null && data.isManifoldCollision()) return true;
         }
         return false;
+    }
+
+    public Iterator<DetectResult<Body, BodyFixture>> updateBullet(Bullet bullet) {
+        return world.detectIterator(
+                bullet.body.getFixture(0).getShape(),
+                bullet.body.getTransform(),
+                new DetectFilter(true, true, null));
     }
 
     private static Vector2[] getVertices() {
