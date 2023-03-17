@@ -21,8 +21,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
             if (bullet == null) remove.add(id);
             else {
                 Iterator<DetectResult<Body, BodyFixture>> iterator =
-                        context.engine().updateBullet(bullet);
-                if ( iterator.hasNext() && context.engine().bulletCheck(bullet, iterator) ) {
+                        context.engine().broadPhaseDetect(bullet);
+                if ( iterator.hasNext() && context.engine().ManifoldDetect(bullet, iterator) ) {
                     var starInfo = context.star().starInfo();
                     var pos = bullet.body.getWorldCenter();
                     double r = 10;
