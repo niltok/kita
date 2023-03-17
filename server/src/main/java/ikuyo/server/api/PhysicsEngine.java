@@ -16,10 +16,7 @@ import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
 import org.dyn4j.world.result.DetectResult;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PhysicsEngine{
     protected World<Body> world;
@@ -69,16 +66,27 @@ public class PhysicsEngine{
                 entry.getValue().getTransform().setRotation(angle);
             }
 
-            for(var bullet: bullets.values()) {
-                if (bullet == null) continue;
-                applyGravity(bullet.body);
+            List<String> removeList = new ArrayList<>();
+            for(var entry: bullets.entrySet()) {
+                if (entry.getValue() == null) continue;
+                Vector2 pos = entry.getValue().body.getWorldCenter();
+                if (pos.distance(0, 0) >= starR * 2) {
+                    removeList.add(entry.getKey());
+                    continue;
+                }
+                applyGravity(entry.getValue().body);
+            }
+            for (var id: removeList) {
+                removeBody(bullets.get(id).body);
+                bullets.put(id, null);
             }
 
             for (var user: users.entrySet()) {
                 if (user.getValue().getKey().isAdmin()) {
                     Body body = user.getValue().getValue();
-                    body.applyForce(new Vector2(GravitationalAcc * body.getMass().getMass(), 0)
-                            .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
+                    if (body.getWorldCenter().distance(0, 0) <= starR)
+                        body.applyForce(new Vector2(GravitationalAcc * body.getMass().getMass(), 0)
+                                .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
                 }
             }
 
@@ -86,7 +94,7 @@ public class PhysicsEngine{
         }
     }
 
-    private static final double starR = StarInfo.maxTier + 0.5;
+    private static final double starR = StarInfo.maxTier + 1;
     private void applyGravity(Body body) {
         Vector2 pos = body.getWorldCenter();
         if (pos.distance(0, 0) <= starR)
