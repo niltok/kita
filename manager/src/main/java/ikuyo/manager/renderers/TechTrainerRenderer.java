@@ -6,7 +6,6 @@ import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +17,7 @@ public class TechTrainerRenderer implements UIRenderer {
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         for (Integer id : context.updated().users()) {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
-            if (!context.userState().get(id).techTrainerDisplay) {
+            if (!"techTrainer".equals(context.userState().get(id).page)) {
                 ui.add(new UIElement("div").withClass("placeholder"));
                 continue;
             }
