@@ -10,14 +10,30 @@ export const delay = (time: number) => {
 //
 // 举例：$^Digit1! 表示Ctrl+Shift+1这个组合键抬起
 export function getKeyCode(e: KeyboardEvent) {
-    let keyCode = ''
-    if (e.ctrlKey) keyCode += '$'
-    if (e.metaKey) keyCode += '#'
-    if (e.altKey) keyCode += '@'
-    if (e.shiftKey) keyCode += '^'
-    keyCode += e.code
-    if (e.type == 'keyup') keyCode += '!'
-    return keyCode
+    let code = ''
+    if (e.ctrlKey) code += '$'
+    if (e.metaKey) code += '#'
+    if (e.altKey) code += '@'
+    if (e.shiftKey) code += '^'
+    code += e.code
+    if (e.type == 'keyup') code += '!'
+    return code
+}
+
+export function getMouseCode(e: PointerEvent) {
+    if (e.type == 'pointermove') return ''
+    let code = '';
+    if (e.ctrlKey) code += '$'
+    if (e.metaKey) code += '#'
+    if (e.altKey) code += '@'
+    if (e.shiftKey) code += '^'
+    if (e.button == 0) code += 'MouseLeft'
+    if (e.button == 1) code += 'MouseMiddle'
+    if (e.button == 2) code += 'MouseRight'
+    if (e.button == 3) code += 'MouseX1'
+    if (e.button == 4) code += 'MouseX2'
+    if (e.type == 'pointerup' || e.type == 'pointercancel') code += '!'
+    return code
 }
 
 export type Pretty<T> = {

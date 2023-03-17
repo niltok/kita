@@ -39,8 +39,9 @@ export function useObservable<T>(obs: Observable<T>, init: T): T {
     return value
 }
 
-export function useKeyboard() {
+export function useKeyboard(target: HTMLElement | null) {
     useEffect(() => {
+        if (!target) return
         function handleKeyEvent(e: KeyboardEvent) {
             e.preventDefault()
             if (e.repeat) return
@@ -52,22 +53,33 @@ export function useKeyboard() {
             document.body.removeEventListener('keydown', handleKeyEvent)
             document.body.removeEventListener('keyup', handleKeyEvent)
         }
-    }, [])
+    }, [target])
 }
 
-export function useMouse() {
+export function useMouse(target: HTMLElement | null) {
     useEffect(() => {
-        function handleKeyEvent(e: PointerEvent) {
-            if (!e.isPrimary) return
+        if (!target) return
+        function handlePassive(e: PointerEvent) {
+            if (!e.isPrimary || e.target != target) return
             mouseEvents$.next(e)
         }
-        document.body.addEventListener('pointermove', handleKeyEvent, {
+        function handlePointer(e: PointerEvent) {
+            e.preventDefault()
+            handlePassive(e)
+        }
+        document.body.addEventListener('pointerdown', handlePointer)
+        document.body.addEventListener('pointerup', handlePointer)
+        document.body.addEventListener('pointercancel', handlePointer)
+        document.body.addEventListener('pointermove', handlePassive, {
             passive: true
         })
         return () => {
-            document.body.removeEventListener('pointermove', handleKeyEvent)
+            document.body.removeEventListener('pointerdown', handlePointer)
+            document.body.removeEventListener('pointerup', handlePointer)
+            document.body.removeEventListener('pointercancel', handlePointer)
+            document.body.removeEventListener('pointermove', handlePassive)
         }
-    }, [])
+    }, [target])
 }
 
 export function useWindowSize() {

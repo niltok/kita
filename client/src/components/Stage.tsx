@@ -1,19 +1,23 @@
 import React, {useEffect, useState} from "react"
 import {keyEvents$, mouseEvents$, sendSocket$, seqDrawables$, workerCommon$} from "../dbus"
 import {Drawable} from "../types/Drawable"
-import {FPS, getKeyCode} from "../utils/common"
+import {FPS, getKeyCode, getMouseCode} from "../utils/common"
 import {store} from "../store"
 import {useKeyboard, useMouse, useSubscribe, useWindowSize} from "../utils/react"
 import {renderer} from "../worker/workers"
 import {useAppSelector} from "../storeHook"
-import {throttleTime} from "rxjs"
+import {pipe, throttleTime} from "rxjs"
 import './Stage.css'
 import {keyMapper, KeyType} from "../keyMapper";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 
-function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {
-    const action = mapper[getKeyCode(e)]
+function handleInputEvent(mapper: { [key: string]: KeyType }, code: string) {
+    let action = mapper[code]
+    while (typeof action == 'undefined' && code.length > 0 && "$#@^".indexOf(code.at(0)!) != -1) {
+        code = code.substring(1)
+        action = mapper[code]
+    }
     if (typeof action == 'undefined') return
     if (typeof action == 'string')
         sendSocket$.next({
@@ -28,13 +32,14 @@ function handleKeyEvent(e: KeyboardEvent, mapper: { [key: string]: KeyType }) {
 }
 
 export const Stage = () => {
-    useKeyboard()
-    useMouse()
-    useWindowSize()
-    useSubscribe(keyEvents$, e => handleKeyEvent(e, keyMapper))
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
     const [info, setInfo] = useState<any>({})
     const windowSize = useAppSelector(state => state.gameState.windowSize)
+    useKeyboard(canvas)
+    useMouse(canvas)
+    useWindowSize()
+    useSubscribe(keyEvents$, e => handleInputEvent(keyMapper, getKeyCode(e)))
+    useSubscribe(mouseEvents$, e => handleInputEvent(keyMapper, getMouseCode(e)))
     useSubscribe(mouseEvents$.pipe(throttleTime(1000 / FPS)), e => {
         if (!windowSize) return
         const dx = (e.clientX - windowSize.width / 2) * window.devicePixelRatio
@@ -92,8 +97,8 @@ export const Stage = () => {
             seqSub.unsubscribe()
         }
     }, [canvas])
-    return (<>
-        <div className={"absolute debug-info"}>{JSON.stringify(info)}</div>
+    return (<div>
+        {/*<div className={"absolute debug-info"}>{JSON.stringify(info)}</div>*/}
         <canvas ref={setCanvas}></canvas>
-    </>)
+    </div>)
 }

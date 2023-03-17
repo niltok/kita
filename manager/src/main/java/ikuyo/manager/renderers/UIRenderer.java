@@ -29,7 +29,7 @@ public interface UIRenderer extends AsyncHelper {
                 res.put(String.valueOf(i),
                         JsonObject.of("ui", JsonObject.mapFrom(
                                 new UIElement("div", us.toArray(UIElement[]::new))
-                                        .withClass("absolute", "fullscreen")
+                                        .withClass("absolute", "fullscreen", "pointer-pass")
                         )));
             });
             return res;

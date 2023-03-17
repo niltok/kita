@@ -12,7 +12,7 @@ export function Game() {
         differ({ ui: undefined })
     }, [])
     return (<Socket>
-        <div className={"absolute fullscreen"}>{renderUI(ui)}</div>
+        <div className={"absolute fullscreen"} style={{pointerEvents: "none"}}>{renderUI(ui)}</div>
         <Stage/>
     </Socket>)
 }

@@ -9,6 +9,14 @@
     width: 100vw;
 }
 
+.pointer-pass {
+    pointer-events: none;
+}
+
+.pointer-pass > * {
+    pointer-events: auto;
+}
+
 .debug-info {
     color: #ffffff;
     mix-blend-mode: difference;
