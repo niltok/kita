@@ -37,14 +37,18 @@ public class MsgDiffer {
         });
     }
 
-    public JsonObject query(Position pos, boolean moved, Set<String> cache) {
+    public JsonObject query(int id, Position pos, boolean moved, Set<String> cache) {
         Set<String> add = new HashSet<>(), delete = new HashSet<>();
         if (moved) {
             var res = tree.rangeQuery(CacheRange, pos.x, pos.y);
             var set = new HashSet<String>();
             res.forEachRemaining(set::add);
             for (String s : set) {
-                if (!cache.contains(s)) add.add(s);
+                if (!cache.contains(s)) {
+                    var d = prev.get(s);
+                    if (d == null) System.err.format("dangling drawable %s\n", s);
+                    else if (d.user == -1 || d.user == id) add.add(s);
+                }
             }
             for (String s : cache) {
                 if (!set.contains(s)) delete.add(s);
@@ -53,7 +57,7 @@ public class MsgDiffer {
         for (String s : changed) {
             var d = prev.get(s);
             if (d != null && (Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange || cache.contains(s))) {
-                add.add(s);
+                if (d.user == -1 || d.user == id) add.add(s);
             }
             if ((d == null || Math.hypot(pos.x - d.x, pos.y - d.y) > CacheRange) && cache.contains(s)) {
                 delete.add(s);
@@ -68,7 +72,8 @@ public class MsgDiffer {
     public JsonObject buildDiff(Set<String> add, Set<String> delete) {
         var json = JsonObject.of();
         for (String s : add) {
-            json.put(s, JsonObject.mapFrom(prev.get(s)));
+            var d = prev.get(s);
+            json.put(s, JsonObject.mapFrom(d));
         }
         for (String s : delete) {
             json.putNull(s);

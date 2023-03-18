@@ -6,7 +6,7 @@ import {store} from "../store"
 import {useKeyboard, useMouse, useSubscribe, useWindowSize} from "../utils/react"
 import {renderer} from "../worker/workers"
 import {useAppSelector} from "../storeHook"
-import {pipe, throttleTime} from "rxjs"
+import {throttleTime} from "rxjs"
 import './Stage.css'
 import {keyMapper, KeyType} from "../keyMapper";
 
@@ -97,8 +97,8 @@ export const Stage = () => {
             seqSub.unsubscribe()
         }
     }, [canvas])
-    return (<div>
+    return (<>
         {/*<div className={"absolute debug-info"}>{JSON.stringify(info)}</div>*/}
-        <canvas ref={setCanvas}></canvas>
-    </div>)
+        <canvas ref={setCanvas} className={"no-cursor"}></canvas>
+    </>)
 }

@@ -11,7 +11,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static ikuyo.utils.AsyncStatic.delay;
 
@@ -120,9 +123,9 @@ public class MessageVert extends AsyncVerticle {
         }
     }
 
-    private void sendUserState(JsonObject specials, Integer id, UserState userState) {
+    private void sendUserState(JsonObject specials, int id, UserState userState) {
         var msg = JsonArray.of();
-        var state = specials.getJsonObject(id.toString());
+        var state = specials.getJsonObject(String.valueOf(id));
         if (state != null) {
             var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
             if (!specialDiff.isEmpty()) { // 变化才发送
@@ -143,7 +146,7 @@ public class MessageVert extends AsyncVerticle {
         var moved = cx != userState.camera.x || cy != userState.camera.y;
         userState.camera.x = cx;
         userState.camera.y = cy;
-        var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
+        var diff = msgDiffer.query(id, userState.camera, moved, userState.drawableCache);
         if (diff != null) {
             msg.add(JsonObject.of(
                     "type", "seq.operate",

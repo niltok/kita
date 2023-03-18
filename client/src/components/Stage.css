@@ -90,6 +90,10 @@
     border-radius: 8px;
 }
 
+.no-cursor {
+    cursor: none;
+}
+
 @media (prefers-color-scheme: light) {
     .hover-label:hover {
         background: #f9f9f9;
