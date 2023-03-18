@@ -18,10 +18,12 @@ public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
         for (var user: context.star().starInfo().starUsers.entrySet()) {
             if (user.getValue().online) {
                 Body body = PE.users.get(user.getKey()).getValue();
+//                todo: check user position
                 if (/*!Objects.equals(body.getChangeInPosition(), new Vector2(0, 0))*/ true) {
-                    var pos = context.star().starInfo().starUsers.get(user.getKey());
-                    pos.x = body.getWorldCenter().x;
-                    pos.y = body.getWorldCenter().y;
+                    var userInfo = context.star().starInfo().starUsers.get(user.getKey());
+                    userInfo.x = body.getWorldCenter().x;
+                    userInfo.y = body.getWorldCenter().y;
+                    userInfo.rotation = body.getTransform().getRotationAngle();
 //                        System.out.println("{EngineBehavior} [x]: %f, [y]: %f".formatted(body.getWorldCenter().x, body.getWorldCenter().y));
                     context.updated().users().add(user.getKey());
 

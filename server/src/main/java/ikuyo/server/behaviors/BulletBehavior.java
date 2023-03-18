@@ -5,33 +5,30 @@ import ikuyo.api.Position;
 import ikuyo.api.StarInfo;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
-import org.dyn4j.dynamics.Body;
+import ikuyo.server.api.KitasBody;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.world.result.DetectResult;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 public class BulletBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
-        var remove = new ArrayList<String>();
 
         context.engine().bullets.forEach((id, bullet) -> {
-            if (bullet == null) remove.add(id);
-            else {
-                Iterator<DetectResult<Body, BodyFixture>> iterator =
+            if (bullet != null) {
+                Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
                         context.engine().broadPhaseDetect(bullet);
-                if ( iterator.hasNext() && context.engine().ManifoldDetect(bullet, iterator) ) {
+                if (iterator.hasNext() && context.engine().ManifoldDetect(bullet, iterator)) {
                     var starInfo = context.star().starInfo();
                     var pos = bullet.body.getWorldCenter();
                     double r = 10;
 
-//                    todo: damage
+//                todo: damage
 
                     int[] blocklist = StarInfo.nTierAround(new Position(pos.x, pos.y), r)
                             .stream().mapToInt(Integer::valueOf).toArray();
-                    for (var b: blocklist) {
+                    for (var b : blocklist) {
                         if (starInfo.blocks[b].isDestructible) {
                             if (starInfo.blocks[b].isSurface) {
                                 context.engine().removeBody(context.engine().surfaceBlocks.get(b));
@@ -42,10 +39,10 @@ public class BulletBehavior implements Behavior<CommonContext> {
                         }
                     }
 
-                    for (var i: StarInfo.surfaceBlocks(
+                    for (var i : StarInfo.surfaceBlocks(
                             StarInfo.realIndexOf(pos.x, pos.y),
-                            (int)((r + StarInfo.edgeLength) * Math.sqrt(3) / 2 / StarInfo.tierDistance) - 1,
-                            (int)((r + StarInfo.edgeLength) / StarInfo.tierDistance) + 2,
+                            (int) ((r + StarInfo.edgeLength) * Math.sqrt(3) / 2 / StarInfo.tierDistance) - 1,
+                            (int) ((r + StarInfo.edgeLength) / StarInfo.tierDistance) + 2,
                             starInfo)) {
 
                         starInfo.blocks[i].isSurface = true;
@@ -59,8 +56,5 @@ public class BulletBehavior implements Behavior<CommonContext> {
                 }
             }
         });
-
-        for (var id : remove)
-            context.engine().bullets.remove(id);
     }
 }

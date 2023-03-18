@@ -6,7 +6,6 @@ import ikuyo.api.StarInfo;
 import ikuyo.api.User;
 import ikuyo.server.UpdateVert;
 import org.dyn4j.collision.Filter;
-import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Settings;
 import org.dyn4j.geometry.*;
@@ -19,14 +18,13 @@ import org.dyn4j.world.result.DetectResult;
 import java.util.*;
 
 public class PhysicsEngine{
-    protected World<Body> world;
-    public Map<Integer, Map.Entry<User, Body>> users;
-    public Map<Integer, Body> surfaceBlocks;
+    protected World<KitasBody> world;
+    public Map<Integer, Map.Entry<User, KitasBody>> users;
+    public Map<Integer, KitasBody> surfaceBlocks;
     public Map<String, Bullet> bullets;
     /**重力加速度*/
     public static final double GravitationalAcc = 1000;
-    private static final Polygon hexagon = Geometry
-            .createPolygon(getVertices());
+    private static final Polygon hexagon = Geometry.createPolygon(getVertices());
     private static final Filter userFilter = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
@@ -59,35 +57,60 @@ public class PhysicsEngine{
 
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
-//            Gravity
-            for (var entry: users.values()) {
-                applyGravity(entry.getValue());
-                double angle = Math.atan2(entry.getValue().getWorldCenter().y, entry.getValue().getWorldCenter().x);
-                entry.getValue().getTransform().setRotation(angle);
+////            Gravity
+//            /*users*/
+//            for (var entry: users.values()) {
+//                applyGravity(entry.getValue());
+//                rotationUpdate(entry.getValue(),
+//                        Math.atan2(entry.getValue().getWorldCenter().y, entry.getValue().getWorldCenter().x));
+//            }
+//            /*bullets*/
+//            List<String> removeList = new ArrayList<>();
+//
+//            for(var entry: bullets.entrySet()) {
+//                if (entry.getValue() == null) continue;
+//
+//                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2) {
+//                    removeList.add(entry.getKey());
+//                    continue;
+//                }
+//            }
+//
+//            for (var id: removeList) {
+//                removeBullet(id);
+//                bullets.put(id, null);
+//            }
+//
+//            /*admins*/
+//            for (var user: users.entrySet()) {
+//                if (user.getValue().getKey().isAdmin()) {
+//                    KitasBody body = user.getValue().getValue();
+//                    if (body.getWorldCenter().distance(0, 0) <= starR)
+//                        body.applyForce(new Vector2(GravitationalAcc * body.getMass().getMass(), 0)
+//                                .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
+//                }
+//            }
+
+
+            for (var body: world.getBodies()) {
+                body.applyGravity();
+                body.updateRotation();
             }
 
             List<String> removeList = new ArrayList<>();
+
             for(var entry: bullets.entrySet()) {
                 if (entry.getValue() == null) continue;
-                Vector2 pos = entry.getValue().body.getWorldCenter();
-                if (pos.distance(0, 0) >= starR * 2) {
+
+                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2) {
                     removeList.add(entry.getKey());
                     continue;
                 }
-                applyGravity(entry.getValue().body);
-            }
-            for (var id: removeList) {
-                removeBody(bullets.get(id).body);
-                bullets.put(id, null);
             }
 
-            for (var user: users.entrySet()) {
-                if (user.getValue().getKey().isAdmin()) {
-                    Body body = user.getValue().getValue();
-                    if (body.getWorldCenter().distance(0, 0) <= starR)
-                        body.applyForce(new Vector2(GravitationalAcc * body.getMass().getMass(), 0)
-                                .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
-                }
+            for (var id: removeList) {
+                removeBullet(id);
+                bullets.put(id, null);
             }
 
             world.step(1);
@@ -95,24 +118,26 @@ public class PhysicsEngine{
     }
 
     private static final double starR = StarInfo.maxTier + 1;
-    private void applyGravity(Body body) {
+    private void applyGravity(KitasBody body) {
         Vector2 pos = body.getWorldCenter();
         if (pos.distance(0, 0) <= starR)
             body.applyForce(new Vector2(-GravitationalAcc * body.getMass().getMass(), 0)
                     .rotate(Math.atan2(pos.y, pos.x)));
     }
 
-    public void removeBody(Body body) {
+    public void removeBody(KitasBody body) {
         world.removeBody(body);
     }
 
     public void addUser(User user, StarInfo.StarUserInfo userInfo) {
         if (!users.containsKey(user.id())) {
-            Body body = new Body();
+            KitasBody body = new KitasBody();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
             fixture.setFriction(0.1);
             fixture.setFilter(userFilter);
             body.translate(userInfo.x, userInfo.y);
+            body.setRotatable(true);
+            body.setBearTheGravity(true);
             body.setLinearDamping(1);
             body.setAngularDamping(Double.MAX_VALUE);
 
@@ -125,6 +150,8 @@ public class PhysicsEngine{
 //                fixture.setFilter(filter -> false);
                 fixture.setFilter(userFilter);
                 body.setLinearDamping(5);
+                body.setBearTheGravity(false);
+                body.setRotatable(true);
             }
 
             body.setAtRest(true);
@@ -135,7 +162,7 @@ public class PhysicsEngine{
 
     public void removeUser(int id) {
         if (users.containsKey(id)) {
-            Body body = users.get(id).getValue();
+            KitasBody body = users.get(id).getValue();
             world.removeBody(body);
             users.remove(id);
         }
@@ -145,35 +172,40 @@ public class PhysicsEngine{
         Bullet bullet = new Bullet(type, pos);
         bullets.put(UUID.randomUUID().toString(), bullet);
         world.addBody(bullet.body);
-
         return bullet;
+    }
+
+    public void removeBullet(String id) {
+        world.removeBody(bullets.get(id).body);
+        bullets.put(id, null);
     }
 
     public void addBlock(int id) {
         if (surfaceBlocks.get(id) != null)
             world.removeBody(surfaceBlocks.get(id));
-        Body body = new Body();
+        KitasBody body = new KitasBody();
         BodyFixture fixture = body.addFixture(hexagon);
         fixture.setFriction(0.1);
         Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
         body.translate(pos.x, pos.y);
+        body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
         body.setMass(MassType.INFINITE);
         surfaceBlocks.put(id, body);
         world.addBody(body);
     }
 
-    public Iterator<DetectResult<Body, BodyFixture>> broadPhaseDetect(Bullet bullet) {
+    public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(Bullet bullet) {
         return world.detectIterator(
                 bullet.body.getFixture(0).getShape(),
                 bullet.body.getTransform(),
                 new DetectFilter(true, true, null));
     }
 
-    public boolean ManifoldDetect(Bullet bullet, Iterator<DetectResult<Body, BodyFixture>> iterator) {
+    public boolean ManifoldDetect(Bullet bullet, Iterator<DetectResult<KitasBody, BodyFixture>> iterator) {
         while (iterator.hasNext()) {
-            DetectResult<Body, BodyFixture> result = iterator.next().copy();
+            DetectResult<KitasBody, BodyFixture> result = iterator.next().copy();
 
-            CollisionData<Body, BodyFixture> data = world.getCollisionData(
+            CollisionData<KitasBody, BodyFixture> data = world.getCollisionData(
                     bullet.body,
                     bullet.body.getFixture(0),
                     result.getBody(),
@@ -187,7 +219,7 @@ public class PhysicsEngine{
     private static Vector2[] getVertices() {
         Vector2[] vertices = new Vector2[6];
         for (int i = 0; i < 6; i++) {
-            vertices[i] = new Vector2(StarInfo.edgeLength, 0).rotate(Math.PI / 3 * i);
+            vertices[i] = new Vector2(StarInfo.edgeLength, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
         }
         return vertices;
     }

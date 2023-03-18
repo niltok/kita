@@ -199,6 +199,8 @@ public class StarInfo {
 
     public static class StarUserInfo {
         public double x, y = maxTier;
+
+        public double rotation;
         public boolean online;
         public String weaponType = "defaultWeapon";
         public StarUserInfo() {}
