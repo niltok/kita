@@ -20,6 +20,6 @@ public class Bullet {
         body.setRotatable(true);
         body.setBearTheGravity(true);
         body.setMass(MassType.NORMAL);
-        body.setLinearDamping(0);
+        body.setLinearDamping(0.01);
     }
 }

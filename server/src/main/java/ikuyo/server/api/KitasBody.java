@@ -27,6 +27,10 @@ public class KitasBody extends Body{
         this.bearTheGravity = state;
     }
 
+    public boolean getBearTheGravity() {
+        return this.bearTheGravity;
+    }
+
     public void applyGravity() {
         if (!this.bearTheGravity) return;
         Vector2 pos = this.getWorldCenter();

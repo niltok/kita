@@ -15,7 +15,10 @@ import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
 import org.dyn4j.world.result.DetectResult;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
 
 public class PhysicsEngine{
     protected World<KitasBody> world;
@@ -57,63 +60,38 @@ public class PhysicsEngine{
 
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
-////            Gravity
-//            /*users*/
-//            for (var entry: users.values()) {
-//                applyGravity(entry.getValue());
-//                rotationUpdate(entry.getValue(),
-//                        Math.atan2(entry.getValue().getWorldCenter().y, entry.getValue().getWorldCenter().x));
-//            }
-//            /*bullets*/
-//            List<String> removeList = new ArrayList<>();
-//
-//            for(var entry: bullets.entrySet()) {
-//                if (entry.getValue() == null) continue;
-//
-//                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2) {
-//                    removeList.add(entry.getKey());
-//                    continue;
-//                }
-//            }
-//
-//            for (var id: removeList) {
-//                removeBullet(id);
-//                bullets.put(id, null);
-//            }
-//
-//            /*admins*/
-//            for (var user: users.entrySet()) {
-//                if (user.getValue().getKey().isAdmin()) {
-//                    KitasBody body = user.getValue().getValue();
-//                    if (body.getWorldCenter().distance(0, 0) <= starR)
-//                        body.applyForce(new Vector2(GravitationalAcc * body.getMass().getMass(), 0)
-//                                .rotate(Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x)));
-//                }
-//            }
-
-
             for (var body: world.getBodies()) {
+                if (body.getBearTheGravity() && body.getWorldCenter().distance(0, 0) >= starR)
+                    body.setBearTheGravity(false);
                 body.applyGravity();
                 body.updateRotation();
             }
 
-            List<String> removeList = new ArrayList<>();
+//            List<String> removeList = new ArrayList<>();
+//            for (var entry: bullets.entrySet()) {
+//                if (entry.getValue() == null)
+//                    continue;
+//                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2)
+//                    removeList.add(entry.getKey());
+//            }
+//            for (var id: removeList)
+//                removeBullet(id);
 
-            for(var entry: bullets.entrySet()) {
-                if (entry.getValue() == null) continue;
+            for (var bullet: bullets.values())
+                checkOutOfBound(bullet.body, starR * 2);
 
-                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2) {
-                    removeList.add(entry.getKey());
-                    continue;
-                }
-            }
-
-            for (var id: removeList) {
-                removeBullet(id);
-                bullets.put(id, null);
-            }
+            for (var user: users.values())
+                checkOutOfBound(user.getValue(), starR * 2);
 
             world.step(1);
+        }
+    }
+
+    private void checkOutOfBound(KitasBody body, double bound) {
+        Vector2 pos = body.getWorldCenter();
+        if (pos.getMagnitude() >= bound) {
+            body.clearForce();
+            body.applyForce(pos.getNormalized().multiply(-1000 * (pos.getMagnitude() - bound)));
         }
     }
 
