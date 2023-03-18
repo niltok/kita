@@ -6,6 +6,9 @@ import ikuyo.server.api.CommonContext;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.geometry.Vector2;
 
+import java.time.Duration;
+import java.time.Instant;
+
 public class ControlMovingBehavior implements Behavior<CommonContext> {
     /**单一方向上施加力的速度上限*/
     private static final double speed = 100;
@@ -19,8 +22,19 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
 
-            if (input.jump > 0) {
-//                todo: change controlType
+            switch (input.jumpOrFly) {
+                case 1 -> {
+                    userInfo.controlType = "walk";
+                    context.engine().users.get(id).getValue().setBearTheGravity(true);
+                }
+                case 2 -> {
+                    if (input.flyWhen.isBefore(Instant.now())) {
+                        userInfo.controlType = "fly";
+                        var body = context.engine().users.get(id).getValue();
+                        body.setBearTheGravity(false);
+                    }
+                }
+                case 3 -> input.flyWhen = Instant.now().plus(Duration.ofSeconds(1));
             }
 
             if (context.users().get(id).isAdmin()) {
@@ -36,7 +50,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
         Vector2 force = new Vector2();
         switch (type) {
             case "walk", default -> {
-                if (input.jump > 0) {
+                if (input.jumpOrFly == 3) {
                     body.setLinearVelocity(body.getLinearVelocity()
                             .add(new Vector2(speed, 0).rotate(angle)));
                 }
@@ -55,7 +69,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                 }
             }
             case "fly" -> {
-                if (input.up > 0) {
+                if (input.up > 0 || input.jumpOrFly > 0) {
                     force.add(new Vector2(i));
                 }
                 if (input.down > 0) {
