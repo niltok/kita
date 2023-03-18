@@ -6,6 +6,7 @@ import org.dyn4j.geometry.Vector2;
 public class KitasBody extends Body{
     private boolean bearTheGravity = false;
     private boolean isRotatable = false;
+    private boolean fixRotation = false;
     public double lastAngle = 0.0;
     public double angle = 0.0;
 
@@ -21,6 +22,10 @@ public class KitasBody extends Body{
             this.lastAngle = 0.0;
             this.angle = 0.0;
         }
+    }
+
+    public void setFixRotation(boolean state) {
+        this.fixRotation = state;
     }
 
     public void setBearTheGravity(boolean state) {
@@ -41,7 +46,10 @@ public class KitasBody extends Body{
     public void updateRotation() {
         if (!this.isRotatable) return;
         this.angle = Math.atan2(this.getWorldCenter().y, this.getWorldCenter().x);
-        this.getTransform().setRotation(this.getTransform().getRotationAngle() - this.lastAngle + this.angle);
+        if (fixRotation)
+            this.getTransform().setRotation(angle);
+        else this.getTransform().setRotation(
+                this.getTransform().getRotationAngle() - this.lastAngle + this.angle);
         this.lastAngle = this.angle;
     }
 }

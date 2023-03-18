@@ -116,8 +116,9 @@ public class PhysicsEngine{
             body.translate(userInfo.x, userInfo.y);
             body.setRotatable(true);
             body.setBearTheGravity(true);
+            body.setFixRotation(true);
             body.setLinearDamping(1);
-            body.setAngularDamping(Double.MAX_VALUE);
+//            body.setAngularDamping(Double.MAX_VALUE);
 
 //            {Circle} [double]: mass * r2 * 0.5
 //            {Rectangle} [inertia]: mass * (height * height + width * width) / 12.0;
