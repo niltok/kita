@@ -19,5 +19,6 @@ shadowJar {
 
 dependencies {
     implementation project(':api')
+    implementation 'org.dyn4j:dyn4j:5.0.1'
 }
 
