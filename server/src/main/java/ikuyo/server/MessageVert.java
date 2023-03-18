@@ -20,7 +20,7 @@ import static ikuyo.utils.AsyncStatic.delay;
 
 class UserState {
     JsonObject specialCache = JsonObject.of();
-    Set<String> drawableCache = new HashSet<>();
+    Set<MsgDiffer.LongPair> drawableCache = new HashSet<>();
     Position camera = new Position();
     /** 发往这个地址的内容必须序列化为 Buffer 或 String */
     String socket;
@@ -74,7 +74,7 @@ public class MessageVert extends AsyncVerticle {
                 ).toBuffer());
                 eventBus.send(userState.socket, JsonObject.of(
                         "type", "seq.operate",
-                        "data", msgDiffer.buildDiff(new HashSet<>(), userState.drawableCache)).toBuffer());
+                        "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
                 userStates.remove(id);
                 if (userStates.isEmpty()) {
                     await(delay(Duration.ofMinutes(5)));
