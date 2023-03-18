@@ -1,5 +1,6 @@
 package ikuyo.server.behaviors;
 
+import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
 import org.dyn4j.dynamics.Body;
@@ -15,41 +16,65 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
         context.userInputs().forEach((id, input) -> {
-            var pos = context.star().starInfo().starUsers.get(id);
-            if (!pos.online) return;
+            var userInfo = context.star().starInfo().starUsers.get(id);
+            if (!userInfo.online) return;
 
-            double angle = (Math.atan2(pos.y, pos.x) + Math.PI * 2) % (Math.PI * 2);
-            Vector2 force = new Vector2();
-            Body body = context.engine().users
-                    .get(id).getValue();
+            if (input.jump > 0) {
+//                todo: change controlType
+            }
 
             if (context.users().get(id).isAdmin()) {
+                userInfo.controlType = "fly";
+            }
+
+            movingControl(context.engine().users.get(id).getValue(), userInfo.controlType, input);
+        });
+    }
+
+    private void movingControl(Body body, String type, UserInput input) {
+        double angle = (Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x) + Math.PI * 2) % (Math.PI * 2);
+        Vector2 force = new Vector2();
+        switch (type) {
+            case "walk", default -> {
+                if (input.jump > 0) {
+                    body.setLinearVelocity(body.getLinearVelocity()
+                            .add(new Vector2(speed, 0).rotate(angle)));
+                }
+                if (input.left > 0) {
+                    force.add(new Vector2(i).rotate(-Math.PI / 2));
+                }
+                if (input.right > 0) {
+                    force.add(new Vector2(i).rotate(Math.PI / 2));
+                }
+                if (!force.equals(0.0, 0.0)) {
+                    force.rotate(angle);
+                    force.normalize();
+                    force.multiply(maxAcc * body.getMass().getMass() *
+                            Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / speed, 5), 0));
+                    body.applyForce(force);
+                }
+            }
+            case "fly" -> {
                 if (input.up > 0) {
                     force.add(new Vector2(i));
                 }
                 if (input.down > 0) {
                     force.add(new Vector2(i).rotate(Math.PI));
                 }
+                if (input.left > 0) {
+                    force.add(new Vector2(i).rotate(-Math.PI / 2));
+                }
+                if (input.right > 0) {
+                    force.add(new Vector2(i).rotate(Math.PI / 2));
+                }
+                if (!force.equals(0.0, 0.0)) {
+                    force.rotate(angle);
+                    force.normalize();
+                    force.multiply(maxAcc * body.getMass().getMass() *
+                            Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / speed, 5), 0));
+                    body.applyForce(force);
+                }
             }
-
-            if (input.jump > 0) {
-                body.setLinearVelocity(body.getLinearVelocity()
-                        .add(new Vector2(speed, 0).rotate(angle)));
-            }
-            if (input.left > 0) {
-                force.add(new Vector2(i).rotate(-Math.PI / 2));
-            }
-            if (input.right > 0) {
-                force.add(new Vector2(i).rotate(Math.PI / 2));
-            }
-            if (!force.equals(0.0, 0.0)) {
-                force.rotate(angle);
-                force.normalize();
-                force.multiply(maxAcc * context.engine().users.get(id).getValue().getMass().getMass() *
-                        Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / speed, 5), 0));
-                body.applyForce(force);
-//                System.out.println("{ControlMoving} [x]: %f, [y]: %f".formatted(force.x, force.y));
-            }
-        });
+        }
     }
 }
