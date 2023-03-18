@@ -13,7 +13,4 @@ export interface State extends Base {
 export type StateEvent = Pretty<{ type: string } & Partial<Base & ModifyEvent & {
     drawables: { [key: string]: Drawable },
 }>>
-export type ModifyEvent = {
-    add: string[]
-    delete: string[]
-}
+export type ModifyEvent = { modify: Map<string, Drawable | null> }

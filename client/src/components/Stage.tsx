@@ -4,7 +4,7 @@ import {Drawable} from "../types/Drawable"
 import {FPS, getKeyCode, getMouseCode} from "../utils/common"
 import {store} from "../store"
 import {useKeyboard, useMouse, useSubscribe, useWindowSize} from "../utils/react"
-import {renderer} from "../worker/workers"
+import {preprocessor, renderer} from "../worker/workers"
 import {useAppSelector} from "../storeHook"
 import {throttleTime} from "rxjs"
 import './Stage.css'
@@ -85,7 +85,7 @@ export const Stage = () => {
         }, [offscreen])
         const seqSub = seqDrawables$.subscribe({
             next(val) {
-                workerCommon$.next({
+                preprocessor.postMessage({
                     type: 'draw',
                     drawables: val.data
                 })

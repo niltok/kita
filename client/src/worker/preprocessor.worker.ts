@@ -8,7 +8,7 @@ const state: State = {
     windowSize: { height: 0, width: 0 },
 }
 
-const drawables = new Map<string, Drawable>()
+const drawables = new Map<string, Drawable>(), changed = new Set<string>()
 let prev = new Set<string>()
 
 const update$ = new Subject<any>()
@@ -23,13 +23,13 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             break
         }
         case 'draw': {
-            if (e.data.drawables != undefined) {
-                for (const k in e.data.drawables) {
-                    const d = drawables.get(k), vd = e.data.drawables[k]
-                    if (vd === null) drawables.delete(k)
-                    else if (d === undefined) drawables.set(k, vd)
-                    else applyObjectDiff(d, vd)
-                }
+            if (e.data.drawables == undefined) break
+            for (const k in e.data.drawables) {
+                const d = drawables.get(k), vd = e.data.drawables[k]
+                if (vd === null) drawables.delete(k)
+                else if (d === undefined) drawables.set(k, vd)
+                else applyObjectDiff(d, vd)
+                changed.add(k)
             }
             update$.next(null)
             break
@@ -56,10 +56,18 @@ update$.pipe(throttleTime(700 / FPS)).subscribe( () => {
         const dx = - x_ * ny + y_ * nx, dy = - x_ * nx - y_ * ny
         if (Math.abs(dx) < ww && Math.abs(dy) < wh) res.add(k)
     })
-    const data = ({
-        add: subtractSet(res, prev),
-        delete: subtractSet(prev, res)
-    })
+    const add = new Set<string>(subtractSet(res, prev)),
+        remove = new Set<string>(subtractSet(prev, res))
+    for (const c of changed) {
+        const d = drawables.get(c)
+        if (d && res.has(c)) add.add(c)
+        if (!d && prev.has(c)) remove.add(c)
+    }
     prev = res
-    if (data.add.length || data.delete.length) postMessage(data)
+    if (!add.size && !remove.size) return
+    const data = new Map<string, Drawable | null>()
+    for (const s of add) data.set(s, drawables.get(s) ?? null)
+    for (const s of remove) data.set(s, null)
+    postMessage({modify: data})
+    changed.clear()
 })

@@ -9,7 +9,6 @@ const state: State = {
     windowSize: { height: 0, width: 0 },
 }
 
-const drawables = new Map<string, Drawable>()
 const cache = new Map<string, pixi.DisplayObject>()
 let app: pixi.Application | null = null
 let camera: pixi.Container | null = null
@@ -48,51 +47,37 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             if (!app || !camera) return
             app.view.height = state.windowSize.height
             app.view.width = state.windowSize.width
+            break
+        }
+        case 'preprocessed': {
+            if (!app || !camera) return
+            const map = e.data.modify!
+            map.forEach((drawable, key) => {
+                if (drawable) {
+                    const cached = cache.get(key)
+                    try {
+                        const display = renderDrawable(drawable!, cached)
+                        if (!cached) {
+                            camera!.addChild(display)
+                            cache.set(key, display)
+                        }
+                    } catch (e) {
+                        console.log(e, { key, drawable })
+                    }
+                } else {
+                    camera!.removeChild(cache.get(key)!)
+                    cache.delete(key)
+                }
+            })
+            camera.sortableChildren = true
+            camera.sortChildren()
+            camera.sortableChildren = false
             camera.x = state.windowSize.width / 2
             camera.y = Math.hypot(state.camera.x, state.camera.y) + state.windowSize.height / 2
             camera.rotation = -Math.atan2(state.camera.x, -state.camera.y)
             break
         }
-        case 'draw': {
-            if (e.data.drawables != undefined) {
-                for (const k in e.data.drawables) {
-                    const d = drawables.get(k), vd = e.data.drawables[k]
-                    if (vd === null) drawables.delete(k)
-                    else if (d === undefined) drawables.set(k, vd)
-                    else applyObjectDiff(d, vd)
-                    const cached = cache.get(k)
-                    if (cached && vd) renderDrawable(vd, cached)
-                }
-            }
-            break
-        }
-        case 'preprocessed': {
-            if (!app || !camera) return
-            for (const key of e.data.add!) {
-                const cached = cache.get(key)
-                const drawable = drawables.get(key)
-                if (!drawable) continue
-                try {
-                    const display = renderDrawable(drawable!, cached)
-                    if (!cached) {
-                        camera.addChild(display)
-                        cache.set(key, display)
-                    }
-                } catch (e) {
-                    console.log(e, { key, drawable })
-                }
-            }
-            for (const key of e.data.delete!) {
-                camera.removeChild(cache.get(key)!)
-                cache.delete(key)
-            }
-            camera.sortableChildren = true
-            camera.sortChildren()
-            camera.sortableChildren = false
-            break
-        }
         case 'clear': {
-            drawables.clear()
             cache.clear()
             camera = null
             app?.destroy()
