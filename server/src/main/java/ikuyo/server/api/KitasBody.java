@@ -40,7 +40,7 @@ public class KitasBody extends Body{
         if (!this.bearTheGravity) return;
         Vector2 pos = this.getWorldCenter();
         this.applyForce(new Vector2(-PhysicsEngine.GravitationalAcc * this.getMass().getMass(), 0)
-                    .rotate(Math.atan2(pos.y, pos.x)));
+                .multiply(this.gravityScale).rotate(Math.atan2(pos.y, pos.x)));
     }
 
     public void updateRotation() {
