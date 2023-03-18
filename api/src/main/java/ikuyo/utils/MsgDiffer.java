@@ -12,7 +12,7 @@ import java.util.*;
 public class MsgDiffer {
     static final double blockSize = 100;
     static final double cacheRange = 1500;
-    static final double blockRange = cacheRange / blockSize;
+    static final long blockRange = (long) (cacheRange / blockSize);
     String base;
     Map<String, Drawable> prev = new HashMap<>();
     PhTree<Set<String>> tree = PhTree.create(2);
@@ -42,8 +42,8 @@ public class MsgDiffer {
             }
             var d = ((JsonObject) v).mapTo(Drawable.class);
             changed.add(new Changed(quantize(d.x), quantize(d.y), k));
-            prev.put(k, d);
             tree.computeIfAbsent(new long[]{quantize(d.x), quantize(d.y)}, i -> new HashSet<>()).add(k);
+            prev.put(k, d);
         });
     }
 
@@ -51,7 +51,10 @@ public class MsgDiffer {
         Set<String> add = new HashSet<>(), delete = new HashSet<>();
         Set<LongPair> addBlock = new HashSet<>(), deleteBlock = new HashSet<>();
         if (moved) {
-            var res = tree.rangeQuery(blockRange, quantize(pos.x), quantize(pos.y));
+            long qx = quantize(pos.x), qy = quantize(pos.y);
+            var res = tree.query(
+                    new long[]{qx - blockRange, qy - blockRange},
+                    new long[]{qx + blockRange, qy + blockRange});
             var map = new HashMap<LongPair, Set<String>>();
             while (res.hasNext()) {
                 var e = res.nextEntryReuse();
