@@ -44,10 +44,10 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
     }
 }
 
-update$.pipe(throttleTime(1000 / FPS)).subscribe( () => {
+update$.pipe(throttleTime(700 / FPS)).subscribe( () => {
     const res = new Set<string>()
-    const wh = state.windowSize.height * 0.51
-    const ww = state.windowSize.width * 0.51
+    const wh = state.windowSize.height * 0.55
+    const ww = state.windowSize.width * 0.55
     const cx = state.camera.x, cy = state.camera.y
     const cr = Math.hypot(cx, cy)
     const nx = cx / cr, ny = cy / cr

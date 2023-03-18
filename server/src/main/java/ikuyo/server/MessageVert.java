@@ -11,13 +11,16 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static ikuyo.utils.AsyncStatic.delay;
 
 class UserState {
     JsonObject specialCache = JsonObject.of();
-    Set<String> drawableCache = new HashSet<>();
+    Set<MsgDiffer.LongPair> drawableCache = new HashSet<>();
     Position camera = new Position();
     /** 发往这个地址的内容必须序列化为 Buffer 或 String */
     String socket;
@@ -71,7 +74,7 @@ public class MessageVert extends AsyncVerticle {
                 ).toBuffer());
                 eventBus.send(userState.socket, JsonObject.of(
                         "type", "seq.operate",
-                        "data", msgDiffer.buildDiff(new HashSet<>(), userState.drawableCache)).toBuffer());
+                        "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
                 userStates.remove(id);
                 if (userStates.isEmpty()) {
                     await(delay(Duration.ofMinutes(5)));
@@ -120,9 +123,9 @@ public class MessageVert extends AsyncVerticle {
         }
     }
 
-    private void sendUserState(JsonObject specials, Integer id, UserState userState) {
+    private void sendUserState(JsonObject specials, int id, UserState userState) {
         var msg = JsonArray.of();
-        var state = specials.getJsonObject(id.toString());
+        var state = specials.getJsonObject(String.valueOf(id));
         if (state != null) {
             var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
             if (!specialDiff.isEmpty()) { // 变化才发送
@@ -143,7 +146,7 @@ public class MessageVert extends AsyncVerticle {
         var moved = cx != userState.camera.x || cy != userState.camera.y;
         userState.camera.x = cx;
         userState.camera.y = cy;
-        var diff = msgDiffer.query(userState.camera, moved, userState.drawableCache);
+        var diff = msgDiffer.query(id, userState.camera, moved, userState.drawableCache);
         if (diff != null) {
             msg.add(JsonObject.of(
                     "type", "seq.operate",

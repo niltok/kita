@@ -1,6 +1,6 @@
 package ikuyo.utils;
 
-import ch.ethz.globis.phtree.PhTreeMultiMapF;
+import ch.ethz.globis.phtree.PhTree;
 import com.google.common.collect.Sets;
 import ikuyo.api.Drawable;
 import ikuyo.api.Position;
@@ -10,65 +10,100 @@ import io.vertx.core.json.JsonObject;
 import java.util.*;
 
 public class MsgDiffer {
-    static double CacheRange = 1500;
+    static final double blockSize = 100;
+    static final double cacheRange = 1500;
+    static final long blockRange = (long) (cacheRange / blockSize);
     String base;
     Map<String, Drawable> prev = new HashMap<>();
-    PhTreeMultiMapF<String> tree = PhTreeMultiMapF.create(2);
-    Set<String> changed = new HashSet<>();
+    PhTree<Set<String>> tree = PhTree.create(2);
+    Set<Changed> changed = new HashSet<>();
+
+    public record LongPair(long x, long y) {}
+    record Changed(long x, long y, String s) {}
 
     public MsgDiffer(String base) {
         this.base = base;
     }
 
+    public long quantize(double a) {
+        return (long) Math.floor(a / blockSize);
+    }
+
     public void next(JsonObject msg) {
         changed.clear();
         msg.getMap().forEach((k, v) -> {
-            changed.add(k);
             if (v == null) {
                 var d = prev.get(k);
                 if (d == null) return;
-                tree.remove(new double[]{d.x, d.y}, k.hashCode());
+                changed.add(new Changed(quantize(d.x), quantize(d.y), k));
+                tree.get(quantize(d.x), quantize(d.y)).remove(k);
                 prev.remove(k);
                 return;
             }
             var d = ((JsonObject) v).mapTo(Drawable.class);
+            changed.add(new Changed(quantize(d.x), quantize(d.y), k));
+            tree.computeIfAbsent(new long[]{quantize(d.x), quantize(d.y)}, i -> new HashSet<>()).add(k);
             prev.put(k, d);
-            tree.put(new double[]{d.x, d.y}, k.hashCode(), k);
         });
     }
 
-    public JsonObject query(Position pos, boolean moved, Set<String> cache) {
+    public JsonObject query(int id, Position pos, boolean moved, Set<LongPair> cache) {
         Set<String> add = new HashSet<>(), delete = new HashSet<>();
+        Set<LongPair> addBlock = new HashSet<>(), deleteBlock = new HashSet<>();
         if (moved) {
-            var res = tree.rangeQuery(CacheRange, pos.x, pos.y);
-            var set = new HashSet<String>();
-            res.forEachRemaining(set::add);
-            for (String s : set) {
-                if (!cache.contains(s)) add.add(s);
+            long qx = quantize(pos.x), qy = quantize(pos.y);
+            var res = tree.query(
+                    new long[]{qx - blockRange, qy - blockRange},
+                    new long[]{qx + blockRange, qy + blockRange});
+            var map = new HashMap<LongPair, Set<String>>();
+            while (res.hasNext()) {
+                var e = res.nextEntryReuse();
+                var k = e.getKey();
+                map.put(new LongPair(k[0], k[1]), e.getValue());
             }
-            for (String s : cache) {
-                if (!set.contains(s)) delete.add(s);
+            map.forEach((p, set) -> {
+                if (cache.contains(p)) return;
+                addBlock.add(p);
+                for (var k : set) {
+                    var d = prev.get(k);
+                    if (d == null) System.err.format("dangling drawable %s\n", k);
+                    else if (d.user == -1 || d.user == id)
+                        add.add(k);
+                }
+            });
+            for (var p : cache) {
+                if (map.containsKey(p)) continue;
+                deleteBlock.add(p);
+                delete.addAll(tree.get(p.x, p.y));
             }
         }
-        for (String s : changed) {
-            var d = prev.get(s);
-            if (d != null && (Math.hypot(pos.x - d.x, pos.y - d.y) <= CacheRange || cache.contains(s))) {
-                add.add(s);
+        for (var c : changed) {
+            var d = prev.get(c.s);
+            var p = new LongPair(c.x, c.y);
+            if (d != null && (Math.hypot(pos.x - d.x, pos.y - d.y) <= cacheRange || cache.contains(p))) {
+                if (d.user == -1 || d.user == id) add.add(c.s);
             }
-            if ((d == null || Math.hypot(pos.x - d.x, pos.y - d.y) > CacheRange) && cache.contains(s)) {
-                delete.add(s);
+            if ((d == null || Math.hypot(pos.x - d.x, pos.y - d.y) > cacheRange) && cache.contains(p)) {
+                delete.add(c.s);
             }
         }
-        cache.addAll(add);
-        for (String s : delete) cache.remove(s);
+        cache.addAll(addBlock);
+        for (var s : deleteBlock) cache.remove(s);
         if (add.isEmpty() && delete.isEmpty()) return null;
         return buildDiff(add, delete);
+    }
+
+    public JsonObject removeAll(Set<LongPair> cache) {
+        var delete = new HashSet<String>();
+        for (var p : cache) delete.addAll(tree.get(p.x, p.y));
+        return buildDiff(new HashSet<>(), delete);
     }
 
     public JsonObject buildDiff(Set<String> add, Set<String> delete) {
         var json = JsonObject.of();
         for (String s : add) {
-            json.put(s, JsonObject.mapFrom(prev.get(s)));
+            var d = prev.get(s);
+            json.put(s, JsonObject.mapFrom(d));
         }
         for (String s : delete) {
             json.putNull(s);
