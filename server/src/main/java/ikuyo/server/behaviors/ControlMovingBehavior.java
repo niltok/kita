@@ -25,26 +25,22 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
         context.userInputs().forEach((id, input) -> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
+            var body = context.engine().users.get(id).getValue();
 
             if (userInfo.controlType.equals("fly")) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
-                        context.engine().broadPhaseDetect(context.engine().users.get(id).getValue());
-                if (iterator.hasNext() && context.engine().ManifoldDetect(context.engine().users.get(id).getValue(), iterator)) {
+                        context.engine().broadPhaseDetect(body);
+                if (iterator.hasNext() && context.engine().ManifoldDetect(body, iterator)) {
                     userInfo.controlType = "walk";
-                    context.engine().users.get(id).getValue().setGravityScale(1);
-                    context.engine().users.get(id).getValue().setFixRotation(true);
+                    body.setGravityScale(1);
+                    body.setFixRotation(true);
                 }
             }
 
             switch (input.jumpOrFly) {
-                /*case 1 -> {
-                    userInfo.controlType = "walk";
-                    context.engine().users.get(id).getValue().setGravityScale(1);
-                }*/
                 case 2 -> {
                     if (input.flyWhen.isBefore(Instant.now())) {
                         userInfo.controlType = "fly";
-                        var body = context.engine().users.get(id).getValue();
                         body.setGravityScale(0);
                         body.setFixRotation(false);
                     }
@@ -54,9 +50,11 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
 
             if (context.users().get(id).isAdmin()) {
                 userInfo.controlType = "fly";
+                body.setGravityScale(0);
+                body.setFixRotation(true);
             }
 
-            controlMoving(context.engine().users.get(id).getValue(), userInfo.controlType, input);
+            controlMoving(body, userInfo.controlType, input);
         });
     }
 
