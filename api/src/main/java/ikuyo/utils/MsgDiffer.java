@@ -42,6 +42,11 @@ public class MsgDiffer {
             }
             var d = ((JsonObject) v).mapTo(Drawable.class);
             changed.add(new Changed(quantize(d.x), quantize(d.y), k));
+            var pd = prev.get(k);
+            if (pd != null) {
+                var set = tree.get(quantize(pd.x), quantize(pd.y));
+                if (set != null) set.remove(k);
+            }
             tree.computeIfAbsent(new long[]{quantize(d.x), quantize(d.y)}, i -> new HashSet<>()).add(k);
             prev.put(k, d);
         });
