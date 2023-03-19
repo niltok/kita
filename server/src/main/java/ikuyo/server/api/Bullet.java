@@ -17,7 +17,6 @@ public class Bullet {
         fixture.setFriction(0);
         fixture.setFilter(PhysicsEngine.bulletFilter);
         body.translate(pos.x, pos.y);
-        body.setRotatable(true);
         body.setBearTheGravity(true);
         body.setMass(MassType.NORMAL);
         body.setLinearDamping(0.01);

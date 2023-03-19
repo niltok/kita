@@ -46,8 +46,10 @@ public class KitasBody extends Body{
     public void updateRotation() {
         if (!this.isRotatable) return;
         this.angle = Math.atan2(this.getWorldCenter().y, this.getWorldCenter().x);
-        if (fixRotation)
+        if (fixRotation) {
             this.getTransform().setRotation(angle);
+            this.setAngularVelocity(0);
+        }
         else this.getTransform().setRotation(
                 this.getTransform().getRotationAngle() - this.lastAngle + this.angle);
         this.lastAngle = this.angle;
