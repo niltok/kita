@@ -60,6 +60,7 @@ public class PhysicsEngine{
 
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
+//            todo: bound listen
             for (var body: world.getBodies()) {
                 if (body.getBearTheGravity() && body.getWorldCenter().distance(0, 0) >= starR)
                     body.setBearTheGravity(false);
@@ -67,15 +68,15 @@ public class PhysicsEngine{
                 body.updateRotation();
             }
 
-//            List<String> removeList = new ArrayList<>();
-//            for (var entry: bullets.entrySet()) {
-//                if (entry.getValue() == null)
-//                    continue;
-//                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2)
-//                    removeList.add(entry.getKey());
-//            }
-//            for (var id: removeList)
-//                removeBullet(id);
+/*            List<String> removeList = new ArrayList<>();
+            for (var entry: bullets.entrySet()) {
+                if (entry.getValue() == null)
+                    continue;
+                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2)
+                    removeList.add(entry.getKey());
+            }
+            for (var id: removeList)
+                removeBullet(id);*/
 
             for (var bullet: bullets.values())
                 checkOutOfBound(bullet.body, starR * 2);
@@ -173,20 +174,20 @@ public class PhysicsEngine{
         world.addBody(body);
     }
 
-    public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(Bullet bullet) {
+    public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(KitasBody body) {
         return world.detectIterator(
-                bullet.body.getFixture(0).getShape(),
-                bullet.body.getTransform(),
+                body.getFixture(0).getShape(),
+                body.getTransform(),
                 new DetectFilter(true, true, null));
     }
 
-    public boolean ManifoldDetect(Bullet bullet, Iterator<DetectResult<KitasBody, BodyFixture>> iterator) {
+    public boolean ManifoldDetect(KitasBody body, Iterator<DetectResult<KitasBody, BodyFixture>> iterator) {
         while (iterator.hasNext()) {
             DetectResult<KitasBody, BodyFixture> result = iterator.next().copy();
 
             CollisionData<KitasBody, BodyFixture> data = world.getCollisionData(
-                    bullet.body,
-                    bullet.body.getFixture(0),
+                    body,
+                    body.getFixture(0),
                     result.getBody(),
                     result.getFixture());
 

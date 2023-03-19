@@ -18,8 +18,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
         context.engine().bullets.forEach((id, bullet) -> {
             if (bullet != null) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
-                        context.engine().broadPhaseDetect(bullet);
-                if (iterator.hasNext() && context.engine().ManifoldDetect(bullet, iterator)) {
+                        context.engine().broadPhaseDetect(bullet.body);
+                if (iterator.hasNext() && context.engine().ManifoldDetect(bullet.body, iterator)) {
                     var starInfo = context.star().starInfo();
                     var pos = bullet.body.getWorldCenter();
                     double r = 10;

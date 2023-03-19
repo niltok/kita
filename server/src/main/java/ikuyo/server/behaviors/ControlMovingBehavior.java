@@ -3,11 +3,15 @@ package ikuyo.server.behaviors;
 import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
+import ikuyo.server.api.KitasBody;
 import org.dyn4j.dynamics.Body;
+import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.result.DetectResult;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
 
 public class ControlMovingBehavior implements Behavior<CommonContext> {
     /**单一方向上施加力的速度上限*/
@@ -21,17 +25,24 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
         context.userInputs().forEach((id, input) -> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
+            var body = context.engine().users.get(id).getValue();
+
+            if (userInfo.controlType.equals("fly")) {
+                Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
+                        context.engine().broadPhaseDetect(body);
+                if (iterator.hasNext() && context.engine().ManifoldDetect(body, iterator)) {
+                    userInfo.controlType = "walk";
+                    body.setGravityScale(1);
+                    body.setFixRotation(true);
+                }
+            }
 
             switch (input.jumpOrFly) {
-                case 1 -> {
-                    userInfo.controlType = "walk";
-                    context.engine().users.get(id).getValue().setBearTheGravity(true);
-                }
                 case 2 -> {
                     if (input.flyWhen.isBefore(Instant.now())) {
                         userInfo.controlType = "fly";
-                        var body = context.engine().users.get(id).getValue();
-                        body.setBearTheGravity(false);
+                        body.setGravityScale(0);
+                        body.setFixRotation(false);
                     }
                 }
                 case 3 -> input.flyWhen = Instant.now().plus(Duration.ofSeconds(1));
@@ -39,13 +50,15 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
 
             if (context.users().get(id).isAdmin()) {
                 userInfo.controlType = "fly";
+                body.setGravityScale(0);
+                body.setFixRotation(true);
             }
 
-            movingControl(context.engine().users.get(id).getValue(), userInfo.controlType, input);
+            controlMoving(body, userInfo.controlType, input);
         });
     }
 
-    private void movingControl(Body body, String type, UserInput input) {
+    private void controlMoving(Body body, String type, UserInput input) {
         double angle = (Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x) + Math.PI * 2) % (Math.PI * 2);
         Vector2 force = new Vector2();
         switch (type) {
