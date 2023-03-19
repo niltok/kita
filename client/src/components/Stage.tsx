@@ -9,6 +9,7 @@ import {useAppSelector} from "../storeHook"
 import {throttleTime} from "rxjs"
 import './Stage.css'
 import {keyMapper, KeyType} from "../keyMapper";
+import {renderUI} from "./RenderUI";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 
@@ -33,7 +34,6 @@ function handleInputEvent(mapper: { [key: string]: KeyType }, code: string) {
 
 export const Stage = () => {
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
-    const [info, setInfo] = useState<any>({})
     const windowSize = useAppSelector(state => state.gameState.windowSize)
     useKeyboard(canvas)
     useMouse(canvas)
@@ -97,8 +97,9 @@ export const Stage = () => {
             seqSub.unsubscribe()
         }
     }, [canvas])
+    const ui = useAppSelector(state => state.gameState.star.ui)
     return (<>
-        {/*<div className={"absolute debug-info"}>{JSON.stringify(info)}</div>*/}
+        <div className={"absolute fullscreen"} style={{pointerEvents: "none"}}>{renderUI(ui)}</div>
         <canvas ref={setCanvas} className={"no-cursor"}></canvas>
     </>)
 }

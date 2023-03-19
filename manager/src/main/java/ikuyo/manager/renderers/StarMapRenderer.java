@@ -2,6 +2,7 @@ package ikuyo.manager.renderers;
 
 import ikuyo.api.Star;
 import ikuyo.api.UIElement;
+import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -10,7 +11,7 @@ import org.apache.commons.math3.util.Pair;
 
 import java.util.*;
 
-public class StarMapRenderer implements UIRenderer {
+public class StarMapRenderer implements UIRenderer<CommonContext> {
     static final double displayScale = 20;
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {

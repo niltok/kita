@@ -5,17 +5,23 @@ import ikuyo.api.User;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.Renderer;
-import ikuyo.manager.api.*;
+import ikuyo.api.renderers.UIRenderer;
+import ikuyo.manager.api.BehaviorContext;
+import ikuyo.manager.api.CommonContext;
+import ikuyo.manager.api.UpdatedContext;
+import ikuyo.manager.api.UserState;
 import ikuyo.manager.behaviors.StarMapBehavior;
 import ikuyo.manager.behaviors.TechTrainerBehavior;
 import ikuyo.manager.renderers.StarMapRenderer;
 import ikuyo.manager.renderers.TechTrainerRenderer;
-import ikuyo.manager.renderers.UIRenderer;
 import ikuyo.utils.AsyncVerticle;
 import io.reactivex.rxjava3.subjects.Subject;
 import io.reactivex.rxjava3.subjects.UnicastSubject;
 import io.vertx.core.eventbus.DeliveryOptions;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.AllowForwardHeaders;
 import io.vertx.ext.web.Router;
@@ -50,10 +56,10 @@ public class HttpVert extends AsyncVerticle {
             new StarMapBehavior(),
             new TechTrainerBehavior()
     );
-    Renderer<CommonContext> uiRenderer = new UIRenderer.Composite(
+    Renderer<CommonContext> uiRenderer = new UIRenderer.Composite<>(
             new StarMapRenderer(),
             new TechTrainerRenderer()
-    );
+    ).withName("ui");
 
     @Override
     public void start() {
@@ -153,7 +159,7 @@ public class HttpVert extends AsyncVerticle {
     }
 
     private void socketHandler(SockJSSocket socket, @NotNull JsonObject msg) {
-//        logger.info(msg);
+        if (enableMsgLog) logger.info(msg);
         switch (msg.getString("type")) {
             case "auth.request" -> {
                 var user = User.getByToken(pool, msg.getString("token"));

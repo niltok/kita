@@ -9,6 +9,7 @@ import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
+import ikuyo.api.renderers.UIRenderer;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.behaviors.*;
 import ikuyo.server.renderers.*;
@@ -52,11 +53,14 @@ public class UpdateVert extends AsyncVerticle {
                     new BlockRenderer(),
                     new UserRenderer(),
                     new BulletRenderer()
-            ).withName("starDrawables")
+            )
     );
+    Renderer<CommonContext> commonRenderer = new CompositeRenderer<>(true);
     Renderer<CommonContext> specialRenderer = new CompositeRenderer<>(true,
-            new CameraRenderer()
-    );
+            new CameraRenderer().withName("camera"),
+            new UIRenderer.Composite<CommonContext>(
+            ).withName("ui")
+    ).withName("star");
     CommonContext commonContext;
 
     @Override
@@ -138,11 +142,11 @@ public class UpdateVert extends AsyncVerticle {
 
     private void vertEventsHandler(Message<JsonObject> msg) {
         while (!loaded) {
-            healthCheck();
+            if (!healthCheck()) return;
             doEvents();
         }
         var json = msg.body();
-//        logger.info(json);
+        if (enableMsgLog) logger.info(json);
         switch (json.getString("type")) {
             case "vert.undeploy" -> {
                 vertx.undeploy(deploymentID());
@@ -201,15 +205,17 @@ public class UpdateVert extends AsyncVerticle {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
-            healthCheck();
+            if (!healthCheck()) return;
             mainBehavior.update(commonContext);
             var seq = commonSeqRenderer.render(commonContext);
+            var com = commonRenderer.render(commonContext);
             var spe = specialRenderer.render(commonContext);
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "prevUpdateTime", updateTime,
                     "prevDeltaTime", deltaTime,
                     "commonSeq", seq,
+                    "common", com,
                     "special", spe)), new DeliveryOptions().setLocalOnly(true));
             commonContext.frame();
             updateCount++;
@@ -233,7 +239,7 @@ public class UpdateVert extends AsyncVerticle {
                 "deltaTime", deltaTime / 1000_000.0));
     }
 
-    private void healthCheck() { // health check (db connection & ownership)
+    private boolean healthCheck() { // health check (db connection & ownership)
         var summery = Star.getSummery(pool, star.index());
         assert summery != null;
         if (!Objects.equals(summery.vertId(), deploymentID())) {
@@ -242,7 +248,9 @@ public class UpdateVert extends AsyncVerticle {
                     "star", star.name(),
                     "ownership", summery.vertId()));
             vertx.undeploy(deploymentID());
+            return false;
         }
+        return true;
     }
 
     // TODO: fix write back blocking

@@ -12,6 +12,14 @@ export const manifest: ResolverManifest = {
                 {
                     name: "Sourcehansanscn Vf.ttf",
                     srcs: "../ui/SourceHanSansCN-VF.ttf.woff2"
+                },
+                {
+                    name: "greenCircle",
+                    srcs: "../ui/greenCircle.png"
+                },
+                {
+                    name: "greenArrow",
+                    srcs: "../ui/greenArrow.png"
                 }
             ]
         },
@@ -55,10 +63,6 @@ export const manifest: ResolverManifest = {
                 {
                     name: "paimon",
                     srcs: "../other/paimon.png"
-                },
-                {
-                    name: "greenCircle",
-                    srcs: "../other/greenCircle.png"
                 }
             ]
         }

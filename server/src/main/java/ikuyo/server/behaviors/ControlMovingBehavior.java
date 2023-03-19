@@ -45,7 +45,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                         body.setFixRotation(false);
                     }
                 }
-                case 3 -> input.flyWhen = Instant.now().plus(Duration.ofSeconds(1));
+                case 3 -> input.flyWhen = Instant.now().plus(Duration.ofMillis(500));
             }
 
             if (context.users().get(id).isAdmin()) {

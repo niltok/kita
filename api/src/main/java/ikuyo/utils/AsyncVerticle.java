@@ -5,12 +5,12 @@ import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
-import io.vertx.core.net.impl.pool.Task;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHelper {
+    public static boolean enableMsgLog = false;
     protected Logger logger;
     protected EventBus eventBus;
     private Async asyncRunner;

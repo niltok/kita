@@ -34,8 +34,9 @@ public class MessageVert extends AsyncVerticle {
     String updaterId;
     MessageConsumer<JsonObject> starEvents;
     MessageConsumer<NoCopyBox<JsonObject>> vertEvents;
-    MsgDiffer msgDiffer = new MsgDiffer("starDrawables");
+    MsgDiffer msgDiffer = new MsgDiffer();
     Map<Integer, UserState> userStates = new HashMap<>();
+    JsonObject commonCache = JsonObject.of();
 
     @Override
     public void start() throws Exception {
@@ -54,7 +55,7 @@ public class MessageVert extends AsyncVerticle {
 
     private void starEventsHandler(Message<JsonObject> msg) {
         var json = msg.body();
-//        logger.info(json);
+        if (enableMsgLog) logger.info(json);
         switch (json.getString("type")) {
             case "ping" -> msg.reply(JsonObject.of("type", "pong"));
             case "user.add" -> {
@@ -110,12 +111,15 @@ public class MessageVert extends AsyncVerticle {
         var json = msg.body().value;
         switch (json.getString("type")) {
             case "star.updated" -> {
-                var drawables = json.getJsonObject("commonSeq").getJsonObject("starDrawables");
+                var drawables = json.getJsonObject("commonSeq");
                 msgDiffer.next(drawables);
+                var common = json.getJsonObject("common");
+                var cdiff = MsgDiffer.jsonDiff(commonCache, common);
+                commonCache = common;
                 var specials = json.getJsonObject("special");
 //                var fs = new ArrayList<Future>();
                 userStates.forEach((id, userState) -> {
-                    sendUserState(specials, id, userState);
+                    sendUserState(specials, cdiff, id, userState);
 //                    fs.add(runBlocking(() -> sendUserState(specials, id, userState)));
                 });
 //                await(CompositeFuture.all(fs));
@@ -123,21 +127,23 @@ public class MessageVert extends AsyncVerticle {
         }
     }
 
-    private void sendUserState(JsonObject specials, int id, UserState userState) {
+    private void sendUserState(JsonObject specials, JsonObject cdiff, int id, UserState userState) {
         var msg = JsonArray.of();
         var state = specials.getJsonObject(String.valueOf(id));
         if (state != null) {
-            var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state);
+            var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state).mergeIn(cdiff, true);
+            userState.specialCache = state;
             if (!specialDiff.isEmpty()) { // 变化才发送
-                userState.specialCache = state;
                 msg.add(JsonObject.of(
                         "type", "state.dispatch",
                         "action", "gameState/diffGame",
-                        "payload", JsonObject.of("star", specialDiff)
+                        "payload", specialDiff
                 ));
             }
         }
-        var camera_ = userState.specialCache.getJsonObject("camera");
+        var camera_ = userState.specialCache
+                .getJsonObject("star")
+                .getJsonObject("camera");
         if (camera_ == null) {
             return;
         }
@@ -153,6 +159,9 @@ public class MessageVert extends AsyncVerticle {
                     "data", diff
             ));
         }
-        if (!msg.isEmpty()) eventBus.send(userState.socket, msg.toBuffer());
+        if (!msg.isEmpty()) {
+            if (enableMsgLog) logger.info(msg);
+            eventBus.send(userState.socket, msg.toBuffer());
+        }
     }
 }

@@ -53,6 +53,7 @@ update$.pipe(throttleTime(700 / FPS)).subscribe( () => {
     const nx = cx / cr, ny = cy / cr
     const r = Math.hypot(state.windowSize.height, state.windowSize.width) * 0.6
     drawables.forEach((d, k) => {
+        // TODO: 加上 screen rotation
         // const x_ = d.x - cx, y_ = d.y - cy
         // const dx = - x_ * ny + y_ * nx, dy = - x_ * nx - y_ * ny
         // if (Math.abs(dx) < ww && Math.abs(dy) < wh) res.add(k)

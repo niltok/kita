@@ -13,7 +13,6 @@ public class MsgDiffer {
     static final double blockSize = 100;
     static final double cacheRange = 1500;
     static final long blockRange = (long) (cacheRange / blockSize);
-    String base;
     Map<String, Drawable> prev = new HashMap<>();
     PhTree<Set<String>> tree = PhTree.create(2);
     Set<Changed> changed = new HashSet<>();
@@ -21,9 +20,7 @@ public class MsgDiffer {
     public record LongPair(long x, long y) {}
     record Changed(long x, long y, String s) {}
 
-    public MsgDiffer(String base) {
-        this.base = base;
-    }
+    public MsgDiffer() {}
 
     public long quantize(double a) {
         return (long) Math.floor(a / blockSize);

@@ -2,6 +2,7 @@ package ikuyo.manager.renderers;
 
 import ikuyo.api.TechItem;
 import ikuyo.api.UIElement;
+import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
@@ -12,7 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class TechTrainerRenderer implements UIRenderer {
+public class TechTrainerRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         for (Integer id : context.updated().users()) {

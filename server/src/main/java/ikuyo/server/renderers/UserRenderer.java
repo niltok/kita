@@ -2,6 +2,7 @@ package ikuyo.server.renderers;
 
 import ikuyo.api.Drawable;
 import ikuyo.server.api.CommonContext;
+import org.dyn4j.geometry.Vector2;
 
 import java.util.Map;
 
@@ -11,6 +12,7 @@ public class UserRenderer implements DrawablesRenderer {
         ctx.star().starInfo().starUsers.forEach((id, info) -> {
             drawPosition(ctx, drawables, id);
             drawCursor(ctx, drawables, id);
+            drawGravityArrow(ctx, drawables, id);
         });
     }
 
@@ -46,10 +48,29 @@ public class UserRenderer implements DrawablesRenderer {
         var cursor = new Drawable.Sprite();
         cursor.x = pos.x * Drawable.scaling;
         cursor.y = pos.y * Drawable.scaling;
-        cursor.bundle = "other";
+        cursor.bundle = "ui";
         cursor.asset = "greenCircle";
         cursor.zIndex = 2;
         cursor.user = id;
         drawables.put("user#%d.cursor".formatted(id), cursor);
+    }
+
+    private static void drawGravityArrow(CommonContext ctx, Map<String, Drawable> drawables, Integer id) {
+        var info = ctx.star().starInfo().starUsers.get(id);
+        if (info == null || !info.online || !"fly".equals(info.controlType)) {
+            drawables.put("user#%d.gravityArrow".formatted(id), null);
+            return;
+        }
+        var pos = new Vector2(info.x, info.y);
+        pos.multiply(pos.normalize() - 5);
+        var arrow = new Drawable.Sprite();
+        arrow.x = pos.x * Drawable.scaling;
+        arrow.y = pos.y * Drawable.scaling;
+        arrow.rotation = -pos.getAngleBetween(Math.PI / 2);
+        arrow.bundle = "ui";
+        arrow.asset = "greenArrow";
+        arrow.zIndex = 2;
+        arrow.user = id;
+        drawables.put("user#%d.gravityArrow".formatted(id), arrow);
     }
 }
