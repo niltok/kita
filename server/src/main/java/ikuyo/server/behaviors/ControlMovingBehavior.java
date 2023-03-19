@@ -17,7 +17,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
     /**单一方向上施加力的速度上限*/
     private static final double speed = 100;
     /**单一方向上施加的加速度的最大值*/
-    private static final double maxAcc = 1000;
+    private static final double maxAcc = 500;
     /**单位向量，计算用*/
     private static final Vector2 i = new Vector2(1, 0);
     @Override
@@ -65,7 +65,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             case "walk", default -> {
                 if (input.jumpOrFly == 3) {
                     body.setLinearVelocity(body.getLinearVelocity()
-                            .add(new Vector2(speed, 0).rotate(angle)));
+                            .add(new Vector2(speed / 2, 0).rotate(angle)));
                 }
                 if (input.left > 0) {
                     force.add(new Vector2(i).rotate(-Math.PI / 2));

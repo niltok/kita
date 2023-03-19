@@ -26,7 +26,7 @@ public class PhysicsEngine{
     public Map<Integer, KitasBody> surfaceBlocks;
     public Map<String, Bullet> bullets;
     /**重力加速度*/
-    public static final double GravitationalAcc = 1000;
+    public static final double GravitationalAcc = 300;
     private static final Polygon hexagon = Geometry.createPolygon(getVertices());
     private static final Filter userFilter = new Filter() {
         @Override
@@ -62,8 +62,8 @@ public class PhysicsEngine{
         for (int i = 0; i < step; i++) {
 //            todo: bound listen
             for (var body: world.getBodies()) {
-                if (body.getBearTheGravity() && body.getWorldCenter().distance(0, 0) >= starR)
-                    body.setBearTheGravity(false);
+                body.setBearTheGravity(!body.getBearTheGravity()
+                        || !(body.getWorldCenter().distance(0, 0) >= starR));
                 body.applyGravity();
                 body.updateRotation();
             }
@@ -131,6 +131,7 @@ public class PhysicsEngine{
                 fixture.setFilter(userFilter);
                 body.setLinearDamping(5);
                 body.setBearTheGravity(false);
+                body.setGravityScale(0);
                 body.setRotatable(true);
             }
 
