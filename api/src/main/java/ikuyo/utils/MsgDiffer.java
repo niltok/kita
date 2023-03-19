@@ -35,19 +35,24 @@ public class MsgDiffer {
             if (v == null) {
                 var d = prev.get(k);
                 if (d == null) return;
-                changed.add(new Changed(quantize(d.x), quantize(d.y), k));
-                tree.get(quantize(d.x), quantize(d.y)).remove(k);
+                long dx = quantize(d.x), dy = quantize(d.y);
+                changed.add(new Changed(dx, dy, k));
+                tree.get(dx, dy).remove(k);
                 prev.remove(k);
                 return;
             }
             var d = ((JsonObject) v).mapTo(Drawable.class);
-            changed.add(new Changed(quantize(d.x), quantize(d.y), k));
+            long dx = quantize(d.x), dy = quantize(d.y);
             var pd = prev.get(k);
             if (pd != null) {
-                var set = tree.get(quantize(pd.x), quantize(pd.y));
+                long qpx = quantize(pd.x), qpy = quantize(pd.y);
+                var set = tree.get(qpx, qpy);
                 if (set != null) set.remove(k);
+                changed.add(new Changed(qpx, qpy, k));
+            } else {
+                changed.add(new Changed(dx, dy, k));
             }
-            tree.computeIfAbsent(new long[]{quantize(d.x), quantize(d.y)}, i -> new HashSet<>()).add(k);
+            tree.computeIfAbsent(new long[]{dx, dy}, i -> new HashSet<>()).add(k);
             prev.put(k, d);
         });
     }
@@ -85,10 +90,17 @@ public class MsgDiffer {
         for (var c : changed) {
             var d = prev.get(c.s);
             var p = new LongPair(c.x, c.y);
-            if (d != null && (Math.hypot(pos.x - d.x, pos.y - d.y) <= cacheRange || cache.contains(p))) {
+            var inRange = false;
+            if (d != null) {
+                long qx = quantize(pos.x), qy = quantize(pos.y);
+                long dx = quantize(d.x), dy = quantize(d.y);
+                inRange = qx - blockRange <= dx && dx <= qx + blockRange
+                        && qy - blockRange <= dy && dy <= qy + blockRange;
+            }
+            if (d != null && (inRange || cache.contains(p))) {
                 if (d.user == -1 || d.user == id) add.add(c.s);
             }
-            if ((d == null || Math.hypot(pos.x - d.x, pos.y - d.y) > cacheRange) && cache.contains(p)) {
+            if ((d == null || !inRange) && cache.contains(p)) {
                 delete.add(c.s);
             }
         }
