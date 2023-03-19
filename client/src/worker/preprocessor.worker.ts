@@ -19,7 +19,7 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             // @ts-ignore
             delete e.data.type
             applyObjectDiff(state, e.data)
-            update$.next(null)
+            if (!e.data.camera) update$.next(null)
             break
         }
         case 'draw': {
