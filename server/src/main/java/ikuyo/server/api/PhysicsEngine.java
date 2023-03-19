@@ -119,6 +119,7 @@ public class PhysicsEngine{
             body.setBearTheGravity(true);
             body.setFixRotation(true);
             body.setLinearDamping(1);
+            body.setAngularDamping(5);
 //            body.setAngularDamping(Double.MAX_VALUE);
 
 //            {Circle} [double]: mass * r2 * 0.5

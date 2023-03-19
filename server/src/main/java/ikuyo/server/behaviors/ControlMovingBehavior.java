@@ -41,7 +41,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     if (input.flyWhen.isBefore(Instant.now())) {
                         userInfo.controlType = "fly";
                         body.setAngularVelocity(0);
-                        body.setGravityScale(0);
+                        body.setGravityScale(0.01);
                         body.setFixRotation(false);
                     }
                 }
@@ -90,22 +90,22 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     force.add(new Vector2(i).rotate(Math.PI));
                 }
                 if (input.left > 0) {
-                    body.applyImpulse(new Vector2(5, 0).rotate(rotationAngle),
+                    body.applyImpulse(new Vector2(10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(2, 2).rotate(rotationAngle));
-                    body.applyImpulse(new Vector2(-5, 0).rotate(rotationAngle),
+                    body.applyImpulse(new Vector2(-10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(-2, -2).rotate(rotationAngle));
                 }
                 if (input.right > 0) {
-                    body.applyImpulse(new Vector2(5, 0).rotate(rotationAngle),
+                    body.applyImpulse(new Vector2(10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(2, -2).rotate(rotationAngle));
-                    body.applyImpulse(new Vector2(-5, 0).rotate(rotationAngle),
+                    body.applyImpulse(new Vector2(-10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(-2, 2).rotate(rotationAngle));
                 }
                 if (!force.equals(0.0, 0.0)) {
                     force.rotate(rotationAngle);
                     force.normalize();
                     force.multiply(maxAcc * body.getMass().getMass() *
-                            Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / speed, 5), 0));
+                            Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / (speed * 10), 5), 0));
                     body.applyForce(force);
                 }
             }
