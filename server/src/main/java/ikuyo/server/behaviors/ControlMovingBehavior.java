@@ -4,7 +4,6 @@ import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
-import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Vector2;
 import org.dyn4j.world.result.DetectResult;
@@ -41,6 +40,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                 case 2 -> {
                     if (input.flyWhen.isBefore(Instant.now())) {
                         userInfo.controlType = "fly";
+                        body.setAngularVelocity(0);
                         body.setGravityScale(0);
                         body.setFixRotation(false);
                     }
@@ -58,7 +58,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
         });
     }
 
-    private void controlMoving(Body body, String type, UserInput input) {
+    private void controlMoving(KitasBody body, String type, UserInput input) {
         double angle = (Math.atan2(body.getWorldCenter().y, body.getWorldCenter().x) + Math.PI * 2) % (Math.PI * 2);
         Vector2 force = new Vector2();
         switch (type) {
@@ -82,6 +82,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                 }
             }
             case "fly" -> {
+                double rotationAngle = body.getTransform().getRotationAngle();
                 if (input.up > 0 || input.jumpOrFly > 0) {
                     force.add(new Vector2(i));
                 }
@@ -89,13 +90,19 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     force.add(new Vector2(i).rotate(Math.PI));
                 }
                 if (input.left > 0) {
-                    force.add(new Vector2(i).rotate(-Math.PI / 2));
+                    body.applyImpulse(new Vector2(5, 0).rotate(rotationAngle),
+                            new Vector2(body.getWorldCenter()).add(2, 2).rotate(rotationAngle));
+                    body.applyImpulse(new Vector2(-5, 0).rotate(rotationAngle),
+                            new Vector2(body.getWorldCenter()).add(-2, -2).rotate(rotationAngle));
                 }
                 if (input.right > 0) {
-                    force.add(new Vector2(i).rotate(Math.PI / 2));
+                    body.applyImpulse(new Vector2(5, 0).rotate(rotationAngle),
+                            new Vector2(body.getWorldCenter()).add(2, -2).rotate(rotationAngle));
+                    body.applyImpulse(new Vector2(-5, 0).rotate(rotationAngle),
+                            new Vector2(body.getWorldCenter()).add(-2, 2).rotate(rotationAngle));
                 }
                 if (!force.equals(0.0, 0.0)) {
-                    force.rotate(angle);
+                    force.rotate(rotationAngle);
                     force.normalize();
                     force.multiply(maxAcc * body.getMass().getMass() *
                             Math.max(Math.pow(1 - Math.max(body.getLinearVelocity().dot(force), 0) / speed, 5), 0));
