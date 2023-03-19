@@ -10,12 +10,15 @@ public class CameraRenderer implements Renderer<CommonContext> {
     public JsonObject render(CommonContext ctx) {
         var res = JsonObject.of();
         ctx.updated().users().forEach(id -> {
-            var pos = ctx.star().starInfo().starUsers.get(id);
-            if (pos == null) res.putNull(id.toString());
+            var info = ctx.star().starInfo().starUsers.get(id);
+            if (info == null) res.putNull(id.toString());
             else res.put(id.toString(), JsonObject.of("camera", JsonObject.of(
-                    "x", pos.x * Drawable.scaling,
-                    "y", pos.y * Drawable.scaling,
-                    "rotation", -Math.atan2(pos.x, -pos.y)
+                    "x", info.x * Drawable.scaling,
+                    "y", info.y * Drawable.scaling,
+                    "rotation", switch (info.controlType) {
+                        case "fly" -> info.rotation;
+                        case "walk", default -> Math.atan2(info.x, -info.y);
+                    }
             )));
         });
         return res;

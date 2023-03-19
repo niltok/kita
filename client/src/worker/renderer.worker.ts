@@ -12,6 +12,7 @@ const state: State = {
 const cache = new Map<string, pixi.DisplayObject>()
 let app: pixi.Application | null = null
 let camera: pixi.Container | null = null
+let screen: pixi.Container | null = null
 const assets: any = {}
 
 onmessage = async (e: MessageEvent<StateEvent>) => {
@@ -37,7 +38,9 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             })
             app.ticker.maxFPS = FPS
             camera = new pixi.Container()
-            app.stage.addChild(camera)
+            screen = new pixi.Container()
+            screen.addChild(camera)
+            app.stage.addChild(screen)
             break
         }
         case 'patch': {
@@ -50,7 +53,7 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             break
         }
         case 'preprocessed': {
-            if (!app || !camera) return
+            if (!app || !camera || !screen) return
             const map = e.data.modify!
             map.forEach((drawable, key) => {
                 if (drawable) {
@@ -73,9 +76,11 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             camera.sortableChildren = true
             camera.sortChildren()
             camera.sortableChildren = false
-            camera.x = state.windowSize.width / 2
-            camera.y = Math.hypot(state.camera.x, state.camera.y) + state.windowSize.height / 2
-            camera.rotation = state.camera.rotation
+            camera.rotation = -Math.atan2(state.camera.x, -state.camera.y)
+            camera.y = Math.hypot(state.camera.x, state.camera.y)
+            screen.rotation = Math.atan2(state.camera.x, -state.camera.y) - state.camera.rotation
+            screen.x = state.windowSize.width / 2
+            screen.y = state.windowSize.height / 2
             break
         }
         case 'clear': {

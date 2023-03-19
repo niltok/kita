@@ -23,7 +23,7 @@ public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
                     var userInfo = context.star().starInfo().starUsers.get(user.getKey());
                     userInfo.x = body.getWorldCenter().x;
                     userInfo.y = body.getWorldCenter().y;
-                    userInfo.rotation = body.getTransform().getRotationAngle();
+                    userInfo.rotation = body.getTransform().getRotationAngle() + Math.PI / 2;
 //                        System.out.println("{EngineBehavior} [x]: %f, [y]: %f".formatted(body.getWorldCenter().x, body.getWorldCenter().y));
                     context.updated().users().add(user.getKey());
 
