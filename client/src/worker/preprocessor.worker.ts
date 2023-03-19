@@ -4,7 +4,7 @@ import {Subject, throttleTime} from "rxjs"
 import {Drawable} from "../types/Drawable"
 
 const state: State = {
-    camera: { x: 0, y: 0 },
+    camera: { x: 0, y: 0, rotation: 0 },
     windowSize: { height: 0, width: 0 },
 }
 
@@ -68,6 +68,9 @@ update$.pipe(throttleTime(700 / FPS)).subscribe( () => {
     const data = new Map<string, Drawable | null>()
     for (const s of add) data.set(s, drawables.get(s) ?? null)
     for (const s of remove) data.set(s, null)
-    postMessage({modify: data})
+    postMessage({
+        modify: data,
+        camera: state.camera
+    })
     changed.clear()
 })

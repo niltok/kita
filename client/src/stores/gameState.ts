@@ -1,5 +1,4 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit"
-import {RootState} from "../store"
 import {useAppDispatch} from "../storeHook"
 import {UIElement} from "../types/UIElement";
 import {applyReduxDiff} from "../utils/react";
@@ -14,7 +13,7 @@ export interface GameState {
     assets: any
     windowSize: { height: number, width: number },
     star: {
-        camera: { x: number, y: number },
+        camera: { x: number, y: number, rotation: number },
         ui?: UIElement
     }
     ui?: UIElement
@@ -30,7 +29,7 @@ const initialState: GameState = {
         width: document.body.clientWidth
     },
     star: {
-        camera: { x: 0, y: 0 }
+        camera: { x: 0, y: 0, rotation: 0 }
     },
     uiState: {}
 }

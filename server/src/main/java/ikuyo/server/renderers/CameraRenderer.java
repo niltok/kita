@@ -14,7 +14,8 @@ public class CameraRenderer implements Renderer<CommonContext> {
             if (pos == null) res.putNull(id.toString());
             else res.put(id.toString(), JsonObject.of("camera", JsonObject.of(
                     "x", pos.x * Drawable.scaling,
-                    "y", pos.y * Drawable.scaling
+                    "y", pos.y * Drawable.scaling,
+                    "rotation", -Math.atan2(pos.x, -pos.y)
             )));
         });
         return res;

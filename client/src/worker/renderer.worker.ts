@@ -5,7 +5,7 @@ import {manifest} from "../manifest";
 import * as pixi from '@pixi/webworker'
 
 const state: State = {
-    camera: { x: 0, y: 0 },
+    camera: { x: 0, y: 0, rotation: 0 },
     windowSize: { height: 0, width: 0 },
 }
 
@@ -69,12 +69,13 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
                     cache.delete(key)
                 }
             })
+            state.camera = e.data.camera!
             camera.sortableChildren = true
             camera.sortChildren()
             camera.sortableChildren = false
             camera.x = state.windowSize.width / 2
             camera.y = Math.hypot(state.camera.x, state.camera.y) + state.windowSize.height / 2
-            camera.rotation = -Math.atan2(state.camera.x, -state.camera.y)
+            camera.rotation = state.camera.rotation
             break
         }
         case 'clear': {
