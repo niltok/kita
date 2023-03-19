@@ -76,12 +76,12 @@ public class MessageVert extends AsyncVerticle {
                         "type", "seq.operate",
                         "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
                 userStates.remove(id);
+                msg.reply(JsonObject.of("type", "success"));
                 if (userStates.isEmpty()) {
                     await(delay(Duration.ofMinutes(5)));
                     if (userStates.isEmpty())
                         eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
                 }
-                msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
                 userStates.remove(json.getInteger("id"));
