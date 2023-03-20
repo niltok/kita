@@ -111,6 +111,7 @@ public class MessageVert extends AsyncVerticle {
         var json = msg.body().value;
         switch (json.getString("type")) {
             case "star.updated" -> {
+                // TODO: concurrency frame barrier
                 var drawables = json.getJsonObject("commonSeq");
                 msgDiffer.next(drawables);
                 var common = json.getJsonObject("common");
@@ -129,6 +130,9 @@ public class MessageVert extends AsyncVerticle {
 
     private void sendUserState(JsonObject specials, JsonObject cdiff, int id, UserState userState) {
         var msg = JsonArray.of();
+        if (userState.specialCache.isEmpty()) msg.add(JsonObject.of(
+                "type", "socket.echo",
+                "payload", JsonObject.of("type", "transfer.done")));
         var state = specials.getJsonObject(String.valueOf(id));
         if (state != null) {
             var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state).mergeIn(cdiff, true);

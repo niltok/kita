@@ -95,7 +95,11 @@ export function useWindowSize() {
         }
         listener()
         window.addEventListener('resize', listener)
-        return () => window.removeEventListener('resize', listener)
+        window.addEventListener('focus', listener)
+        return () => {
+            window.removeEventListener('resize', listener)
+            window.removeEventListener('focus', listener)
+        }
     }, [])
 }
 

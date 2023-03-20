@@ -4,6 +4,7 @@ import ikuyo.api.Star;
 import ikuyo.api.User;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
+import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.BehaviorContext;
@@ -12,8 +13,10 @@ import ikuyo.manager.api.UpdatedContext;
 import ikuyo.manager.api.UserState;
 import ikuyo.manager.behaviors.StarMapBehavior;
 import ikuyo.manager.behaviors.TechTrainerBehavior;
+import ikuyo.manager.behaviors.TransferBehavior;
 import ikuyo.manager.renderers.StarMapRenderer;
 import ikuyo.manager.renderers.TechTrainerRenderer;
+import ikuyo.manager.renderers.TransferRenderer;
 import ikuyo.utils.AsyncVerticle;
 import io.reactivex.rxjava3.subjects.Subject;
 import io.reactivex.rxjava3.subjects.UnicastSubject;
@@ -54,12 +57,16 @@ public class HttpVert extends AsyncVerticle {
     UpdatedContext updatedContext;
     Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
             new StarMapBehavior(),
-            new TechTrainerBehavior()
+            new TechTrainerBehavior(),
+            new TransferBehavior()
     );
-    Renderer<CommonContext> uiRenderer = new UIRenderer.Composite<>(
-            new StarMapRenderer(),
-            new TechTrainerRenderer()
-    ).withName("ui");
+    Renderer<CommonContext> uiRenderer = new CompositeRenderer<>(true,
+            new UIRenderer.Composite<>(
+                    new StarMapRenderer(),
+                    new TechTrainerRenderer(),
+                    new TransferRenderer()
+            ).withName("ui")
+    );
 
     @Override
     public void start() {
@@ -167,16 +174,22 @@ public class HttpVert extends AsyncVerticle {
                     socket.close(4000, "auth.failed");
                     return;
                 }
-                registerUser(user, socket.writeHandlerID(), 6);
+                if (commonContext.userState().get(user.id()) != null) {
+                    socket.close(4001, "auth.repeat");
+                    return;
+                }
                 socketCache.put(socket.writeHandlerID(), user);
                 commonContext.userState().put(user.id(), new UserState(socket.writeHandlerID(), user));
                 mainBehavior.update(new BehaviorContext(user.id(), msg, commonContext));
                 renderUI();
+                registerUser(user, socket.writeHandlerID(), 6);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
             case "user.move" -> {
                 var target = msg.getInteger("target");
                 var id = socketCache.get(socket.writeHandlerID()).id();
+                mainBehavior.update(new BehaviorContext(id, msg, commonContext));
+                renderUI();
                 await(eventBus.request(socketAddress(socket), JsonObject.of(
                         "type", "user.remove", "id", id)));
                 await(pool.preparedQuery("""
@@ -188,7 +201,6 @@ public class HttpVert extends AsyncVerticle {
                 socketCache.put(socket.writeHandlerID(), user);
                 commonContext.userState().get(id).user = user;
                 commonContext.updated().users().add(id);
-                renderUI();
                 await(socket.write(JsonObject.of("type", "move.success").toBuffer()));
             }
             default -> {

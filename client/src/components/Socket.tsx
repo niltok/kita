@@ -78,5 +78,9 @@ function onMsg(socket: WebSocket, json: any, dispatch: AppDispatch) {
             seqDrawables$.next(json)
             break
         }
+        case "socket.echo": {
+            sendSocket$.next(json.payload)
+            break
+        }
     }
 }

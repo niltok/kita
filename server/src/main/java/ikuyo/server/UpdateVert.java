@@ -161,8 +161,9 @@ public class UpdateVert extends AsyncVerticle {
             }
             case "user.disconnect" -> {
                 var id = json.getInteger("id");
-                var users = star.starInfo().starUsers;
-                users.get(id).online = false;
+                var user = star.starInfo().starUsers.get(id);
+                if (user == null) break;
+                user.online = false;
                 commonContext.remove(id);
                 msg.reply(JsonObject.of("type", "success"));
             }
@@ -212,14 +213,15 @@ public class UpdateVert extends AsyncVerticle {
             var spe = specialRenderer.render(commonContext);
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
-                    "prevUpdateTime", updateTime,
-                    "prevDeltaTime", deltaTime,
                     "commonSeq", seq,
                     "common", com,
                     "special", spe)), new DeliveryOptions().setLocalOnly(true));
             commonContext.frame();
             updateCount++;
             updateTime = System.nanoTime() - startTime;
+            if (updateTime > 1000_000_000 / MaxFps * 2) logger.warn(JsonObject.of(
+                    "type", "update.largeFrame",
+                    "updateTime", updateTime / 1000_000.0));
             updateTotalTime += updateTime;
             mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),
                     v -> mainLoop());
@@ -229,14 +231,7 @@ public class UpdateVert extends AsyncVerticle {
                     "msg", e.getLocalizedMessage()));
             e.printStackTrace();
             vertx.undeploy(deploymentID());
-            return;
         }
-        if (logger.isTraceEnabled())
-            logger.trace(JsonObject.of(
-                "type", "update.end",
-                "starId", star.index(),
-                "updateTime", updateTime / 1000_000.0,
-                "deltaTime", deltaTime / 1000_000.0));
     }
 
     private boolean healthCheck() { // health check (db connection & ownership)

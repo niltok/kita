@@ -13,5 +13,6 @@ export const keyMapper: { [key: string]: KeyType } = {
     "KeyK": {type: "techTrainer.toggle"},
     "Space": {action: "jumpOrFly", value: 3},
     "Space!": "jumpOrFly",
-    "MouseLeft": "shot"
+    "MouseLeft": "shot",
+    // "KeyF": {type: "transfer.toggle"}
 }

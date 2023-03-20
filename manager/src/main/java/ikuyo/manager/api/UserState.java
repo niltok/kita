@@ -10,6 +10,6 @@ public class UserState {
     public UserState(String socket, User user) {
         this.socket = socket;
         this.user = user;
-        page = "";
+        page = "transfer";
     }
 }
