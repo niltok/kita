@@ -6,8 +6,9 @@ import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,11 +69,12 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
             var data = tree.getData(tech);
             var stateStr = "";
             var time = Instant.ofEpochMilli(data.trainFinishAt);
-            stateStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(time);
+            stateStr = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    .withZone(ZoneId.systemDefault()).format(time);
             return new UIElement("div",
                     new UIElement("span", new UIElement.Text(tech.displayName)),
                     new UIElement("span", new UIElement.Text(stateStr))
-            ).withClass("hover-label");
+            ).withClass("tech-tree-item", "hover-label");
         }).toArray(UIElement[]::new)).withClass("queue-list", "auto-flow-container");
     }
 }
