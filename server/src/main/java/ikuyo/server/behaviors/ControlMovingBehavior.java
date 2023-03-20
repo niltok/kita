@@ -28,7 +28,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
 
             if (userInfo.controlType.equals("fly")) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
-                        context.engine().broadPhaseDetect(body);
+                        context.engine().broadPhaseDetect(body, null);
                 if (iterator.hasNext() && context.engine().ManifoldDetect(body, iterator)) {
                     userInfo.controlType = "walk";
                     body.setGravityScale(1);
@@ -36,22 +36,24 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                 }
             }
 
-            switch (input.jumpOrFly) {
-                case 2 -> {
-                    if (input.flyWhen.isBefore(Instant.now())) {
-                        userInfo.controlType = "fly";
-                        body.setAngularVelocity(0);
-                        body.setGravityScale(0.01);
-                        body.setFixRotation(false);
+            if (!userInfo.controlType.equals("destroyed")) {
+                switch (input.jumpOrFly) {
+                    case 2 -> {
+                        if (input.flyWhen.isBefore(Instant.now())) {
+                            userInfo.controlType = "fly";
+                            body.setAngularVelocity(0);
+                            body.setGravityScale(0.05);
+                            body.setFixRotation(false);
+                        }
                     }
+                    case 3 -> input.flyWhen = Instant.now().plus(Duration.ofMillis(500));
                 }
-                case 3 -> input.flyWhen = Instant.now().plus(Duration.ofMillis(500));
             }
 
             if (context.users().get(id).isAdmin()) {
                 userInfo.controlType = "fly";
                 body.setGravityScale(0);
-                body.setFixRotation(true);
+                body.setFixRotation(false);
             }
 
             controlMoving(body, userInfo.controlType, input);
@@ -65,7 +67,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             case "walk", default -> {
                 if (input.jumpOrFly == 3) {
                     body.setLinearVelocity(body.getLinearVelocity()
-                            .add(new Vector2(speed / 2, 0).rotate(angle)));
+                            .add(new Vector2(speed / 1.5, 0).rotate(angle)));
                 }
                 if (input.left > 0) {
                     force.add(new Vector2(i).rotate(-Math.PI / 2));
@@ -109,6 +111,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     body.applyForce(force);
                 }
             }
+            case "destroyed" -> {}
         }
     }
 }

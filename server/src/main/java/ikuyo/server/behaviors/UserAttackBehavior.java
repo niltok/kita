@@ -16,16 +16,18 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
 
             if (input.shot == 1) {
                 Position point = input.pointAt;
-                Position userPos = new Position(context.star().starInfo().starUsers.get(id).x,
+                Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
                         context.star().starInfo().starUsers.get(id).y);
 
-                Bullet bullet = context.engine().addBullet(userInfo.weaponType, userPos);
+                double radius = 0.4 + context.engine().users.get(id).getValue().getRotationDiscRadius();
+                Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y);
 
-                Vector2 v = new Vector2(point.x - userPos.x, point.y - userPos.y);
-                v.normalize();
-                v.multiply(300);
+//                todo: check position
+                Bullet bullet = context.engine().addBullet(direction.getNormalized().multiply(radius).add(userPos));
+                bullet.set(userInfo.weaponType, 5, 100);
+
 //                v.add(context.engine().users.get(id).getValue().getLinearVelocity());
-                bullet.body.setLinearVelocity(v);
+                bullet.body.setLinearVelocity(direction.getNormalized().multiply(150));
                 bullet.body.setUserData(context.users().get(id).id());
             }
         });
