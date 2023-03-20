@@ -28,13 +28,14 @@ public class PhysicsEngine{
     /**重力加速度*/
     public static final double GravitationalAcc = 300;
     private static final Polygon hexagon = Geometry.createPolygon(getVertices());
-    private static final Filter userFilter = new Filter() {
+    public static final Filter BULLET = filter -> true;
+    public static final Filter BLOCK = filter -> true;
+    public static final Filter USER = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
-            return !filter.equals(this) && !filter.equals(bulletFilter);
+            return !filter.equals(this);
         }
     };
-    public static final Filter bulletFilter = filter -> !filter.equals(userFilter);
 
     public PhysicsEngine() {
         world = new World<>();
@@ -60,7 +61,6 @@ public class PhysicsEngine{
 
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
-//            todo: bound listen
             for (var body: world.getBodies()) {
                 body.setBearTheGravity(!body.getBearTheGravity()
                         || !(body.getWorldCenter().distance(0, 0) >= starR));
@@ -113,13 +113,14 @@ public class PhysicsEngine{
             KitasBody body = new KitasBody();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
             fixture.setFriction(0.1);
-            fixture.setFilter(userFilter);
+            fixture.setFilter(USER);
             body.translate(userInfo.x, userInfo.y);
             body.setRotatable(true);
             body.setBearTheGravity(true);
             body.setFixRotation(true);
             body.setLinearDamping(1);
             body.setAngularDamping(5);
+            body.setUserData(user.id());
 //            body.setAngularDamping(Double.MAX_VALUE);
 
 //            {Circle} [double]: mass * r2 * 0.5
@@ -129,9 +130,8 @@ public class PhysicsEngine{
 
             if (user.isAdmin()) {
 //                fixture.setFilter(filter -> false);
-                fixture.setFilter(userFilter);
+                fixture.setFilter(USER);
                 body.setLinearDamping(5);
-                body.setBearTheGravity(false);
                 body.setGravityScale(0);
                 body.setRotatable(true);
             }
@@ -150,8 +150,8 @@ public class PhysicsEngine{
         }
     }
 
-    public Bullet addBullet(String type, Position pos) {
-        Bullet bullet = new Bullet(type, pos);
+    public Bullet addBullet(Vector2 pos) {
+        Bullet bullet = new Bullet(pos);
         bullets.put(UUID.randomUUID().toString(), bullet);
         world.addBody(bullet.body);
         return bullet;
@@ -168,6 +168,7 @@ public class PhysicsEngine{
         KitasBody body = new KitasBody();
         BodyFixture fixture = body.addFixture(hexagon);
         fixture.setFriction(0.1);
+        fixture.setFilter(BLOCK);
         Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
         body.translate(pos.x, pos.y);
         body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
@@ -176,11 +177,15 @@ public class PhysicsEngine{
         world.addBody(body);
     }
 
-    public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(KitasBody body) {
+    public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(KitasBody body, Filter filter) {
         return world.detectIterator(
                 body.getFixture(0).getShape(),
                 body.getTransform(),
-                new DetectFilter(true, true, null));
+                new DetectFilter(true, true, filter));
+    }
+
+    public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(AABB aabb, Filter filter) {
+        return world.detectIterator(aabb, new DetectFilter(true, true, filter));
     }
 
     public boolean ManifoldDetect(KitasBody body, Iterator<DetectResult<KitasBody, BodyFixture>> iterator) {

@@ -203,6 +203,9 @@ public class StarInfo {
         public double rotation;
         public boolean online;
         public String weaponType = "defaultWeapon";
+        public double HP = 500;
+        public double Shield = 0;
+        public double SAN = 100;
         public String controlType = "walk";
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {
