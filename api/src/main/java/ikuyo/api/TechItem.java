@@ -17,7 +17,7 @@ public class TechItem {
         start = new TechItem("开始", "一切的起点", Duration.ZERO),
         fireBase = new TechItem("射击学基础", "学习如何使用武器", Duration.ofSeconds(5),
                 start).disable(),
-        nothing = new TechItem("?", "?", Duration.ofSeconds(10), fireBase);
+        nothing = new TechItem("?", "?", Duration.ofSeconds(10), start);
 
 
     /*====================================================================

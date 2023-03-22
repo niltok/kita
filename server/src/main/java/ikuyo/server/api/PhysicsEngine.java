@@ -14,11 +14,9 @@ import org.dyn4j.world.DetectFilter;
 import org.dyn4j.world.PhysicsWorld;
 import org.dyn4j.world.World;
 import org.dyn4j.world.result.DetectResult;
+import org.dyn4j.world.result.RaycastResult;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PhysicsEngine{
     protected World<KitasBody> world;
@@ -185,7 +183,7 @@ public class PhysicsEngine{
     }
 
     public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(AABB aabb, Filter filter) {
-        return world.detectIterator(aabb, new DetectFilter(true, true, filter));
+        return world.detectIterator(aabb, new DetectFilter<>(true, true, filter));
     }
 
     public boolean ManifoldDetect(KitasBody body, Iterator<DetectResult<KitasBody, BodyFixture>> iterator) {
@@ -201,6 +199,12 @@ public class PhysicsEngine{
             if (data != null && data.isManifoldCollision()) return true;
         }
         return false;
+    }
+
+    public List<RaycastResult<KitasBody, BodyFixture>> rayCast(Ray ray, double length, Filter filter) {
+        return world.raycast(ray,
+                length,
+                new DetectFilter<>(true, true, filter));
     }
 
     private static Vector2[] getVertices() {
