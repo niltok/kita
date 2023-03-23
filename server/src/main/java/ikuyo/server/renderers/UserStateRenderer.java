@@ -7,6 +7,7 @@ import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.PhysicsEngine;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.result.RaycastResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         var height = context.engine().rayCast(
                         new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
                         Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))
-                .get(0).copy().getRaycast().getPoint().subtract(new Vector2(info.x, info.y)).getMagnitude();
+                .stream().min(RaycastResult::compareTo).get().copy().getRaycast().getDistance();
         return new UIElement("div",
                 new UIElement.Text("Level: %.1f".formatted(Math.hypot(info.x, info.y))),
                 new UIElement("br"),
