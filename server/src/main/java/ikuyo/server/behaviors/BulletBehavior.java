@@ -77,8 +77,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
                         context.updated().blocks().add(i);
                     }
 
-                    context.engine().removeBody(bullet.body);
-                    context.engine().bullets.put(id, null);
+                    context.engine().removeBullet(id);
                 }
             }
         });
