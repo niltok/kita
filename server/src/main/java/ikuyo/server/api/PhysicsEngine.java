@@ -169,7 +169,7 @@ public class PhysicsEngine{
         fixture.setFilter(BLOCK);
         Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
         body.translate(pos.x, pos.y);
-        body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
+//        body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
         body.setMass(MassType.INFINITE);
         surfaceBlocks.put(id, body);
         world.addBody(body);
@@ -210,7 +210,7 @@ public class PhysicsEngine{
     private static Vector2[] getVertices() {
         Vector2[] vertices = new Vector2[6];
         for (int i = 0; i < 6; i++) {
-            vertices[i] = new Vector2(StarInfo.edgeLength, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
+            vertices[i] = new Vector2(StarInfo.edgeLength * 1.01, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
         }
         return vertices;
     }

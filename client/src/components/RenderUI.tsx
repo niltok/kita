@@ -26,6 +26,8 @@ export function renderUI(elem: UIElement | undefined): JSX.Element {
                 elem.stateName && store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))}/>)
         case "text":
             return <>{elem.text}</>
+        case "br":
+            return <br/>
         default:
             return <>{elem.type}</>
     }

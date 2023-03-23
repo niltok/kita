@@ -1,147 +1,17 @@
-.absolute {
+.left-bottom {
     position: absolute;
-    top: 0;
-    left: 0;
+    left: 1em;
+    bottom: 1em;
+    height: 5em;
+    width: 10em;
 }
 
-.fullscreen {
-    height: 100vh;
-    width: 100vw;
-}
-
-.pointer-pass {
-    pointer-events: none;
-}
-
-.pointer-pass > * {
-    pointer-events: auto;
-}
-
-.debug-info {
-    color: #ffffff;
-    mix-blend-mode: difference;
-}
-
-.popout-container {
+.center-top {
     position: absolute;
-    left: 20%;
-    right: 20%;
-    top: 20%;
-    bottom: 20%;
-    overflow: hidden;
-}
-
-.hover-label {
-    border: 1px solid transparent;
-    padding: 0.3em;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
-.hover-label:hover {
-    background: #1a1a1a;
-    border-color: #646cff;
-    z-index: 1;
-}
-
-.starmap-dot {
-    background: red;
-    border-radius: 50%;
-    height: 0.3em;
-    width: 0.3em;
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    transform: translate(-50%, -50%);
-}
-
-.auto-flow-container {
-    overflow: auto;
-}
-
-.tech-tree {
-    column-count: 2;
-    flex: 1 1 0;
-}
-
-.tech-tree-item {
-    display: flex;
-    justify-content: space-between;
-    margin: .2em;
-}
-
-.queue-list {
-    flex: 1 1 0;
-}
-
-.tech-trainer-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-    padding: 1em;
-}
-
-.placeholder {
-    display: none;
-}
-
-.background {
-    background-color: #242424;
-    border-radius: 8px;
-}
-
-.no-cursor {
-    cursor: none;
-}
-
-.no-overflow {
-    overflow: hidden;
-}
-
-.flex-center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-@keyframes line-move {
-    from {
-        left: 0;
-        opacity: 1;
-    }
-    to {
-        left: 100%;
-        opacity: 1;
-    }
-}
-
-.transfer-line {
-    position: absolute;
-    height: 100%;
-    animation: linear infinite line-move;
-    background-color: rgba(255, 255, 255, 0.87);
-    opacity: 0;
-}
-
-.transfer-box {
-    --line-height: 2px;
-    position: absolute;
-    transform-origin: left center;
-    width: 10%;
-    height: var(--line-height);
     left: 50%;
-    top: calc(50% - var(--line-height) / 2);
+    top: 1em;
+    transform: translate(-50%, 0);
 }
 
 @media (prefers-color-scheme: light) {
-    .hover-label:hover {
-        background: #f9f9f9;
-    }
-    .background {
-        background-color: #ffffff;
-    }
-    .transfer-line {
-        background-color: #213547;
-    }
 }

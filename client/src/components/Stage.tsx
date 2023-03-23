@@ -10,6 +10,7 @@ import {throttleTime} from "rxjs"
 import './Stage.css'
 import {keyMapper, KeyType} from "../keyMapper";
 import {renderUI} from "./RenderUI";
+import {diffGame} from "../stores/gameState";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 
@@ -50,6 +51,7 @@ export const Stage = () => {
         })
     })
     useEffect(() => {
+        diffGame({ star: { ui: undefined } } as any)
         if (canvas == null) return
         const cache: any = {
             camera: null,

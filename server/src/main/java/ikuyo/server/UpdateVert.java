@@ -58,7 +58,8 @@ public class UpdateVert extends AsyncVerticle {
     Renderer<CommonContext> commonRenderer = new CompositeRenderer<>(true);
     Renderer<CommonContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer().withName("camera"),
-            new UIRenderer.Composite<CommonContext>(
+            new UIRenderer.Composite<>(
+                    new UserStateRenderer()
             ).withName("ui")
     ).withName("star");
     CommonContext commonContext;
