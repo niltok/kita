@@ -14,17 +14,13 @@ public class BlockRenderer implements DrawablesRenderer {
     public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
         var star = context.star();
 
-//        Surface only mode
-        /*context.engine().surfaceBlocks.forEach((id, body) -> {
-            renderBlock(context, drawables, star, id);
-        });
-        if(true) return;*/
-
         if (!context.updated().init().get())
             context.updated().blocks().forEach(id -> {
                 renderBlock(drawables, star, id);
             });
         else for (var i = 0; i < star.starInfo().blocks.length; i++)
+//            Surface only mode
+//            if (context.engine().surfaceBlocks.containsKey(i))
             renderBlock(drawables, star, i);
     }
 
