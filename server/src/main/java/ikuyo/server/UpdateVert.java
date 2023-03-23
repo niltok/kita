@@ -98,8 +98,10 @@ public class UpdateVert extends AsyncVerticle {
 
     private void loadStar(int id) {
         // 乐观锁
-        var locked = await(pool.preparedQuery(
-                "update star set vert_id = $2 where index = $1 and vert_id is null"
+        var locked = await(pool.preparedQuery("""
+        update star
+        set vert_id = $2, time_lock = now() + interval '15 seconds'
+        where index = $1 and vert_id is null"""
         ).execute(Tuple.of(id, deploymentID()))).rowCount() == 1;
         if (!locked) {
             vertx.undeploy(deploymentID());

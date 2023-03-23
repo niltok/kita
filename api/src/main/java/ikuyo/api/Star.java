@@ -3,8 +3,6 @@ package ikuyo.api;
 import com.google.common.hash.Hashing;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;
@@ -98,7 +96,8 @@ public record Star(
             z double precision not null,
             star_info bytea default null,
             seed int not null,
-            vert_id text
+            vert_id text,
+            time_lock timestamp not null default make_timestamp(1900, 1, 1, 0, 0, 0)
         );
         """;
 

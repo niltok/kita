@@ -151,10 +151,13 @@ public class HttpVert extends AsyncVerticle {
         } catch (Exception e) {
             // 尝试切换节点再加载
             if (retry < 3) {
-                await(pool.preparedQuery("""
-                        update star set vert_id = null where index = $1
-                        """).execute(Tuple.of(user.star())));
-                logger.info(JsonObject.of("type", "star.ownership.release", "starId", user.star()));
+                // time lock
+                var res = await(pool.preparedQuery("""
+                        update star set vert_id = null, time_lock = now() + interval '15 seconds'
+                        where index = $1 and time_lock < now()
+                        """).execute(Tuple.of(user.star()))).rowCount();
+                if (res > 0) logger.info(JsonObject.of(
+                        "type", "star.ownership.release", "starId", user.star()));
             }
             if (retry > 0) {
                 await(delay(Duration.ofSeconds(3)));

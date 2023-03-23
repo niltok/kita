@@ -9,16 +9,16 @@
     width: 100vw;
 }
 
+.pointer-pass > * {
+    pointer-events: auto;
+}
+
 .pointer-pass {
     pointer-events: none;
 }
 
 .pointer-pass-all {
     pointer-events: none;
-}
-
-.pointer-pass > * {
-    pointer-events: auto;
 }
 
 .debug-info {
