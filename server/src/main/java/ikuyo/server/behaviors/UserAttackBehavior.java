@@ -28,15 +28,15 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
 
                 double radius = 0.3 + context.engine().users.get(id).getValue().getRotationDiscRadius();
                 Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
-                var bulletPos = direction.multiply(radius).add(userPos);
-                var bulletVelocity = direction.multiply(150);
+                var bulletPos = direction.copy().multiply(radius).add(userPos);
+                var bulletVelocity = direction.copy().multiply(150);
 
                 List<RaycastResult<KitasBody, BodyFixture>> result =
                         context.engine().rayCast(new Ray(userPos, direction),
-                                radius, filter -> filter.equals(PhysicsEngine.BLOCK));
+                                radius + 0.3, filter -> filter.equals(PhysicsEngine.BLOCK));
                 if (result.size() != 0) {
                     bulletPos = result.get(0).copy().getRaycast().getPoint()
-                            .subtract(direction.multiply(0.3));
+                            .subtract(direction.copy().multiply(0.3));
                     bulletVelocity = new Vector2();
                 }
 
