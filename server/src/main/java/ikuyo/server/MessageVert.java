@@ -128,12 +128,10 @@ public class MessageVert extends AsyncVerticle {
                 }
                 msgDiffer.next(drawables);
                 var common = json.getJsonObject("common");
-                var cdiff = MsgDiffer.jsonDiff(commonCache, common);
-                commonCache = common;
                 var specials = json.getJsonObject("special");
 //                var fs = new ArrayList<Future>();
                 userStates.forEach((id, userState) -> {
-                    sendUserState(specials, cdiff, id, userState);
+                    sendUserState(specials.getJsonObject(String.valueOf(id)), common, id, userState);
 //                    fs.add(runBlocking(() -> sendUserState(specials, id, userState)));
                 });
 //                await(CompositeFuture.all(fs));
@@ -141,23 +139,23 @@ public class MessageVert extends AsyncVerticle {
         }
     }
 
-    private void sendUserState(JsonObject specials, JsonObject cdiff, int id, UserState userState) {
+    private void sendUserState(JsonObject special, JsonObject common, int id, UserState userState) {
         var msg = JsonArray.of();
         if (userState.specialCache.isEmpty()) msg.add(JsonObject.of(
                 "type", "socket.echo",
                 "payload", JsonObject.of("type", "transfer.done")));
-        var state = specials.getJsonObject(String.valueOf(id));
-        if (state != null) {
-            var specialDiff = MsgDiffer.jsonDiff(userState.specialCache, state).mergeIn(cdiff, true);
-            userState.specialCache = state;
-            if (!specialDiff.isEmpty()) { // 变化才发送
-                msg.add(JsonObject.of(
-                        "type", "state.dispatch",
-                        "action", "gameState/diffGame",
-                        "payload", specialDiff
-                ));
-            }
+        if (special == null) {
+            special = JsonObject.of();
         }
+        if (common != null) special.mergeIn(common, true);
+        if (!special.isEmpty()) { // 变化才发送
+            msg.add(JsonObject.of(
+                    "type", "state.dispatch",
+                    "action", "gameState/diffGame",
+                    "payload", special
+            ));
+        }
+        userState.specialCache.mergeIn(special, true);
         var star_ = userState.specialCache.getJsonObject("star");
         var camera_ = star_ == null ? null : star_.getJsonObject("camera");
         if (camera_ == null) {

@@ -1,6 +1,7 @@
 package ikuyo.server.api;
 
 import org.dyn4j.dynamics.Body;
+import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
 public class KitasBody extends Body{
@@ -47,7 +48,9 @@ public class KitasBody extends Body{
         if (!this.isRotatable) return;
         this.angle = Math.atan2(this.getWorldCenter().y, this.getWorldCenter().x);
         if (fixRotation) {
-            this.getTransform().setRotation(angle);
+            Transform t = this.getTransform();
+            if (Math.abs(t.getRotationAngle() - angle) > 0.02)
+                t.setRotation(angle);
             this.setAngularVelocity(0);
         }
         else this.getTransform().setRotation(
