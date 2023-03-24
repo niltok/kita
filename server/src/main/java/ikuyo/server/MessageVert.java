@@ -36,14 +36,22 @@ public class MessageVert extends AsyncVerticle {
     MessageConsumer<NoCopyBox<JsonObject>> vertEvents;
     MsgDiffer msgDiffer = new MsgDiffer();
     Map<Integer, UserState> userStates = new HashMap<>();
-    JsonObject commonCache = JsonObject.of();
+    JsonObject commonCache = JsonObject.of(), drawableCache = JsonObject.of();
 
     @Override
     public void start() throws Exception {
         starId = config().getInteger("starId");
         updaterId = config().getString("updaterId");
         starEvents = eventBus.consumer("star." + starId, this::starEventsHandler);
-        vertEvents = eventBus.localConsumer(deploymentID(), this::vertEventsHandler);
+        vertEvents = eventBus.localConsumer(deploymentID(), msg -> {
+            var startTime = System.nanoTime();
+            vertEventsHandler(msg);
+            var sendTime = System.nanoTime() - startTime;
+            if (sendTime > 1000_000_000 / UpdateVert.MaxFps * 2)
+                logger.info(JsonObject.of(
+                        "type", "message.largeFrame",
+                        "sendTime", sendTime / 1000_000.));
+        });
     }
 
     @Override
@@ -113,6 +121,11 @@ public class MessageVert extends AsyncVerticle {
             case "star.updated" -> {
                 // TODO: concurrency frame barrier
                 var drawables = json.getJsonObject("commonSeq");
+                if (enableMsgLog) {
+                    var ddiff = MsgDiffer.jsonDiff(drawableCache, drawables);
+                    if (!ddiff.isEmpty()) logger.info(drawables);
+                    drawableCache = drawables;
+                }
                 msgDiffer.next(drawables);
                 var common = json.getJsonObject("common");
                 var cdiff = MsgDiffer.jsonDiff(commonCache, common);
@@ -145,11 +158,12 @@ public class MessageVert extends AsyncVerticle {
                 ));
             }
         }
-        var camera_ = userState.specialCache
-                .getJsonObject("star")
-                .getJsonObject("camera");
+        var star_ = userState.specialCache.getJsonObject("star");
+        var camera_ = star_ == null ? null : star_.getJsonObject("camera");
         if (camera_ == null) {
-            return;
+            camera_ = JsonObject.of(
+                    "x", userState.camera.x,
+                    "y", userState.camera.y);
         }
         var cx = camera_.getInteger("x");
         var cy = camera_.getInteger("y");
@@ -164,7 +178,7 @@ public class MessageVert extends AsyncVerticle {
             ));
         }
         if (!msg.isEmpty()) {
-            if (enableMsgLog) logger.info(msg);
+//            if (enableMsgLog) logger.info(msg);
             eventBus.send(userState.socket, msg.toBuffer());
         }
     }

@@ -18,7 +18,7 @@ public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
         for (var user: context.star().starInfo().starUsers.entrySet()) {
             if (user.getValue().online) {
                 Body body = PE.users.get(user.getKey()).getValue();
-                if (!body.getChangeInPosition().equals(0, 0)) {
+                if (!body.getChangeInPosition().equals(0, 0) || context.updated().init().get()) {
                     var userInfo = context.star().starInfo().starUsers.get(user.getKey());
                     userInfo.x = body.getWorldCenter().x;
                     userInfo.y = body.getWorldCenter().y;

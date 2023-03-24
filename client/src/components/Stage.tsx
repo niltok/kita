@@ -10,7 +10,7 @@ import {throttleTime} from "rxjs"
 import './Stage.css'
 import {keyMapper, KeyType} from "../keyMapper";
 import {renderUI} from "./RenderUI";
-import {diffGame} from "../stores/gameState";
+import {useDiffGame} from "../stores/gameState";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
 
@@ -36,6 +36,7 @@ function handleInputEvent(mapper: { [key: string]: KeyType }, code: string) {
 export const Stage = () => {
     const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null)
     const windowSize = useAppSelector(state => state.gameState.windowSize)
+    const differ = useDiffGame()
     useKeyboard(canvas)
     useMouse(canvas)
     useWindowSize()
@@ -51,7 +52,7 @@ export const Stage = () => {
         })
     })
     useEffect(() => {
-        diffGame({ star: { ui: undefined } } as any)
+        differ({ star: { ui: undefined } } as any)
         if (canvas == null) return
         const cache: any = {
             camera: null,
