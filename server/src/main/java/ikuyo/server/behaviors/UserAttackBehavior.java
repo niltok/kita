@@ -4,14 +4,10 @@ import ikuyo.api.Position;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
-import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;
-import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
 import org.dyn4j.world.result.RaycastResult;
-
-import java.util.List;
 
 public class UserAttackBehavior implements Behavior<CommonContext> {
 
@@ -31,11 +27,11 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                 var bulletPos = direction.copy().multiply(radius).add(userPos);
                 var bulletVelocity = direction.copy().multiply(150);
 
-                List<RaycastResult<KitasBody, BodyFixture>> result =
-                        context.engine().rayCast(new Ray(userPos, direction),
-                                radius + 0.3, filter -> filter.equals(PhysicsEngine.BLOCK));
-                if (result.size() != 0) {
-                    bulletPos = result.get(0).copy().getRaycast().getPoint()
+                var rayCast = context.engine().rayCast(new Ray(userPos, direction),
+                                radius + 0.3, filter -> filter.equals(PhysicsEngine.BLOCK))
+                                .stream().min(RaycastResult::compareTo);
+                if (rayCast.isPresent()) {
+                    bulletPos = rayCast.get().copy().getRaycast().getPoint()
                             .subtract(direction.copy().multiply(0.3));
                     bulletVelocity = new Vector2();
                 }
