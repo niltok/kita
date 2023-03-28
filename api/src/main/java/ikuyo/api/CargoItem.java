@@ -2,30 +2,56 @@ package ikuyo.api;
 
 import com.google.common.collect.ImmutableList;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /** 货物类型 */
 public class CargoItem {
-    public static final CargoItem
-            soil = new CargoItem("泥土", "岩石碎裂之后的产物", 10),
-            stone = new CargoItem("石头", "星球深处的岩浆凝固后的产物", 10);
-
-    /*=====================================================================*/
     private String type;
     public final String displayName, description;
     public final double volume, unpackVolume;
-    public CargoItem(String displayName, String description, double volume, double unpackVolume) {
+    public final Class<? extends UnpackItem> unpackClass;
+    public CargoItem(
+            String displayName,
+            String description,
+            double volume,
+            double unpackVolume,
+            Class<? extends UnpackItem> unpackClass) {
         this.displayName = displayName;
         this.description = description;
         this.volume = volume;
         this.unpackVolume = unpackVolume;
+        this.unpackClass = unpackClass;
     }
+    /** 构造无法 unpack 的 Item */
     public CargoItem(String displayName, String description, int volume) {
-        this(displayName, description, volume, -1);
+        this(displayName, description, volume, -1, null);
     }
     public String type() {
         return type;
+    }
+    private static <T> Constructor<T> getConstructor(Class<T> unpack, Class<?>... params) {
+        try {
+            return unpack.getConstructor(params);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+    public UnpackItem unpack() {
+        if (unpackClass == null) return null;
+        try {
+            var cons = getConstructor(unpackClass, CargoItem.class);
+            if (cons != null) return cons.newInstance(this);
+            cons = getConstructor(unpackClass, String.class);
+            if (cons != null) return cons.newInstance(type);
+            cons = getConstructor(unpackClass);
+            return Objects.requireNonNull(cons).newInstance();
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
     public static CargoItem get(String index) {
         try {
@@ -39,12 +65,14 @@ public class CargoItem {
     /* Auto set CargoItem's name */
     static {
         var temp = new ArrayList<CargoItem>();
-        for (var field : CargoItem.class.getFields()) {
+        for (var field : CargoStatic.class.getFields()) {
             try {
-                if (Modifier.isStatic(field.getModifiers()) && field.getType().equals(CargoItem.class)) {
-                    var item = (CargoItem) field.get(null);
-                    temp.add(item);
-                    item.type = field.getName();
+                if (Modifier.isStatic(field.getModifiers())) {
+                    var obj = field.get(null);
+                    if (obj instanceof CargoItem item) {
+                        temp.add(item);
+                        item.type = field.getName();
+                    }
                 }
             } catch (Exception ignore) {}
         }
