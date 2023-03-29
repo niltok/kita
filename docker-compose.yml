@@ -12,8 +12,6 @@ services:
     image: postgres
     environment:
       POSTGRES_PASSWORD: kita
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
