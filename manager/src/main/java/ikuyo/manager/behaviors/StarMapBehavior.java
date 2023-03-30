@@ -10,7 +10,8 @@ public class StarMapBehavior implements Behavior<BehaviorContext> {
             case "starMap.toggle" -> {
                 context.context().updated().users().add(context.id());
                 var state = context.context().userState().get(context.id());
-                state.page = "starMap".equals(state.page) ? "" : "starMap";
+                if (!"transfer".equals(state.page))
+                    state.page = "starMap".equals(state.page) ? "" : "starMap";
             }
         }
     }
