@@ -1,9 +1,9 @@
 package ikuyo.api.spaceships;
 
 import com.google.common.collect.ImmutableList;
-import ikuyo.api.CargoItem;
-import ikuyo.api.CargoStatic;
 import ikuyo.api.UnpackItem;
+import ikuyo.api.cargo.CargoItem;
+import ikuyo.api.cargo.CargoStatic;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

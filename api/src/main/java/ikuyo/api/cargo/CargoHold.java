@@ -1,6 +1,7 @@
-package ikuyo.api;
+package ikuyo.api.cargo;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import ikuyo.api.UnpackItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,6 +1,6 @@
 package ikuyo.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import ikuyo.api.techtree.TechTree;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 import io.vertx.sqlclient.SqlClient;
@@ -63,15 +63,11 @@ public record User(
     private static User getUser(RowSet<Row> rows) {
         if (rows.rowCount() == 0) return null;
         var row = rows.iterator().next();
-        try {
-            return new User(row.getInteger("id"), row.getString("name"),
-                    row.getString("pwd"), row.getBoolean("is_admin"),
-                    row.getString("token"),
-                    row.getInteger("universe"), row.getInteger("star"),
-                    new TechTree(row.getString("tech_tree")));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return new User(row.getInteger("id"), row.getString("name"),
+                row.getString("pwd"), row.getBoolean("is_admin"),
+                row.getString("token"),
+                row.getInteger("universe"), row.getInteger("star"),
+                TechTree.fromJson(row.getString("tech_tree")));
     }
 
     //language=PostgreSQL
@@ -84,14 +80,15 @@ public record User(
                 token text not null default '',
                 universe int references universe not null default 1,
                 star int references star not null default 1,
-                tech_tree text not null default '{}'
+                tech_tree text not null
             );
             """;
 
     public static int insert(SqlClient client, String name, String pwd, boolean isAdmin, int univ, int star) {
         var id = await(client.preparedQuery("""
-            insert into "user"(name, pwd, is_admin, universe, star) values ($1, $2, $3, $4, $5) returning id;
-            """).execute(Tuple.of(name, pwd, isAdmin, univ, star))).iterator().next().getInteger(0);
+            insert into "user"(name, pwd, is_admin, universe, star, tech_tree) values ($1, $2, $3, $4, $5, $6) returning id;
+            """).execute(Tuple.of(name, pwd, isAdmin, univ, star, new TechTree().toString())))
+                .iterator().next().getInteger(0);
         return id;
     }
 }

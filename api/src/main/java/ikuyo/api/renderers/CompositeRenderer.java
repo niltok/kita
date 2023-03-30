@@ -16,7 +16,15 @@ public class CompositeRenderer<T> implements Renderer<T> {
     public JsonObject render(T ctx) {
         return Arrays.stream(renderers).reduce(
                 JsonObject.of(),
-                (json, renderer) -> json.mergeIn(renderer.render(ctx), deep),
+                (json, renderer) -> {
+                    try {
+                        return json.mergeIn(renderer.render(ctx), deep);
+                    } catch (Exception e) {
+                        System.err.println(e.getLocalizedMessage());
+                        e.printStackTrace();
+                        return json;
+                    }
+                },
                 (a, b) -> a.mergeIn(b, deep));
     }
 }

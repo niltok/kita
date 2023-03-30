@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.api.cargo;
 
 import ikuyo.api.spaceships.AbstractSpaceship;
 import ikuyo.api.spaceships.SpaceshipItem;

@@ -10,7 +10,12 @@ public class CompositeBehavior<T> implements Behavior<T> {
     @Override
     public void update(T context) {
         for (Behavior<T> behavior : behaviors) {
-            behavior.update(context);
+            try {
+                behavior.update(context);
+            } catch (Exception e) {
+                System.err.println(e.getLocalizedMessage());
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -1,16 +1,13 @@
 package ikuyo.manager.renderers;
 
-import ikuyo.api.TechItem;
 import ikuyo.api.UIElement;
 import ikuyo.api.renderers.UIRenderer;
+import ikuyo.api.techtree.TechItem;
+import ikuyo.api.techtree.TechLevel;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +20,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
                 ui.add(new UIElement("div").withClass("placeholder"));
                 continue;
             }
-            ui.add(new UIElement("div", techList(context, id), queueList(context, id))
+            ui.add(new UIElement("div", techList(context, id))
                     .withClass("popout-container", "tech-trainer-container", "background"));
         }
     }
@@ -31,50 +28,24 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
     public UIElement techList(CommonContext context, int id) {
         var tree = context.userState().get(id).user.techTree();
         return new UIElement("div", TechItem.techList.stream().filter(TechItem::isEnable).map(tech -> {
-            var state = tree.getTechStatus(tech);
-            var data = tree.getData(tech);
+            var data = tree.treeInfo.get(tech.name());
             var stateStr = new StringBuilder(30);
-            var displayPercent = data.trainPercent != 0 && data.trainPercent != 1;
-            if (displayPercent || state == 0) {
-                stateStr.append("%.1f%%".formatted(data.trainPercent * 100));
+            if (data != null && data.level != 0) {
+                stateStr.append("Level ").append(data.level);
             }
-            if (state == 0 || state == -1 && displayPercent)
-                stateStr.append("/");
-            stateStr.append(switch (state) {
-                case 1 -> "已完成";
-                case 0 -> "研究中";
-                case -1 -> "队列中";
-                default -> "";
-            });
             var style = JsonObject.of();
             var callback = JsonObject.of();
-            if (state == -2) {
+            if (data == null || data.level < tech.maxLevel
+                    && tree.canTrain(new TechLevel(tech, data.level + 1))) {
                 style.put("cursor", "pointer");
-                callback.put("type", "techTrainer.add");
+                callback.put("type", "techTrainer.train");
                 callback.put("tech", tech.name());
+                callback.put("level", data == null ? 1 : data.level + 1);
             }
             return new UIElement.Callback("div", callback,
                     new UIElement("span", new UIElement.Text(tech.displayName)),
                     new UIElement("span", new UIElement.Text(stateStr.toString()))
             ).withClass("tech-tree-item", "hover-label").withStyle(style);
         }).toArray(UIElement[]::new)).withClass("tech-tree", "auto-flow-container");
-    }
-
-    public UIElement queueList(CommonContext context, int id) {
-        var tree = context.userState().get(id).user.techTree();
-        return new UIElement("div", Arrays.stream(tree.getTrainQueue()).map(e -> {
-            var tech = TechItem.get(e);
-            assert tech != null;
-            var state = tree.getTechStatus(tech);
-            var data = tree.getData(tech);
-            var stateStr = "";
-            var time = Instant.ofEpochMilli(data.trainFinishAt);
-            stateStr = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    .withZone(ZoneId.systemDefault()).format(time);
-            return new UIElement("div",
-                    new UIElement("span", new UIElement.Text(tech.displayName)),
-                    new UIElement("span", new UIElement.Text(stateStr))
-            ).withClass("tech-tree-item", "hover-label");
-        }).toArray(UIElement[]::new)).withClass("queue-list", "auto-flow-container");
     }
 }

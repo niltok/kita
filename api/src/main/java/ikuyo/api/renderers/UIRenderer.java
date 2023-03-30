@@ -21,7 +21,12 @@ public interface UIRenderer<T> extends AsyncHelper {
         public JsonObject render(T context) {
             Map<Integer, List<UIElement>> map = new HashMap<>();
             for (var renderer : renderers) {
-                renderer.renderUI(context, map);
+                try {
+                    renderer.renderUI(context, map);
+                } catch (Exception e) {
+                    System.err.println(e.getLocalizedMessage());
+                    e.printStackTrace();
+                }
             }
             JsonObject res = JsonObject.of();
             map.forEach((i, us) -> {

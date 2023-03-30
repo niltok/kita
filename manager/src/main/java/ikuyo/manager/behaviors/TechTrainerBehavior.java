@@ -1,12 +1,11 @@
 package ikuyo.manager.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.techtree.TechItem;
+import ikuyo.api.techtree.TechLevel;
 import ikuyo.manager.api.BehaviorContext;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Tuple;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TechTrainerBehavior implements Behavior<BehaviorContext> {
     @Override
@@ -17,14 +16,13 @@ public class TechTrainerBehavior implements Behavior<BehaviorContext> {
                 var state = context.context().userState().get(context.id());
                 state.page = "techTrainer".equals(state.page) ? "" : "techTrainer";
             }
-            case "techTrainer.add" -> {
+            case "techTrainer.train" -> {
                 context.context().updated().users().add(context.id());
-                var tech = context.event().getString("tech");
+                var tech = TechItem.get(context.event().getString("tech"));
+                var level = Long.parseLong(context.event().getString("level"));
                 var user = context.context().userState().get(context.id()).user;
                 var tree = user.techTree();
-                var queue = new ArrayList<>(List.of(tree.getTrainQueue()));
-                queue.add(tech);
-                tree.setTrainQueue(queue, true);
+                tree.train(new TechLevel(tech, level));
                 context.context().sql().preparedQuery("""
                     update "user" set tech_tree = $1 where index = $2
                     """).execute(Tuple.of(tree.toString(), context.id()));

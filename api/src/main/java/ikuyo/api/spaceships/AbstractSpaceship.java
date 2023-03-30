@@ -1,7 +1,7 @@
 package ikuyo.api.spaceships;
 
-import ikuyo.api.CargoHold;
 import ikuyo.api.UnpackItem;
+import ikuyo.api.cargo.CargoHold;
 
 import java.util.Map;
 import java.util.Objects;

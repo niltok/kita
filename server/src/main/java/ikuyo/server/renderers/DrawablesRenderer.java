@@ -29,7 +29,12 @@ public interface DrawablesRenderer extends Renderer<CommonContext> {
         public JsonObject render(CommonContext ctx) {
             var drawables = new HashMap<String, Drawable>();
             for (DrawablesRenderer renderer : renderers) {
-                renderer.renderDrawables(ctx, drawables);
+                try {
+                    renderer.renderDrawables(ctx, drawables);
+                } catch (Exception e) {
+                    System.err.println(e.getLocalizedMessage());
+                    e.printStackTrace();
+                }
             }
             var res = JsonObject.of();
             drawables.forEach((s, d) -> res.put(s, JsonObject.mapFrom(d)));

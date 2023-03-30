@@ -1,6 +1,7 @@
-package ikuyo.api;
+package ikuyo.api.cargo;
 
 import com.google.common.collect.ImmutableList;
+import ikuyo.api.UnpackItem;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

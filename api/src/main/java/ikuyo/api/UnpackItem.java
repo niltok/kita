@@ -1,6 +1,7 @@
 package ikuyo.api;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import ikuyo.api.cargo.CargoItem;
 
 import java.util.Map;
 
