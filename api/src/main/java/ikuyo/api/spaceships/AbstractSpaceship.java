@@ -1,5 +1,6 @@
 package ikuyo.api.spaceships;
 
+import ikuyo.api.CargoHold;
 import ikuyo.api.UnpackItem;
 
 import java.util.Map;
@@ -7,16 +8,24 @@ import java.util.Objects;
 
 public class AbstractSpaceship implements UnpackItem {
     public String type;
-    public double hp, hpMax, shield, shieldMax;
-    public long cargoHold;
+    public double hp, shield;
+    public CargoHold cargoHold;
     public AbstractSpaceship(String type) {
         this.type = type;
-        var item = Objects.requireNonNull(SpaceshipItem.get(type));
-        hpMax = item.hpMax;
-        shieldMax = item.shieldMax;
-        hp = hpMax;
-        shield = shieldMax;
+        var ship = Objects.requireNonNull(SpaceshipItem.get(type));
+        hp = getMaxHp();
+        shield = getMaxShield();
+        cargoHold = new CargoHold(ship.cargoVolume);
     }
+
+    public double getMaxHp() {
+        return Objects.requireNonNull(SpaceshipItem.get(type)).hpMax;
+    }
+
+    public double getMaxShield() {
+        return Objects.requireNonNull(SpaceshipItem.get(type)).shieldMax;
+    }
+
     @Override
     public String getItemType() {
         return type;
@@ -24,7 +33,7 @@ public class AbstractSpaceship implements UnpackItem {
 
     @Override
     public boolean canPack() {
-        return hp == hpMax && shield == shieldMax;
+        return hp >= getMaxHp() && shield >= getMaxShield();
     }
 
     @Override
@@ -32,6 +41,11 @@ public class AbstractSpaceship implements UnpackItem {
         var n = items.get(type);
         if (n == null) n = 0;
         items.put(type, n + 1);
+    }
+
+    @Override
+    public double packSize() {
+        return Objects.requireNonNull(SpaceshipItem.get(type)).volume;
     }
 
     @Override

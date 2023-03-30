@@ -15,6 +15,7 @@ public interface UnpackItem {
     /** 是否完整（所有状态字段是否都为默认值） */
     boolean canPack();
     void pack(Map<String, Integer> items);
+    double packSize();
     /** 显示在货舱界面的状态信息 */
     String getItemInfo();
 }

@@ -1,60 +1,139 @@
 package ikuyo.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vertx.sqlclient.SqlClient;
-import io.vertx.sqlclient.Tuple;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.vertx.await.Async.await;
-
 /**
- * 货舱
- * @param belongs 货舱拥有者
- * @param position 货舱所在位置
- * @param items 对于装箱（可堆叠）货物的 type-num 映射
- * @param unpacks 已拆箱的货物列表
+ * 货舱<br>
+ * 可以通过序列化嵌入其他结构，该数据结构上的操作不保证线程安全
  * */
-public record CargoHold(
-        long id,
-        double restVolume,
-        String belongs,
-        String position,
-        Map<String, Integer> items,
-        List<UnpackItem> unpacks) {
-
-    //language=PostgreSQL
-    public static final String createTableSql = """
-            create table cargo_hold(
-                id bigserial primary key,
-                rest_volume double precision not null,
-                belongs text,
-                position text,
-                items text not null default '{}',
-                unpacks text not null default '[]'
-            );
-            """;
-
-    public static CargoHold get(SqlClient client, long id) {
-        try {
-            var row = await(client.preparedQuery("select * from cargo_hold where id = $1").execute(Tuple.of(id)))
-                    .iterator().next();
-            var mapper = new ObjectMapper();
-            return new CargoHold(
-                    row.getLong("id"),
-                    row.getDouble("rest_volume"),
-                    row.getString("belongs"),
-                    row.getString("position"),
-                    mapper.readValue(row.getString("items"), new TypeReference<>() {
-                    }),
-                    mapper.readValue(row.getString("unpacks"), new TypeReference<>() {
-                    }));
-        } catch (Exception e) {
-            System.err.println(e.getLocalizedMessage());
-            e.printStackTrace();
-            return null;
-        }
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class CargoHold {
+    /** 剩余容量 */
+    private double restVolume = Double.POSITIVE_INFINITY;
+    /** 对于装箱（可堆叠）货物的 type-num 映射<br>！！用于遍历，请不要直接修改！！ */
+    public final Map<String, Integer> items = new HashMap<>();
+    /** 已拆箱的货物列表<br>！！用于遍历，请不要直接修改！！ */
+    public final List<UnpackItem> unpacks = new ArrayList<>();
+    public CargoHold() {}
+    public CargoHold(double volume) {
+        restVolume = volume;
+    }
+    public double getRestVolume() {
+        return restVolume;
+    }
+    /** 放入物品
+     * @param type 物品类型
+     * @param num 放入数量
+     * @return 0 表示放入成功，1 表示物品不存在，2 表示空间不足
+     */
+    public int put(String type, int num) {
+        var item = CargoItem.get(type);
+        if (item == null) return 1;
+        if (item.volume * num > restVolume) return 2;
+        items.put(type, items.computeIfAbsent(type, i -> 0) + num);
+        restVolume -= item.volume * num;
+        return 0;
+    }
+    /** 放入一个物品
+     * @param type 物品类型
+     * @return 0 表示放入成功，1 表示物品不存在，2 表示空间不足
+     */
+    public int put(String type) {
+        return put(type, 1);
+    }
+    /** 放入一个已解包物品
+     * @param unpack 物品
+     * @return 0 表示放入成功，1 表示物品信息异常，2 表示空间不足
+     */
+    public int put(UnpackItem unpack) {
+        var item = CargoItem.get(unpack.getItemType());
+        if (item == null) return 1;
+        if (item.unpackVolume > restVolume) return 2;
+        unpacks.add(unpack);
+        restVolume -= item.unpackVolume;
+        return 0;
+    }
+    /** 打包一个未打包的物品
+     * @param index 未打包的物品在 {@link CargoHold#unpacks} 中的下标
+     * @return 0 表示打包成功，1 表示物品信息异常，2 表示空间不足，3
+     * 表示物品暂时无法打包（{@link UnpackItem#canPack()} 返回 {@code false}）
+     */
+    public int pack(int index) {
+        var unpack = unpacks.get(index);
+        if (!unpack.canPack()) return 3;
+        var item = CargoItem.get(unpack.getItemType());
+        if (item == null) return 1;
+        if (unpack.packSize() - item.unpackVolume > restVolume) return 2;
+        unpacks.remove(index);
+        unpack.pack(items);
+        restVolume -= unpack.packSize() - item.unpackVolume;
+        return 0;
+    }
+    /** 解打包物品
+     * @param type 将要解包的物品类型
+     * @param num 解包数量
+     * @return 0 表示解包成功，1 表示物品信息异常，2 表示空间不足，3 表示物品不足
+     */
+    public int unpack(String type, int num) {
+        var item = CargoItem.get(type);
+        if (item == null) return 1;
+        var totalNum = items.get(type);
+        if (totalNum < num) return 3;
+        var deltaVolume = (item.unpackVolume - item.volume) * num;
+        if (deltaVolume > restVolume) return 2;
+        restVolume -= deltaVolume;
+        if (totalNum == num) items.remove(type);
+        else items.put(type, totalNum - num);
+        for (var i = 0; i < num; i++) unpacks.add(item.unpack());
+        return 0;
+    }
+    /** 解打包一个物品
+     * @param type 将要解包的物品类型
+     * @return 0 表示解包成功，1 表示物品信息异常，2 表示空间不足，3 表示物品不足
+     */
+    public int unpack(String type) {
+        return unpack(type, 1);
+    }
+    /** 取出已打包物品
+     * @param type 将要取出的物品类型
+     * @param num 物品数量
+     * @return 0 表示取出成功，1 表示物品信息异常，2 表示空间不足，3 表示物品不足
+     */
+    public int take(String type, int num) {
+        var item = CargoItem.get(type);
+        if (item == null) return 1;
+        var totalNum = items.get(type);
+        if (totalNum < num) return 3;
+        var deltaVolume = -item.volume * num;
+        if (deltaVolume > restVolume) return 2;
+        restVolume -= deltaVolume;
+        if (totalNum == num) items.remove(type);
+        else items.put(type, totalNum - num);
+        return 0;
+    }
+    /** 取出一个已打包物品
+     * @param type 将要取出的物品类型
+     * @return 0 表示取出成功，1 表示物品信息异常，2 表示空间不足，3 表示物品不足
+     */
+    public int take(String type) {
+        return take(type, 1);
+    }
+    /** 取出一个未打包物品
+     * @param index 将要取出的物品在 {@link CargoHold#unpacks} 中的下标
+     * @return 0 表示取出成功，1 表示物品信息异常，2 表示空间不足
+     */
+    public int take(int index) {
+        var unpack = unpacks.get(index);
+        var item = CargoItem.get(unpack.getItemType());
+        if (item == null) return 1;
+        if (-item.unpackVolume > restVolume) return 2;
+        unpacks.remove(index);
+        restVolume -= -item.unpackVolume;
+        return 0;
     }
 }

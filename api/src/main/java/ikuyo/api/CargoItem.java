@@ -28,7 +28,7 @@ public class CargoItem {
     }
     /** 构造无法 unpack 的 Item */
     public CargoItem(String displayName, String description, int volume) {
-        this(displayName, description, volume, -1, null);
+        this(displayName, description, volume, Double.POSITIVE_INFINITY, null);
     }
     public String type() {
         return type;

@@ -9,12 +9,13 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 
 public class SpaceshipItem extends CargoItem {
-    public double hpMax, shieldMax;
+    public double hpMax, shieldMax, cargoVolume;
     public SpaceshipItem(String displayName, String description, double volume, double unpackVolume,
-                         Class<? extends UnpackItem> unpackClass, double hpMax, double shieldMax) {
+                         Class<? extends UnpackItem> unpackClass, double hpMax, double shieldMax, double cargoVolume) {
         super(displayName, description, volume, unpackVolume, unpackClass);
         this.hpMax = hpMax;
         this.shieldMax = shieldMax;
+        this.cargoVolume = cargoVolume;
     }
     public static SpaceshipItem get(String index) {
         try {

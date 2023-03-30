@@ -1,6 +1,5 @@
 package ikuyo.manager;
 
-import ikuyo.api.CargoHold;
 import ikuyo.api.Star;
 import ikuyo.api.Universe;
 import ikuyo.api.User;
@@ -52,8 +51,7 @@ public class DbVert extends AsyncVerticle {
                 Universe.createTableSql,
                 Star.StarGroup.createTableSql,
                 Star.createTableSql,
-                User.createTableSql,
-                CargoHold.createTableSql
+                User.createTableSql
         )).execute());
         logger.info(JsonObject.of("type", "creating universe..."));
         int univId = Universe.insert(pool, !SingleStar);
