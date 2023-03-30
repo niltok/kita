@@ -53,7 +53,7 @@ export const manifest: ResolverManifest = {
             assets: [
                 {
                     name: ["defaultWeapon"],
-                    srcs: "../blocks/hexagon/red.png"
+                    srcs: "../bullets/Primogem.png"
                 }
             ]
         },
@@ -63,6 +63,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: "paimon",
                     srcs: "../other/paimon.png"
+                },
+                {
+                    name: "ring",
+                    srcs: "../other/ring.png"
                 }
             ]
         }

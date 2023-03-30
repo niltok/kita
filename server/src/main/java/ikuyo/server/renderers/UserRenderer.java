@@ -2,7 +2,10 @@ package ikuyo.server.renderers;
 
 import ikuyo.api.Drawable;
 import ikuyo.server.api.CommonContext;
+import ikuyo.server.api.PhysicsEngine;
+import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.result.RaycastResult;
 
 import java.util.Map;
 
@@ -34,7 +37,17 @@ public class UserRenderer implements DrawablesRenderer {
         drawable.y = info.y * Drawable.scaling;
         drawable.rotation = info.rotation;
         drawable.zIndex = 1;
-        drawable.children = new Drawable[] {pic, text};
+
+        if (info.controlType.equals("fly")) {
+            var ring = new Drawable.Sprite();
+            ring.bundle = "other";
+            ring.asset = "ring";
+            ring.rotation = info.rotation;
+            ring.zIndex = 1;
+            drawable.children = new Drawable[] {pic, ring, text};
+        } else
+            drawable.children = new Drawable[] {pic, text};
+
         drawables.put("user#%d.position".formatted(id), drawable);
     }
 
@@ -61,8 +74,14 @@ public class UserRenderer implements DrawablesRenderer {
             drawables.put("user#%d.gravityArrow".formatted(id), null);
             return;
         }
+
+        var height = ctx.engine().rayCast(
+                        new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
+                        Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))
+                .stream().min(RaycastResult::compareTo).get().copy().getRaycast().getDistance();
+
         var pos = new Vector2(info.x, info.y);
-        pos.multiply(pos.normalize() - 5);
+        pos.multiply(pos.normalize() - Math.min(1 + height / 200, 2) * 5);
         var arrow = new Drawable.Sprite();
         arrow.x = pos.x * Drawable.scaling;
         arrow.y = pos.y * Drawable.scaling;
