@@ -14,7 +14,7 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
     /**层级最大值*/
-    public static final int maxTier = 500;
+    public static final int maxTier = 1000;
     /**<p>层级最小值<p/>
      * [Warn]: Plz make sure mintier > 0*/
     public static final int minTier = 10;
