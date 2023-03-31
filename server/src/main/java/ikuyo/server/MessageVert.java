@@ -5,16 +5,16 @@ import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.NoCopyBox;
 import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static ikuyo.utils.AsyncStatic.delay;
 
@@ -37,6 +37,7 @@ public class MessageVert extends AsyncVerticle {
     MsgDiffer msgDiffer = new MsgDiffer();
     Map<Integer, UserState> userStates = new HashMap<>();
     JsonObject commonCache = JsonObject.of(), drawableCache = JsonObject.of();
+    Lock barrier = new ReentrantLock(true);
 
     @Override
     public void start() throws Exception {
@@ -119,22 +120,26 @@ public class MessageVert extends AsyncVerticle {
         var json = msg.body().value;
         switch (json.getString("type")) {
             case "star.updated" -> {
-                // TODO: concurrency frame barrier
-                var drawables = json.getJsonObject("commonSeq");
-                if (enableMsgLog) {
-                    var ddiff = MsgDiffer.jsonDiff(drawableCache, drawables);
-                    if (!ddiff.isEmpty()) logger.info(drawables);
-                    drawableCache = drawables;
+                lock(barrier);
+                try {
+                    var drawables = json.getJsonObject("commonSeq");
+                    if (enableMsgLog) {
+                        var ddiff = MsgDiffer.jsonDiff(drawableCache, drawables);
+                        if (!ddiff.isEmpty()) logger.info(drawables);
+                        drawableCache = drawables;
+                    }
+                    msgDiffer.next(drawables);
+                    var common = json.getJsonObject("common");
+                    var specials = json.getJsonObject("special");
+                    var fs = new ArrayList<Future>();
+                    userStates.forEach((id, userState) -> {
+                        fs.add(runBlocking(() ->
+                                sendUserState(specials.getJsonObject(String.valueOf(id)), common, id, userState)));
+                    });
+                    await(CompositeFuture.all(fs));
+                } finally {
+                    barrier.unlock();
                 }
-                msgDiffer.next(drawables);
-                var common = json.getJsonObject("common");
-                var specials = json.getJsonObject("special");
-//                var fs = new ArrayList<Future>();
-                userStates.forEach((id, userState) -> {
-                    sendUserState(specials.getJsonObject(String.valueOf(id)), common, id, userState);
-//                    fs.add(runBlocking(() -> sendUserState(specials, id, userState)));
-                });
-//                await(CompositeFuture.all(fs));
             }
         }
     }

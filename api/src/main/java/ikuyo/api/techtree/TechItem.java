@@ -69,10 +69,8 @@ public non-sealed class TechItem implements TechDependency {
         for (var field : TechStatic.class.getFields()) {
             try {
                 if (Modifier.isStatic(field.getModifiers())) {
-                    System.out.println(field.getName());
                     var item = field.get(null);
                     if (item instanceof TechItem tech) {
-                        System.out.println(field.getName());
                         list.add(tech);
                         map.computeIfAbsent(tech.type, i -> new ArrayList<>()).add(tech);
                         tech.name = field.getName();
