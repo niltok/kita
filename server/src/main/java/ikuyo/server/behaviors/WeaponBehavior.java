@@ -6,10 +6,13 @@ import ikuyo.server.api.CommonContext;
 public class WeaponBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
-        context.star().starInfo().starUsers.forEach((id, info) -> {
-            for (var weapon : info.spaceship.weapons) {
-                weapon.frame();
-            }
+        context.userInputs().forEach((id, input) -> {
+            var info = context.getInfo(id);
+            var ship = info.spaceship;
+            if (input.prevWeapon > 0)
+                ship.currentWeapon = (ship.currentWeapon - 1 + ship.weapons.length) % ship.weapons.length;
+            if (input.nextWeapon > 0)
+                ship.currentWeapon = (ship.currentWeapon + 1) % ship.weapons.length;
         });
     }
 }

@@ -9,7 +9,7 @@ import java.util.Objects;
  * 1 means set & auto clear,
  * 2 means set but keep through frames */
 public class UserInput {
-    public int up, down, left, right, jumpOrFly, shot;
+    public int up, down, left, right, jumpOrFly, shot, prevWeapon, nextWeapon;
     public Position relativePointer = new Position(), pointAt = new Position();
     public Instant flyWhen;
 

@@ -32,11 +32,11 @@ public class BulletBehavior implements Behavior<CommonContext> {
 
     private void bulletHandler(Bullet bullet, CommonContext context) {
         switch (bullet.type) {
-            case "default", default -> {
+            case "defaultWeapon", default -> {
                 userHandler(bullet.body.getWorldCenter(), bullet.range, bullet.damage, context);
                 blockHandler(bullet.body.getWorldCenter(), bullet.range, context);
             }
-            case "R400" -> {
+            case "r400" -> {
                 userHandler(bullet.body.getWorldCenter(), bullet.range, bullet.damage, context);
             }
         }

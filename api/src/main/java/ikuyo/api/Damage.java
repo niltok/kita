@@ -1,5 +1,8 @@
-package ikuyo.server.api;
+package ikuyo.api;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public class Damage implements Cloneable{
     public boolean ifShieldDamage = true;
     public boolean ifHpDamage = true;
@@ -11,19 +14,12 @@ public class Damage implements Cloneable{
     public double normalDamage = 0;
     public double sanDamage = 0;
     public double shieldOnlyDamage = 0;
-    public double HpOnlyDamage = 0;
-
-/*    public Damage(Damage damage) {
-        for (var field : this.getClass().getFields()) {
-            try {
-                field.setAccessible(true);
-                field.set(field.getType(), damage.getClass().getField(field.getName()));
-            } catch (Exception e) {
-                System.out.println("{Damage}: Error!");
-            }
-        }
-
-    }*/
+    public double hpOnlyDamage = 0;
+    public double range = 0;
+    public Damage() {}
+    public Damage(double damage) {
+        normalDamage = damage;
+    }
 
     public void enablePersistDamage(int frequency, boolean atOnce) {
         this.ifPersistentDamage = true;

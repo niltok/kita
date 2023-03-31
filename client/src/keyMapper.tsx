@@ -14,6 +14,8 @@ export const keyMapper: { [key: string]: KeyType } = {
     "Space": {action: "jumpOrFly", value: 3},
     "Space!": "jumpOrFly",
     "MouseLeft": {action: "shot", value: 3},
-    "MouseLeft!": "shot"
-    // "KeyF": {type: "transfer.toggle"}
+    "MouseLeft!": "shot",
+    // "KeyF": {type: "transfer.toggle"},
+    "Digit1": "prevWeapon",
+    "Digit2": "nextWeapon",
 }

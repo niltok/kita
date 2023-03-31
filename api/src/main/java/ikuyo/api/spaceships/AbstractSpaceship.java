@@ -13,6 +13,7 @@ public class AbstractSpaceship implements UnpackItem {
     public double hp, shield;
     public CargoHold cargoHold;
     public AbstractWeapon[] weapons;
+    public int currentWeapon = 0;
     public AbstractSpaceship(String type) {
         this.type = type;
         var ship = Objects.requireNonNull(SpaceshipItem.get(type));
@@ -20,6 +21,10 @@ public class AbstractSpaceship implements UnpackItem {
         shield = getMaxShield();
         cargoHold = new CargoHold(ship.cargoVolume);
         weapons = new AbstractWeapon[ship.weaponMax];
+    }
+
+    public AbstractWeapon getCurrentWeapon() {
+        return weapons[currentWeapon];
     }
 
     public double getMaxHp() {

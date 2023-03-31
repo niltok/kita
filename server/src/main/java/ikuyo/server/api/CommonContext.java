@@ -1,6 +1,7 @@
 package ikuyo.server.api;
 
 import ikuyo.api.Star;
+import ikuyo.api.StarInfo;
 import ikuyo.api.User;
 import ikuyo.api.UserInput;
 import io.vertx.core.Vertx;
@@ -33,6 +34,19 @@ public record CommonContext(
     }
     public void frame() {
         userInputs().forEach((i, u) -> u.frame());
+        getInfos().forEach((id, info) -> {
+            for (var weapon : info.spaceship.weapons) {
+                weapon.frame();
+            }
+        });
         updated().clear();
+    }
+
+    public StarInfo.StarUserInfo getInfo(int id) {
+        return star().starInfo().starUsers.get(id);
+    }
+
+    public Map<Integer, StarInfo.StarUserInfo> getInfos() {
+        return star().starInfo().starUsers;
     }
 }

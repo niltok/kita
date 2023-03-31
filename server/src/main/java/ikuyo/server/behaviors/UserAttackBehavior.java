@@ -19,8 +19,9 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
 
-            if (input.shot > 0 && userInfo.weapon != null && userInfo.weapon.tryFire())
-                shot(id, input, userInfo.weapon, context);
+            if (input.shot > 0 && userInfo.spaceship.getCurrentWeapon() != null
+                    && userInfo.spaceship.getCurrentWeapon().tryFire())
+                shot(id, input, userInfo.spaceship.getCurrentWeapon(), context);
         });
     }
 
@@ -36,29 +37,13 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         double radius = context.engine().users.get(id).getValue().getRotationDiscRadius();
         Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
 
-        info.type = "R400";
-        switch (info.type) {
-            case "defaultWeapon" -> {
-                info.set(
-                        0.3,
-                        direction.copy().multiply(radius + 0.3).add(userPos),
-                        direction.copy().multiply(150),
-                        5, weapon.getDamage()
-                );
-            }
-            case "R400" -> {
-                info.set(
-                        0.1,
-                        direction.copy().multiply(radius + 0.1).add(userPos),
-                        direction.copy().multiply(150),
-                        0.1, 1
-                );
-                bullet.body.setGravityScale(0.01);
-            }
-            case default, null -> {
-                return;
-            }
-        }
+
+        info.set(
+                weapon.getInfo().collisionRange,
+                direction.copy().multiply(radius + weapon.getInfo().collisionRange).add(userPos),
+                direction.copy().multiply(weapon.getInfo().velocity),
+                weapon.getDamage().range, weapon.getDamage().normalDamage
+        );
 
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
         info.bulletCheck(userPos, direction, radius, context);

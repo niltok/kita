@@ -1,6 +1,7 @@
 package ikuyo.api.cargo;
 
 import com.google.common.collect.ImmutableList;
+import ikuyo.api.Damage;
 import ikuyo.api.equipments.AbstractWeapon;
 import ikuyo.api.equipments.EquipmentItem;
 import ikuyo.api.equipments.WeaponItem;
@@ -18,12 +19,16 @@ public class CargoStatic {
             stone = new CargoItem("石头", "星球深处的岩浆凝固后的产物", 10);
     public static final SpaceshipItem
             shuttle = new SpaceshipItem("穿梭机", "速度快但是货舱小", 500,
-            5000, AbstractSpaceship.class, 100, 100, 10, 1);
+            5000, AbstractSpaceship.class, 100, 100, 10, 2);
     public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01);
     public static final WeaponItem
             defaultWeapon = new WeaponItem("默认武器", "",
-            5, 5, AbstractWeapon.class, 10, 50,
-            60, 60, defaultAmmo);
+            5, 5, AbstractWeapon.class, 10, new Damage(50),
+            60, 150, 0.3, 60, defaultAmmo),
+            r400 = new WeaponItem("R400", "",
+            5, 5, AbstractWeapon.class, 10, new Damage(1),
+            60, 150, 0.1, 6, defaultAmmo)
+    ;
 
     public static <W, T> ImmutableList<T> filterType(List<W> list, Class<T> clazz) {
         return ImmutableList.copyOf(list.stream()

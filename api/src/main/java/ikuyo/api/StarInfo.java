@@ -205,13 +205,12 @@ public class StarInfo {
 
         public double rotation;
         public boolean online;
-        public AbstractWeapon weapon;
         public double san = 100;
         public AbstractSpaceship spaceship = new AbstractSpaceship(CargoStatic.shuttle.type());
         public String controlType = "walk";
         public StarUserInfo() {
             spaceship.weapons[0] = new AbstractWeapon(CargoStatic.defaultWeapon.type());
-            weapon = spaceship.weapons[0];
+            spaceship.weapons[1] = new AbstractWeapon(CargoStatic.r400.type());
         }
         public StarUserInfo(double x, double y) {
             this();

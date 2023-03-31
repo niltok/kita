@@ -1,5 +1,6 @@
 package ikuyo.api.equipments;
 
+import ikuyo.api.Damage;
 import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.AmmoItem;
 
@@ -26,8 +27,12 @@ public class AbstractWeapon implements UnpackItem {
         return Objects.requireNonNull(WeaponItem.get(type)).ammoType;
     }
 
-    public double getDamage() {
+    public Damage getDamage() {
         return Objects.requireNonNull(WeaponItem.get(type)).damage;
+    }
+
+    public WeaponItem getInfo() {
+        return WeaponItem.get(type);
     }
 
     public boolean tryFire() {

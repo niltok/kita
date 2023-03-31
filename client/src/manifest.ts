@@ -56,7 +56,7 @@ export const manifest: ResolverManifest = {
                     srcs: "../bullets/Primogem.png"
                 },
                 {
-                    name: ["R400"],
+                    name: ["r400"],
                     srcs: "../blocks/hexagon/red.png"
                 }
             ]
