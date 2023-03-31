@@ -12,9 +12,9 @@ public class Bullet {
     public double range = 0;
     public double damage = 0;
 
-    public Bullet(Vector2 pos) {
+    public Bullet(Vector2 pos, double bulletR) {
         body = new KitasBody();
-        BodyFixture fixture = body.addFixture(Geometry.createCircle(0.3));
+        BodyFixture fixture = body.addFixture(Geometry.createCircle(bulletR));
         fixture.setFriction(0);
         fixture.setFilter(PhysicsEngine.BULLET);
         body.translate(pos.x, pos.y);
