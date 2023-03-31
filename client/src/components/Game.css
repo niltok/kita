@@ -90,8 +90,14 @@
 }
 
 .background {
-    background-color: #242424;
+    background-color: #242424c0;
+    box-shadow: 0 0 4px 1px #242424;
+    backdrop-filter: blur(20px);
     border-radius: 8px;
+}
+
+.transfer-background {
+    background-color: #242424;
 }
 
 .no-cursor {
@@ -143,9 +149,10 @@
         background: #f9f9f9;
     }
     .background {
-        background-color: #ffffff;
+        background-color: #ffffffc0;
+        box-shadow: 0 0 4px 1px #ffffff;
     }
-    .transfer-line {
-        background-color: #213547;
-    }
+    /*.transfer-line {*/
+    /*    background-color: #213547;*/
+    /*}*/
 }

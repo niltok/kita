@@ -20,7 +20,7 @@ public class TransferRenderer implements UIRenderer<CommonContext> {
                 continue;
             }
             ui.add(new UIElement("div", transferAnimation(), new UIElement.Text("Transferring..."))
-                    .withClass("flex-center", "fullscreen", "background"));
+                    .withClass("flex-center", "fullscreen", "transfer-background"));
         }
     }
 
@@ -45,7 +45,7 @@ public class TransferRenderer implements UIRenderer<CommonContext> {
                     .withStyle(style));
         }
         return new UIElement("div", res.toArray(UIElement[]::new))
-                .withClass("fullscreen", "background", "no-overflow", "absolute")
+                .withClass("fullscreen", "transfer-background", "no-overflow", "absolute")
                 .withStyle(JsonObject.of("perspective", "100px"));
     }
 }

@@ -50,7 +50,7 @@ public class StarMapRenderer implements UIRenderer<CommonContext> {
                 "left", "calc(50%% + %fpx + 2px)".formatted(displayScale * dx));
         var dotStyle = JsonObject.of();
         if (base.index() == star.index()) {
-            dotStyle.put("background-color", "yellow");
+            dotStyle.put("background-color", "green");
         } else {
             boxStyle.put("cursor", "pointer");
         }

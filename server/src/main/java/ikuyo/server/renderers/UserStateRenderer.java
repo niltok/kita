@@ -26,7 +26,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                     new UIElement.Text("Shield: %.0f".formatted(info.spaceship.shield)),
                     new UIElement("br"),
                     new UIElement.Text("HP: %.0f".formatted(info.spaceship.hp))
-            ).withClass("left-bottom", "pointer-pass-all"));
+            ).withClass("left-bottom", "pointer-pass-all", "background"));
 
         });
     }
@@ -40,7 +40,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                 new UIElement.Text("Level: %.1f".formatted(Math.hypot(info.x, info.y))),
                 new UIElement("br"),
                 new UIElement.Text("Height: %.1f".formatted(height)))
-                .withClass("center-top", "pointer-pass-all");
+                .withClass("center-top", "pointer-pass-all", "background");
     }
 }
 
