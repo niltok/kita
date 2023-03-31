@@ -20,6 +20,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: "greenArrow",
                     srcs: "../ui/greenArrow.png"
+                },
+                {
+                    name: "redArrow",
+                    srcs: "../ui/redArrow.png"
                 }
             ]
         },
