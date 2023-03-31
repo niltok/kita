@@ -9,6 +9,7 @@ import java.util.Objects;
 public class AbstractWeapon implements UnpackItem {
     public String type;
     public int ammoAmount = 0;
+    public long restFireTime = 0;
     public double hp;
 
     public AbstractWeapon(String type) {
@@ -27,6 +28,16 @@ public class AbstractWeapon implements UnpackItem {
 
     public double getDamage() {
         return Objects.requireNonNull(WeaponItem.get(type)).damage;
+    }
+
+    public boolean tryFire() {
+        if (restFireTime != 0) return false;
+        restFireTime = Objects.requireNonNull(WeaponItem.get(type)).fireTime;
+        return true;
+    }
+
+    public void frame() {
+        if (restFireTime > 0) restFireTime--;
     }
 
     @Override

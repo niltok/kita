@@ -24,6 +24,7 @@ public class CargoStatic {
             defaultWeapon = new WeaponItem("默认武器", "",
             5, 5, AbstractWeapon.class, 10, 50,
             60, 60, defaultAmmo);
+
     public static <W, T> ImmutableList<T> filterType(List<W> list, Class<T> clazz) {
         return ImmutableList.copyOf(list.stream()
                 .map(i -> clazz.isInstance(i) ? (T)i : null)
