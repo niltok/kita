@@ -15,6 +15,11 @@ public class CargoItem {
     public final String displayName, description;
     public final double volume, unpackVolume;
     public final Class<? extends UnpackItem> unpackClass;
+    /** 构造可解包的 Item
+     * @param unpackClass 解包后生成的对象所属类，需要实现 {@link UnpackItem}
+     *                    且有一个用于通过类型构造对象的参数为 {@link String}
+     *                    或 {@link CargoItem} 的构造函数，或者有一个无参构造函数
+     *  */
     public CargoItem(
             String displayName,
             String description,
@@ -27,8 +32,8 @@ public class CargoItem {
         this.unpackVolume = unpackVolume;
         this.unpackClass = unpackClass;
     }
-    /** 构造无法 unpack 的 Item */
-    public CargoItem(String displayName, String description, int volume) {
+    /** 构造不可解包的 Item */
+    public CargoItem(String displayName, String description, double volume) {
         this(displayName, description, volume, Double.POSITIVE_INFINITY, null);
     }
     public String type() {

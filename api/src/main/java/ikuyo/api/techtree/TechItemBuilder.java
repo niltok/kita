@@ -20,7 +20,17 @@ public final class TechItemBuilder {
     private TechItemBuilder() {
     }
 
-    public static TechItemBuilder aTechItem() {
+    public TechItemBuilder(String type,
+                           String displayName,
+                           String description,
+                           TechDependency... dependencies) {
+        this.displayName = displayName;
+        this.description = description;
+        this.type = type;
+        this.dependencies = new ArrayList<>(List.of(dependencies));
+    }
+
+    public static TechItemBuilder create() {
         return new TechItemBuilder();
     }
 
