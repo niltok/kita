@@ -49,6 +49,9 @@ export function subtractSet<T>(a: Set<T>, b: Set<T>) {
 }
 
 export function applyObjectDiff(obj: any, diff: { [key: string]: any }) {
+    if (Array.isArray(obj) && Array.isArray(diff)) {
+        while (diff.length < obj.length) obj.pop()
+    }
     for (const ptr in diff) {
         const val = diff[ptr]
         if (val === null) delete obj[ptr]

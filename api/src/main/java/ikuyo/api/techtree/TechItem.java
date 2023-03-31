@@ -20,12 +20,6 @@ public non-sealed class TechItem implements TechDependency {
     public final long maxLevel;
     /** 该科技项依赖的科技项 */
     public final ImmutableList<TechLevel> dependencies;
-    public boolean isDisable() {
-        return !enable;
-    }
-    public boolean isEnable() {
-        return enable;
-    }
     /** 该科技项在 {@link TechItem} 中被定义时所使用的字段名（系统初始化时依靠反射获取） */
     public String name() {
         return name;

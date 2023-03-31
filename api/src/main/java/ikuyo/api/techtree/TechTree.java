@@ -17,9 +17,20 @@ import java.util.Map;
  *  科技项详见 {@link TechItem} */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class TechTree {
-    public static class Data {
+    public static class Data implements Cloneable {
         /** 已训练等级 */
         public long level = 0;
+
+        @Override
+        public Data clone() {
+            try {
+                Data clone = (Data) super.clone();
+                // clone recursively
+                return clone;
+            } catch (CloneNotSupportedException e) {
+                throw new AssertionError();
+            }
+        }
     }
     /** 用于遍历的原始状态信息（请不要写入数据） */
     public final Map<String, Data> treeInfo;
@@ -29,7 +40,7 @@ public class TechTree {
      * @return 训练是否成功
      * */
     public boolean train(TechLevel tech) {
-        var trainList = resolveDependency(tech, new HashMap<>(treeInfo), new ArrayList<>());
+        var trainList = resolveDependency(tech);
         var totalTime = getTrainTime(trainList);
         if (Instant.now().toEpochMilli() - epochRest < totalTime) return false;
         epochRest += totalTime;
@@ -40,7 +51,7 @@ public class TechTree {
     }
 
     public long trainTime(TechLevel tech) {
-        var trainList = resolveDependency(tech, new HashMap<>(treeInfo), new ArrayList<>());
+        var trainList = resolveDependency(tech);
         return getTrainTime(trainList);
     }
 
@@ -49,7 +60,7 @@ public class TechTree {
     }
 
     public boolean canTrain(TechLevel tech) {
-        return trainTime(tech) >= availableTime();
+        return trainTime(tech) <= availableTime();
     }
 
     private static long getTrainTime(List<TechLevel> trainList) {
@@ -60,16 +71,20 @@ public class TechTree {
         }).sum();
     }
 
-    private static List<TechLevel> resolveDependency(TechLevel s, Map<String, Data> trained, List<TechLevel> trainList) {
+    private List<TechLevel> resolveDependency(TechLevel s) {
+        return resolveDependency(s, new HashMap<>(), new ArrayList<>());
+    }
+
+    private List<TechLevel> resolveDependency(TechLevel s, Map<String, Data> trained, List<TechLevel> trainList) {
         var info = TechItem.get(s.techItem.name());
         if (info == null || !info.enable || s.level > info.maxLevel) return trainList;
-        var tech = trained.computeIfAbsent(s.techItem.name(), i -> new Data());
+        var tech = trained.computeIfAbsent(s.techItem.name(), i -> treeInfo.getOrDefault(i, new Data()).clone());
         if (tech.level >= s.level) return trainList;
         resolveDependency(new TechLevel(s.techItem, s.level - 1), trained, trainList);
         for (var dep : info.dependencies) {
             resolveDependency(dep, trained, trainList);
         }
-        trained.computeIfAbsent(s.techItem.name(), i -> new Data()).level = s.level;
+        trained.get(s.techItem.name()).level = s.level;
         trainList.add(s);
         return trainList;
     }

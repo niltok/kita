@@ -74,8 +74,8 @@
     margin: .2em;
 }
 
-.queue-list {
-    flex: 1 1 0;
+.tech-trainer-header {
+    flex: none;
 }
 
 .tech-trainer-container {

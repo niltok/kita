@@ -124,7 +124,7 @@ function renderDrawable(drawable: Drawable, cache?: pixi.DisplayObject) {
             const display = cache as pixi.Container || new pixi.Container()
             display.removeChildren()
             for (const d of container.children) {
-                display.addChild(renderDrawable(d));
+                if (d) display.addChild(renderDrawable(d));
             }
             display.sortableChildren = true
             display.sortChildren()
