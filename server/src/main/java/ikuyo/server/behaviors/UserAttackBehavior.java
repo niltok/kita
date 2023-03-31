@@ -21,7 +21,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
             if (!userInfo.online) return;
 
             if (input.shot > 0 && userInfo.spaceship.getCurrentWeapon() != null
-                    && userInfo.spaceship.getCurrentWeapon().tryFire())
+                    && userInfo.spaceship.tryFire())
                 shot(id, input, userInfo.spaceship.getCurrentWeapon(), context);
         });
     }

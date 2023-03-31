@@ -211,6 +211,7 @@ public class StarInfo {
         public StarUserInfo() {
             spaceship.weapons[0] = new AbstractWeapon(CargoStatic.defaultWeapon.type());
             spaceship.weapons[1] = new AbstractWeapon(CargoStatic.r400.type());
+            spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 500);
         }
         public StarUserInfo(double x, double y) {
             this();

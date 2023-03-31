@@ -36,9 +36,21 @@ public class AbstractWeapon implements UnpackItem {
     }
 
     public boolean tryFire() {
-        if (restFireTime != 0) return false;
+        if (restFireTime != 0 || ammoAmount == 0) return false;
         restFireTime = Objects.requireNonNull(WeaponItem.get(type)).fireTime;
+        ammoAmount--;
         return true;
+    }
+    /**
+     * 装入弹药（只会加装到 {@link WeaponItem#ammoMax}）
+     * @param provide 提供的弹药总量
+     * @return 实际使用的弹药量
+     * */
+    public int loadAmmo(int provide) {
+        var use = Math.min(getInfo().ammoMax - ammoAmount, provide);
+        ammoAmount += use;
+        if (use > 0) restFireTime = 90;
+        return use;
     }
 
     public void frame() {

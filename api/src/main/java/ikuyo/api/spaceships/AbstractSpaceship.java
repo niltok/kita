@@ -40,6 +40,14 @@ public class AbstractSpaceship implements UnpackItem {
         this.hp = Math.max(this.hp - hpDamage, 0);
     }
 
+    public boolean tryFire() {
+        var weapon = getCurrentWeapon();
+        var ammo = weapon.getAmmoType().type();
+        if (weapon.ammoAmount == 0)
+            cargoHold.take(ammo, weapon.loadAmmo(cargoHold.items.getOrDefault(ammo, 0)));
+        return weapon.tryFire();
+    }
+
     @Override
     public String getItemType() {
         return type;

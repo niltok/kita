@@ -18,14 +18,20 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         context.star().starInfo().starUsers.forEach((id, info) -> {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
+            var ship = info.spaceship;
+            var weapon = ship.getCurrentWeapon();
             if ("fly".equals(info.controlType)) {
                 ui.add(getHeightInfo(context, info));
             }
             else ui.add(new UIElement("div").withClass("placeholder"));
             ui.add(new UIElement("div",
-                    new UIElement.Text("Shield: %.0f".formatted(info.spaceship.shield)),
+                    new UIElement.Text("Shield: %.0f".formatted(ship.shield)),
                     new UIElement("br"),
-                    new UIElement.Text("HP: %.0f".formatted(info.spaceship.hp))
+                    new UIElement.Text("HP: %.0f".formatted(ship.hp)),
+                    new UIElement("br"),
+                    new UIElement.Text("Weapon: %s".formatted(weapon.getInfo().displayName)),
+                    new UIElement("br"),
+                    new UIElement.Text("Ammo: %d / %d".formatted(weapon.ammoAmount, weapon.getInfo().ammoMax))
             ).withClass("left-bottom", "pointer-pass-all", "background"));
 
         });
