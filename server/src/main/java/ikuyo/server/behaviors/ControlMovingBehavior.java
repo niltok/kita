@@ -96,12 +96,14 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                             new Vector2(body.getWorldCenter()).add(2, 2).rotate(rotationAngle));
                     body.applyImpulse(new Vector2(-10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(-2, -2).rotate(rotationAngle));
+                    body.setEnabled(true);
                 }
                 if (input.right > 0) {
                     body.applyImpulse(new Vector2(10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(2, -2).rotate(rotationAngle));
                     body.applyImpulse(new Vector2(-10, 0).rotate(rotationAngle),
                             new Vector2(body.getWorldCenter()).add(-2, 2).rotate(rotationAngle));
+                    body.setEnabled(true);
                 }
                 if (!force.equals(0.0, 0.0)) {
                     force.rotate(rotationAngle);

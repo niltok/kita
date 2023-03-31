@@ -1,5 +1,6 @@
 package ikuyo.server.api;
 
+import ikuyo.api.Damage;
 import ikuyo.server.behaviors.UserAttackBehavior;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
@@ -9,12 +10,10 @@ import org.dyn4j.geometry.MassType;
 public class Bullet {
     public KitasBody body = new KitasBody();
     public String type;
-    public double range = 0;
-    public double damage = 0;
+    public Damage damage;
 
     public void set(UserAttackBehavior.BulletInfo info) {
         this.type = info.type;
-        this.range = info.range;
         this.damage = info.damage;
         BodyFixture fixture = body.addFixture(Geometry.createCircle(info.r));
         fixture.setFriction(0);

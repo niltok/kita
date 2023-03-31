@@ -21,6 +21,16 @@ public class Damage implements Cloneable{
         normalDamage = damage;
     }
 
+    public Damage setRange(double range) {
+        this.range = range;
+        return this;
+    }
+
+    public Damage setIfBreakBlock(boolean ifBreakBlock) {
+        this.ifBreakBlock = ifBreakBlock;
+        return this;
+    }
+
     public void enablePersistDamage(int frequency, boolean atOnce) {
         this.ifPersistentDamage = true;
         this.damageFrequency = frequency;

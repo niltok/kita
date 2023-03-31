@@ -23,10 +23,10 @@ public class CargoStatic {
     public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01);
     public static final WeaponItem
             defaultWeapon = new WeaponItem("默认武器", "",
-            5, 5, AbstractWeapon.class, 10, new Damage(50),
+            5, 5, AbstractWeapon.class, 10, new Damage(50).setRange(5),
             60, 150, 0.3, 60, defaultAmmo),
             r400 = new WeaponItem("R400", "",
-            5, 5, AbstractWeapon.class, 10, new Damage(1),
+            5, 5, AbstractWeapon.class, 10, new Damage(1).setRange(0.1).setIfBreakBlock(false),
             60, 150, 0.1, 6, defaultAmmo)
     ;
 

@@ -1,5 +1,6 @@
 package ikuyo.server.behaviors;
 
+import ikuyo.api.Damage;
 import ikuyo.api.Position;
 import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
@@ -42,7 +43,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                 weapon.getInfo().collisionRange,
                 direction.copy().multiply(radius + weapon.getInfo().collisionRange).add(userPos),
                 direction.copy().multiply(weapon.getInfo().velocity),
-                weapon.getDamage().range, weapon.getDamage().normalDamage
+                weapon.getDamage()
         );
 
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
@@ -57,14 +58,12 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         public double r;
         public Vector2 pos;
         public Vector2 velocity;
-        public double range;
-        public double damage;
+        public Damage damage;
 
-        public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, double range, double damage) {
+        public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, Damage damage) {
             this.r = bulletR;
             this.pos = bulletPos;
             this.velocity = bulletVelocity;
-            this.range = range;
             this.damage = damage;
         }
 

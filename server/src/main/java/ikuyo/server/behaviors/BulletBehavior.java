@@ -1,6 +1,7 @@
 package ikuyo.server.behaviors;
 
 import ikuyo.api.Block;
+import ikuyo.api.Damage;
 import ikuyo.api.Position;
 import ikuyo.api.StarInfo;
 import ikuyo.api.behaviors.Behavior;
@@ -31,34 +32,29 @@ public class BulletBehavior implements Behavior<CommonContext> {
     }
 
     private void bulletHandler(Bullet bullet, CommonContext context) {
-        switch (bullet.type) {
-            case "defaultWeapon", default -> {
-                userHandler(bullet.body.getWorldCenter(), bullet.range, bullet.damage, context);
-                blockHandler(bullet.body.getWorldCenter(), bullet.range, context);
-            }
-            case "r400" -> {
-                userHandler(bullet.body.getWorldCenter(), bullet.range, bullet.damage, context);
-            }
+        userHandler(bullet.body.getWorldCenter(), bullet.damage, context);
+        if (bullet.damage.ifBreakBlock) {
+            blockHandler(bullet.body.getWorldCenter(), bullet.damage, context);
         }
     }
 
-    private void userHandler(Vector2 position, double range, double damage, CommonContext context) {
+    private void userHandler(Vector2 position, Damage damage, CommonContext context) {
         Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
-                context.engine().broadPhaseDetect(new AABB(position, range),
+                context.engine().broadPhaseDetect(new AABB(position, damage.range),
                         filter -> filter.equals(PhysicsEngine.USER));
         while (userIterator.hasNext()) {
             var body = userIterator.next().getBody();
             var userPos = body.getWorldCenter();
 //            todo: damage position
-            if (userPos.distance(position) <= range) {
+            if (userPos.distance(position) <= damage.range) {
                 StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
-                if (userInfo.spaceship.shield >= damage)
-                    userInfo.spaceship.shield -= damage;
+                if (userInfo.spaceship.shield >= damage.normalDamage)
+                    userInfo.spaceship.shield -= damage.normalDamage;
                 else if (userInfo.spaceship.shield > 0) {
-                    userInfo.spaceship.hp -= damage - userInfo.spaceship.shield;
+                    userInfo.spaceship.hp -= damage.normalDamage - userInfo.spaceship.shield;
                     userInfo.spaceship.shield = 0;
                 } else
-                    userInfo.spaceship.hp -= damage;
+                    userInfo.spaceship.hp -= damage.normalDamage;
 
                 if (userInfo.spaceship.hp <= 0) {
                     userInfo.spaceship.hp = 0;
@@ -68,10 +64,10 @@ public class BulletBehavior implements Behavior<CommonContext> {
         }
     }
 
-    private void blockHandler(Vector2 position, double range, CommonContext context) {
+    private void blockHandler(Vector2 position, Damage damage, CommonContext context) {
         var starInfo = context.star().starInfo();
 
-        int[] blocklist = StarInfo.nTierAround(new Position(position.x, position.y), range)
+        int[] blocklist = StarInfo.nTierAround(new Position(position.x, position.y), damage.range)
                 .stream().mapToInt(Integer::valueOf).toArray();
         for (var b : blocklist) {
             if (starInfo.blocks[b].isDestructible) {
@@ -86,8 +82,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
 
         for (var i : StarInfo.surfaceBlocks(
                 StarInfo.realIndexOf(position.x, position.y),
-                (int) ((range + StarInfo.edgeLength) * Math.sqrt(3) / 2 / StarInfo.tierDistance) - 1,
-                (int) ((range + StarInfo.edgeLength) / StarInfo.tierDistance) + 2,
+                (int) ((damage.range + StarInfo.edgeLength) * Math.sqrt(3) / 2 / StarInfo.tierDistance) - 1,
+                (int) ((damage.range + StarInfo.edgeLength) / StarInfo.tierDistance) + 2,
                 starInfo)) {
 
             starInfo.blocks[i].isSurface = true;
