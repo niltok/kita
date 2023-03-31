@@ -21,7 +21,7 @@ public abstract class EquipmentItem extends CargoItem {
     }
     public static EquipmentItem get(String index) {
         try {
-            return (EquipmentItem) CargoItem.class.getField(index).get(null);
+            return (EquipmentItem) CargoStatic.class.getField(index).get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }

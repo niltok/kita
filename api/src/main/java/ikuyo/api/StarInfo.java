@@ -2,6 +2,9 @@ package ikuyo.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import ikuyo.api.cargo.CargoStatic;
+import ikuyo.api.equipments.AbstractWeapon;
+import ikuyo.api.spaceships.AbstractSpaceship;
 import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
@@ -202,10 +205,9 @@ public class StarInfo {
 
         public double rotation;
         public boolean online;
-        public String weaponType = "defaultWeapon";
-        public double HP = 500;
-        public double Shield = 0;
-        public double SAN = 100;
+        public AbstractWeapon weapon;
+        public double san = 100;
+        public AbstractSpaceship spaceship = new AbstractSpaceship(CargoStatic.shuttle.type());
         public String controlType = "walk";
         public StarUserInfo() {}
         public StarUserInfo(double x, double y) {

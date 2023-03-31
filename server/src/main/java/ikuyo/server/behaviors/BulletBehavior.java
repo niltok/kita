@@ -51,16 +51,16 @@ public class BulletBehavior implements Behavior<CommonContext> {
             var userPos = body.getWorldCenter();
             if (userPos.distance(position) <= range) {
                 StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
-                if (userInfo.Shield >= damage)
-                    userInfo.Shield -= damage;
-                else if (userInfo.Shield > 0) {
-                    userInfo.HP -= damage - userInfo.Shield;
-                    userInfo.Shield = 0;
+                if (userInfo.spaceship.shield >= damage)
+                    userInfo.spaceship.shield -= damage;
+                else if (userInfo.spaceship.shield > 0) {
+                    userInfo.spaceship.hp -= damage - userInfo.spaceship.shield;
+                    userInfo.spaceship.shield = 0;
                 } else
-                    userInfo.HP -= damage;
+                    userInfo.spaceship.hp -= damage;
 
-                if (userInfo.HP <= 0) {
-                    userInfo.HP = 0;
+                if (userInfo.spaceship.hp <= 0) {
+                    userInfo.spaceship.hp = 0;
                     userInfo.controlType = "destroyed";
                 }
             }

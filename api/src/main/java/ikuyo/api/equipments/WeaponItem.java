@@ -3,7 +3,6 @@ package ikuyo.api.equipments;
 import com.google.common.collect.ImmutableList;
 import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.AmmoItem;
-import ikuyo.api.cargo.CargoItem;
 import ikuyo.api.cargo.CargoStatic;
 
 import java.lang.reflect.Modifier;
@@ -33,7 +32,7 @@ public class WeaponItem extends EquipmentItem {
     }
     public static WeaponItem get(String index) {
         try {
-            return (WeaponItem) CargoItem.class.getField(index).get(null);
+            return (WeaponItem) CargoStatic.class.getField(index).get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }

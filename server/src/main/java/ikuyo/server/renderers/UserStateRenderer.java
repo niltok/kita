@@ -23,7 +23,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
             }
             else ui.add(new UIElement("div").withClass("placeholder"));
             ui.add(new UIElement("div",
-                    new UIElement.Text("HP: %.0f".formatted(info.HP))
+                    new UIElement.Text("HP: %.0f".formatted(info.spaceship.hp))
             ).withClass("left-bottom", "pointer-pass-all"));
         });
     }

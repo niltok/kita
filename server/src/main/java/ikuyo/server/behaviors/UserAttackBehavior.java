@@ -3,6 +3,7 @@ package ikuyo.server.behaviors;
 import ikuyo.api.Position;
 import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.equipments.AbstractWeapon;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.PhysicsEngine;
@@ -18,12 +19,12 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
 
-            if (input.shot == 1)
-                shot(id, input, userInfo.weaponType, context);
+            if (input.shot == 1 && userInfo.weapon != null)
+                shot(id, input, userInfo.weapon, context);
         });
     }
 
-    private void shot(Integer id, UserInput input, String weaponType, CommonContext context) {
+    private void shot(Integer id, UserInput input, AbstractWeapon weapon, CommonContext context) {
        BulletInfo info = new BulletInfo();
 
         Position point = input.pointAt;
@@ -32,13 +33,13 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         double radius = context.engine().users.get(id).getValue().getRotationDiscRadius();
         Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
 
-        switch (weaponType) {
-            case "default", default -> {
+        switch (weapon.type) {
+            case "defaultWeapon" -> {
                 info.set(
                         0.3,
                         direction.copy().multiply(radius + 0.3).add(userPos),
                         direction.copy().multiply(150),
-                        5, 100
+                        5, weapon.getDamage()
                 );
             }
             case "" -> {
@@ -49,7 +50,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                         5, 100
                 );
             }
-            case "i" -> {
+            case default, null -> {
                 return;
             }
         }
@@ -58,7 +59,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         info.bulletCheck(userPos, direction, radius, context);
 
         Bullet bullet = context.engine().addBullet(info.pos, info.r);
-        bullet.set(weaponType, info.range, info.damage);
+        bullet.set(weapon.type, info.range, info.damage);
         bullet.body.setLinearVelocity(info.velocity);
         bullet.body.setUserData(id);
     }

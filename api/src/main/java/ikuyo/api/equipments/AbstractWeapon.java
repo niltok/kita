@@ -25,6 +25,10 @@ public class AbstractWeapon implements UnpackItem {
         return Objects.requireNonNull(WeaponItem.get(type)).ammoType;
     }
 
+    public double getDamage() {
+        return Objects.requireNonNull(WeaponItem.get(type)).damage;
+    }
+
     @Override
     public String getItemType() {
         return type;

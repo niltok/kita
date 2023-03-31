@@ -28,7 +28,7 @@ public class SpaceshipItem extends CargoItem {
     }
     public static SpaceshipItem get(String index) {
         try {
-            return (SpaceshipItem) CargoItem.class.getField(index).get(null);
+            return (SpaceshipItem) CargoStatic.class.getField(index).get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }

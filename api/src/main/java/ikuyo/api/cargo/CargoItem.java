@@ -61,7 +61,7 @@ public class CargoItem {
     }
     public static CargoItem get(String index) {
         try {
-            return (CargoItem) CargoItem.class.getField(index).get(null);
+            return (CargoItem) CargoStatic.class.getField(index).get(null);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }
@@ -74,13 +74,19 @@ public class CargoItem {
         for (var field : CargoStatic.class.getFields()) {
             try {
                 if (Modifier.isStatic(field.getModifiers())) {
+                    System.out.println(field.getName());
                     var obj = field.get(null);
+                    System.out.println(obj);
                     if (obj instanceof CargoItem item) {
+                        System.out.println(field.getName());
                         temp.add(item);
                         item.type = field.getName();
                     }
                 }
-            } catch (Exception ignore) {}
+            } catch (Exception e) {
+                System.err.println(e.getLocalizedMessage());
+                e.printStackTrace();
+            }
         }
         itemList = ImmutableList.copyOf(temp);
     }
