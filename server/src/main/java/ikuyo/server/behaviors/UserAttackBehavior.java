@@ -19,7 +19,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
 
-            if (input.shot == 1 && userInfo.weapon != null)
+            if (input.shot > 0 && userInfo.weapon != null && userInfo.weapon.tryFire())
                 shot(id, input, userInfo.weapon, context);
         });
     }

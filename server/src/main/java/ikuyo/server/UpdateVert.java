@@ -45,6 +45,7 @@ public class UpdateVert extends AsyncVerticle {
             new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
             new PointerMovingBehavior(),
+            new WeaponBehavior(),
             new UserAttackBehavior(),
             new BulletBehavior()
     );
