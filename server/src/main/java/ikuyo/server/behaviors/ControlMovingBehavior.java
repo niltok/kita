@@ -113,7 +113,9 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     body.applyForce(force);
                 }
             }
-            case "destroyed" -> {}
+            case "destroyed" -> {
+
+            }
         }
     }
 }

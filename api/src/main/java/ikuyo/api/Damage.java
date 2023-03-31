@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public class Damage implements Cloneable{
-    public boolean ifShieldDamage = true;
-    public boolean ifHpDamage = true;
     public boolean ifBreakBlock = true;
-    public boolean ifSanDamage = false;
     public boolean ifPersistentDamage = false;
     private int damageFrequency = 0;
     private int frameCount = 0;

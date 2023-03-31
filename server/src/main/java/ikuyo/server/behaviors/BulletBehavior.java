@@ -38,7 +38,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
         }
     }
 
-    private void userHandler(Vector2 position, Damage damage, CommonContext context) {
+    public void userHandler(Vector2 position, Damage damage, CommonContext context) {
         Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
                 context.engine().broadPhaseDetect(new AABB(position, damage.range),
                         filter -> filter.equals(PhysicsEngine.USER));
@@ -48,18 +48,21 @@ public class BulletBehavior implements Behavior<CommonContext> {
 //            todo: damage position
             if (userPos.distance(position) <= damage.range) {
                 StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
-                if (userInfo.spaceship.shield >= damage.normalDamage)
-                    userInfo.spaceship.shield -= damage.normalDamage;
-                else if (userInfo.spaceship.shield > 0) {
-                    userInfo.spaceship.hp -= damage.normalDamage - userInfo.spaceship.shield;
-                    userInfo.spaceship.shield = 0;
-                } else
-                    userInfo.spaceship.hp -= damage.normalDamage;
+                double shieldDamage = damage.shieldOnlyDamage,
+                        hpDamage = damage.hpOnlyDamage,
+                        sanDamage = damage.sanDamage;
 
-                if (userInfo.spaceship.hp <= 0) {
-                    userInfo.spaceship.hp = 0;
-                    userInfo.controlType = "destroyed";
+                if (userInfo.spaceship.shield - shieldDamage >= damage.normalDamage)
+                    shieldDamage += damage.normalDamage;
+                else {
+                    double remain = Math.max(userInfo.spaceship.shield - shieldDamage, 0);
+                    shieldDamage += remain;
+                    hpDamage += damage.normalDamage - remain;
                 }
+
+                userInfo.spaceship.inflict(shieldDamage, hpDamage);
+                if (userInfo.spaceship.hp == 0)
+                    userInfo.controlType = "destroyed";
             }
         }
     }

@@ -35,6 +35,11 @@ public class AbstractSpaceship implements UnpackItem {
         return Objects.requireNonNull(SpaceshipItem.get(type)).shieldMax;
     }
 
+    public void inflict(double shieldDamage, double hpDamage) {
+        this.shield = Math.max(this.shield - shieldDamage, 0);
+        this.hp = Math.max(this.hp - hpDamage, 0);
+    }
+
     @Override
     public String getItemType() {
         return type;
