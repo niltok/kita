@@ -37,7 +37,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
                 blockHandler(bullet.body.getWorldCenter(), bullet.range, context);
             }
             case "R400" -> {
-
+                userHandler(bullet.body.getWorldCenter(), bullet.range, bullet.damage, context);
             }
         }
     }
@@ -49,6 +49,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
         while (userIterator.hasNext()) {
             var body = userIterator.next().getBody();
             var userPos = body.getWorldCenter();
+//            todo: damage position
             if (userPos.distance(position) <= range) {
                 StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
                 if (userInfo.spaceship.shield >= damage)

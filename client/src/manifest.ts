@@ -54,6 +54,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: ["defaultWeapon"],
                     srcs: "../bullets/Primogem.png"
+                },
+                {
+                    name: ["R400"],
+                    srcs: "../blocks/hexagon/red.png"
                 }
             ]
         },

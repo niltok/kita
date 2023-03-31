@@ -2,11 +2,16 @@ package ikuyo.server.renderers;
 
 import ikuyo.api.Drawable;
 import ikuyo.server.api.CommonContext;
+import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;
+import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.geometry.AABB;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.result.DetectResult;
 import org.dyn4j.world.result.RaycastResult;
 
+import java.util.Iterator;
 import java.util.Map;
 
 public class UserRenderer implements DrawablesRenderer {
@@ -16,6 +21,7 @@ public class UserRenderer implements DrawablesRenderer {
             drawPosition(ctx, drawables, id);
             drawCursor(ctx, drawables, id);
             drawGravityArrow(ctx, drawables, id);
+            drawEnemyArrow(ctx, drawables, id);
         });
     }
 
@@ -91,5 +97,30 @@ public class UserRenderer implements DrawablesRenderer {
         arrow.zIndex = 2;
         arrow.user = id;
         drawables.put("user#%d.gravityArrow".formatted(id), arrow);
+    }
+
+    private static void  drawEnemyArrow(CommonContext ctx, Map<String, Drawable> drawables, Integer id) {
+        var info = ctx.star().starInfo().starUsers.get(id);
+        var userPos = new Vector2(info.x, info.y);
+        Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
+                ctx.engine().broadPhaseDetect(new AABB(userPos, 100),
+                        filter -> filter.equals(PhysicsEngine.USER));
+        while (userIterator.hasNext()) {
+            var user = userIterator.next().getBody();
+            var userid = (int)user.getUserData();
+            if (userid != id) {
+                var enemyPos = user.getWorldCenter();
+                var pos = userPos.copy().add(enemyPos.subtract(userPos).getNormalized().multiply(5));
+                var arrow = new Drawable.Sprite();
+                arrow.x = pos.x * Drawable.scaling;
+                arrow.y = pos.y * Drawable.scaling;
+                arrow.rotation = -pos.getAngleBetween(Math.PI / 2);
+                arrow.bundle = "ui";
+                arrow.asset = "redArrow";
+                arrow.zIndex = 2;
+                arrow.user = id;
+                drawables.put("user#%d.EnemyArrow-#%d".formatted(id, userid), arrow);
+            }
+        }
     }
 }

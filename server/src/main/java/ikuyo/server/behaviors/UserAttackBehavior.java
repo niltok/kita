@@ -25,7 +25,10 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
     }
 
     private void shot(Integer id, UserInput input, AbstractWeapon weapon, CommonContext context) {
-       BulletInfo info = new BulletInfo();
+        BulletInfo info = new BulletInfo();
+        info.type = weapon.type;
+        info.userId = id;
+        Bullet bullet = new Bullet();
 
         Position point = input.pointAt;
         Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
@@ -33,7 +36,8 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         double radius = context.engine().users.get(id).getValue().getRotationDiscRadius();
         Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
 
-        switch (weapon.type) {
+        info.type = "R400";
+        switch (info.type) {
             case "defaultWeapon" -> {
                 info.set(
                         0.3,
@@ -42,13 +46,14 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                         5, weapon.getDamage()
                 );
             }
-            case "" -> {
+            case "R400" -> {
                 info.set(
-                        0.4,
-                        direction.copy().multiply(radius + 0.4).add(userPos),
-                        new Vector2(),
-                        5, 100
+                        0.1,
+                        direction.copy().multiply(radius + 0.1).add(userPos),
+                        direction.copy().multiply(150),
+                        0.1, 1
                 );
+                bullet.body.setGravityScale(0.01);
             }
             case default, null -> {
                 return;
@@ -57,14 +62,13 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
 
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
         info.bulletCheck(userPos, direction, radius, context);
-
-        Bullet bullet = context.engine().addBullet(info.pos, info.r);
-        bullet.set(weapon.type, info.range, info.damage);
-        bullet.body.setLinearVelocity(info.velocity);
-        bullet.body.setUserData(id);
+        bullet.set(info);
+        context.engine().addBullet(bullet);
     }
 
-    private static class BulletInfo {
+    public static class BulletInfo {
+        public String type;
+        public int userId;
         public double r;
         public Vector2 pos;
         public Vector2 velocity;

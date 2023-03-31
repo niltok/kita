@@ -148,11 +148,9 @@ public class PhysicsEngine{
         }
     }
 
-    public Bullet addBullet(Vector2 pos, double bulletR) {
-        Bullet bullet = new Bullet(pos, bulletR);
+    public void addBullet(Bullet bullet) {
         bullets.put(UUID.randomUUID().toString(), bullet);
         world.addBody(bullet.body);
-        return bullet;
     }
 
     public void removeBullet(String id) {
