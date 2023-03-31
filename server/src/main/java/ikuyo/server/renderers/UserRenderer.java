@@ -103,18 +103,18 @@ public class UserRenderer implements DrawablesRenderer {
         var info = ctx.star().starInfo().starUsers.get(id);
         var userPos = new Vector2(info.x, info.y);
         Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
-                ctx.engine().broadPhaseDetect(new AABB(userPos, 100),
+                ctx.engine().broadPhaseDetect(new AABB(userPos, 80),
                         filter -> filter.equals(PhysicsEngine.USER));
         while (userIterator.hasNext()) {
             var user = userIterator.next().getBody();
             var userid = (int)user.getUserData();
             if (userid != id) {
                 var enemyPos = user.getWorldCenter();
-                var pos = userPos.copy().add(enemyPos.subtract(userPos).getNormalized().multiply(5));
+                var pos = userPos.copy().add(enemyPos.copy().subtract(userPos).getNormalized().multiply(5));
                 var arrow = new Drawable.Sprite();
                 arrow.x = pos.x * Drawable.scaling;
                 arrow.y = pos.y * Drawable.scaling;
-                arrow.rotation = -pos.getAngleBetween(Math.PI / 2);
+                arrow.rotation = -enemyPos.copy().subtract(userPos).getAngleBetween(Math.PI * 2);
                 arrow.bundle = "ui";
                 arrow.asset = "redArrow";
                 arrow.zIndex = 2;
