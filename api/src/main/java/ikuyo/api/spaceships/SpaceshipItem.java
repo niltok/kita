@@ -1,12 +1,8 @@
 package ikuyo.api.spaceships;
 
-import com.google.common.collect.ImmutableList;
 import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.CargoItem;
 import ikuyo.api.cargo.CargoStatic;
-
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 
 public class SpaceshipItem extends CargoItem {
     public final double hpMax, shieldMax, cargoVolume;
@@ -32,22 +28,5 @@ public class SpaceshipItem extends CargoItem {
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }
-    }
-    /** 所有飞船类型列表 */
-    public static final ImmutableList<SpaceshipItem> itemList;
-    /* Auto collect itemList */
-    static {
-        var temp = new ArrayList<SpaceshipItem>();
-        for (var field : CargoStatic.class.getFields()) {
-            try {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    var obj = field.get(null);
-                    if (obj instanceof SpaceshipItem item) {
-                        temp.add(item);
-                    }
-                }
-            } catch (Exception ignore) {}
-        }
-        itemList = ImmutableList.copyOf(temp);
     }
 }

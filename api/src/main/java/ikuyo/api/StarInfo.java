@@ -209,8 +209,12 @@ public class StarInfo {
         public double san = 100;
         public AbstractSpaceship spaceship = new AbstractSpaceship(CargoStatic.shuttle.type());
         public String controlType = "walk";
-        public StarUserInfo() {}
+        public StarUserInfo() {
+            spaceship.weapons[0] = new AbstractWeapon(CargoStatic.defaultWeapon.type());
+            weapon = spaceship.weapons[0];
+        }
         public StarUserInfo(double x, double y) {
+            this();
             this.x = x;
             this.y = y;
             online = true;

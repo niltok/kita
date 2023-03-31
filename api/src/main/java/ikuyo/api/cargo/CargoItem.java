@@ -1,12 +1,9 @@
 package ikuyo.api.cargo;
 
-import com.google.common.collect.ImmutableList;
 import ikuyo.api.UnpackItem;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Objects;
 
 /** 货物类型 */
@@ -65,29 +62,5 @@ public class CargoItem {
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }
-    }
-    /** 所有货物类型列表 */
-    public static final ImmutableList<CargoItem> itemList;
-    /* Auto set CargoItem's name */
-    static {
-        var temp = new ArrayList<CargoItem>();
-        for (var field : CargoStatic.class.getFields()) {
-            try {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    System.out.println(field.getName());
-                    var obj = field.get(null);
-                    System.out.println(obj);
-                    if (obj instanceof CargoItem item) {
-                        System.out.println(field.getName());
-                        temp.add(item);
-                        item.type = field.getName();
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println(e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-        }
-        itemList = ImmutableList.copyOf(temp);
     }
 }
