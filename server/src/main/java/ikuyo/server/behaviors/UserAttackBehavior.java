@@ -1,6 +1,7 @@
 package ikuyo.server.behaviors;
 
 import ikuyo.api.Position;
+import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
@@ -17,31 +18,75 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
 
-            if (input.shot == 1) {
-                Position point = input.pointAt;
-                Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
-                        context.star().starInfo().starUsers.get(id).y);
-
-                double radius = 0.3 + context.engine().users.get(id).getValue().getRotationDiscRadius();
-                Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
-                var bulletPos = direction.copy().multiply(radius).add(userPos);
-                var bulletVelocity = direction.copy().multiply(150);
-
-                var rayCast = context.engine().rayCast(new Ray(userPos, direction),
-                                radius + 0.3, filter -> filter.equals(PhysicsEngine.BLOCK))
-                                .stream().min(RaycastResult::compareTo);
-                if (rayCast.isPresent()) {
-                    bulletPos = rayCast.get().copy().getRaycast().getPoint()
-                            .subtract(direction.copy().multiply(0.3));
-                    bulletVelocity = new Vector2();
-                }
-
-                Bullet bullet = context.engine().addBullet(bulletPos);
-                bullet.set(userInfo.weaponType, 5, 100);
-//                v.add(context.engine().users.get(id).getValue().getLinearVelocity());
-                bullet.body.setLinearVelocity(bulletVelocity);
-                bullet.body.setUserData(context.users().get(id).id());
-            }
+            if (input.shot == 1)
+                shot(id, input, userInfo.weaponType, context);
         });
+    }
+
+    private void shot(Integer id, UserInput input, String weaponType, CommonContext context) {
+       BulletInfo info = new BulletInfo();
+
+        Position point = input.pointAt;
+        Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
+                context.star().starInfo().starUsers.get(id).y);
+        double radius = context.engine().users.get(id).getValue().getRotationDiscRadius();
+        Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
+
+        switch (weaponType) {
+            case "default", default -> {
+                info.set(
+                        0.3,
+                        direction.copy().multiply(radius + 0.3).add(userPos),
+                        direction.copy().multiply(150),
+                        5, 100
+                );
+            }
+            case "" -> {
+                info.set(
+                        0.4,
+                        direction.copy().multiply(radius + 0.4).add(userPos),
+                        new Vector2(),
+                        5, 100
+                );
+            }
+            case "i" -> {
+                return;
+            }
+        }
+
+//        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
+        info.bulletCheck(userPos, direction, radius, context);
+
+        Bullet bullet = context.engine().addBullet(info.pos, info.r);
+        bullet.set(weaponType, info.range, info.damage);
+        bullet.body.setLinearVelocity(info.velocity);
+        bullet.body.setUserData(id);
+    }
+
+    private static class BulletInfo {
+        public double r;
+        public Vector2 pos;
+        public Vector2 velocity;
+        public double range;
+        public double damage;
+
+        public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, double range, double damage) {
+            this.r = bulletR;
+            this.pos = bulletPos;
+            this.velocity = bulletVelocity;
+            this.range = range;
+            this.damage = damage;
+        }
+
+        private void bulletCheck(Vector2 userPos, Vector2 direction, double radius, CommonContext context) {
+            var rayCast = context.engine().rayCast(new Ray(userPos, direction),
+                            radius + this.r * 2, filter -> filter.equals(PhysicsEngine.BLOCK))
+                    .stream().min(RaycastResult::compareTo);
+            if (rayCast.isPresent()) {
+                this.pos = rayCast.get().copy().getRaycast().getPoint()
+                        .subtract(direction.copy().multiply(this.r));
+                this.velocity = new Vector2();
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 package ikuyo.api.techtree;
 
+import io.vertx.core.json.Json;
+
 import java.time.Duration;
 
 /**
@@ -25,4 +27,5 @@ public class TechStatic {
             longinus = new TechItem("", "朗基努斯之枪", "生命之树的部分根须，唯一可以直接穿过A.T.Field并造成有效杀伤的武器", Duration.ofMinutes(10), clusterBomb),
             shieldBattery = new TechItem("", "", "", Duration.ofSeconds(30), start)
     ;
+    private Json des;
 }
