@@ -58,8 +58,17 @@ public class StarInfo {
             info.blocks[i].variant = 0;
         }
         info.starUsers = new HashMap<>();
-        int baseTier = 50;
+
+        //地面最低层数
+        int tierNum = (int)(random.nextDouble()*(maxTier - minTier) * 0.5
+                + (maxTier - minTier) * 0.25)
+                + minTier;
+        //地基层数
+        int baseTier = Math.min((int)(maxTier * 0.1), 100);
+        //生成噪声参数
         double noiseLength = 30.0;
+
+        tierNum = Math.max(maxTier - baseTier - 100, tierNum);
 
 //        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
 //        System.out.printf("max:%d\tmin:%d%n", info.maxTier, info.minTier);
@@ -84,9 +93,6 @@ public class StarInfo {
         }
 
 //        计算地表
-        int tierNum = (int)(random.nextDouble()*(maxTier - minTier)*0.5
-                + (maxTier - minTier)*0.25)
-                + minTier;
         int roundStartTier = (int)(tierNum * tierDistance) - 1;
         int groundNum =  (tierNum + baseTier) * ((tierNum+baseTier)+1) * 3 - minTier * (minTier -1) * 3;
         int outline_roundnum = roundStartTier*(roundStartTier+1)*3 - minTier *(minTier -1)*3;

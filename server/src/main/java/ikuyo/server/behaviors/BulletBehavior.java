@@ -44,26 +44,26 @@ public class BulletBehavior implements Behavior<CommonContext> {
                         filter -> filter.equals(PhysicsEngine.USER));
         while (userIterator.hasNext()) {
             var body = userIterator.next().getBody();
-            var userPos = body.getWorldCenter();
-//            todo: damage position
-            if (userPos.distance(position) <= damage.range) {
-                StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
-                double shieldDamage = damage.shieldOnlyDamage,
-                        hpDamage = damage.hpOnlyDamage,
-                        sanDamage = damage.sanDamage;
 
-                if (userInfo.spaceship.shield - shieldDamage >= damage.normalDamage)
-                    shieldDamage += damage.normalDamage;
-                else {
-                    double remain = Math.max(userInfo.spaceship.shield - shieldDamage, 0);
-                    shieldDamage += remain;
-                    hpDamage += damage.normalDamage - remain;
-                }
+//            todo: check damage position
+            StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
+            double shieldDamage = damage.shieldOnlyDamage,
+                    hpDamage = damage.hpOnlyDamage,
+                    sanDamage = damage.sanDamage;
 
-                userInfo.spaceship.inflict(shieldDamage, hpDamage);
-                if (userInfo.spaceship.hp == 0)
-                    userInfo.controlType = "destroyed";
+            if (userInfo.spaceship.shield - shieldDamage >= damage.normalDamage)
+                shieldDamage += damage.normalDamage;
+            else {
+                double remain = Math.max(userInfo.spaceship.shield - shieldDamage, 0);
+                shieldDamage += remain;
+                hpDamage += damage.normalDamage - remain;
             }
+
+            var userData = context.star().starInfo().starUsers.get((int)body.getUserData());
+            userData.san = Math.max(userData.san - sanDamage, 0);
+            userInfo.spaceship.inflict(shieldDamage, hpDamage);
+            if (userInfo.spaceship.hp == 0)
+                userInfo.controlType = "destroyed";
         }
     }
 
