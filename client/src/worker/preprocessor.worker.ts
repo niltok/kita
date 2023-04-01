@@ -26,8 +26,11 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             if (e.data.drawables == undefined) break
             for (const k in e.data.drawables) {
                 const d = drawables.get(k), vd = e.data.drawables[k]
-                if (vd === null) drawables.delete(k)
-                else if (d === undefined) drawables.set(k, vd)
+                if (!vd) {
+                    drawables.delete(k)
+                    // if (k.length == 36) console.log("delete", k)
+                }
+                else if (!d) drawables.set(k, vd)
                 else applyObjectDiff(d, vd)
                 changed.add(k)
             }

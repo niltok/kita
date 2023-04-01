@@ -68,8 +68,11 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
                         console.log(e, { key, drawable })
                     }
                 } else {
-                    camera!.removeChild(cache.get(key)!)
-                    cache.delete(key)
+                    const c = cache.get(key)
+                    if (c) {
+                        camera!.removeChild(c)
+                        cache.delete(key)
+                    }
                 }
             })
             state.camera = e.data.camera!

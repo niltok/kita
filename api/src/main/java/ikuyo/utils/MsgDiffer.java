@@ -4,20 +4,26 @@ import ch.ethz.globis.phtree.PhTree;
 import com.google.common.collect.Sets;
 import ikuyo.api.Drawable;
 import ikuyo.api.Position;
+import ikuyo.api.StarInfo;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.*;
 
 public class MsgDiffer {
-    static final double blockSize = 100;
+    static final double blockSize = Math.sqrt(Drawable.scaling * StarInfo.maxTier * 2);
     static final double cacheRange = 1500;
     static final long blockRange = (long) (cacheRange / blockSize);
     Map<String, Drawable> prev = new HashMap<>();
     PhTree<Set<String>> tree = PhTree.create(2);
-    Set<Changed> changed = new HashSet<>();
+    Set<Changed> changed = new HashSet<>(), traced = new HashSet<>();
 
-    public record LongPair(long x, long y) {}
+    public record LongPair(long x, long y) {
+        @Override
+        public String toString() {
+            return "(%d, %d)".formatted(x, y);
+        }
+    }
     record Changed(long x, long y, String s) {}
 
     public MsgDiffer() {}
@@ -28,37 +34,45 @@ public class MsgDiffer {
 
     public void next(JsonObject msg) {
         changed.clear();
+        traced.forEach(c -> {
+            changed.add(c);
+            tree.get(c.x(), c.y()).remove(c.s());
+            prev.remove(c.s());
+        });
+        traced.clear();
         msg.getMap().forEach((k, v) -> {
+            var pd = prev.get(k);
             if (v == null) {
-                var d = prev.get(k);
-                if (d == null) return;
-                long dx = quantize(d.x), dy = quantize(d.y);
+                if (pd == null) return;
+                long dx = quantize(pd.x), dy = quantize(pd.y);
                 changed.add(new Changed(dx, dy, k));
                 tree.get(dx, dy).remove(k);
                 prev.remove(k);
+//                System.out.format("!delete %s (%d, %d)\n", k, dx, dy);
                 return;
             }
             var d = ((JsonObject) v).mapTo(Drawable.class);
             long dx = quantize(d.x), dy = quantize(d.y);
-            var pd = prev.get(k);
             if (pd != null) {
                 long qpx = quantize(pd.x), qpy = quantize(pd.y);
                 var set = tree.get(qpx, qpy);
                 if (set != null) set.remove(k);
                 changed.add(new Changed(qpx, qpy, k));
             } else {
-                changed.add(new Changed(dx, dy, k));
+                var c = new Changed(dx, dy, k);
+                changed.add(c);
+                if (k.length() > 0 && k.charAt(0) == '!') traced.add(c);
             }
             tree.computeIfAbsent(new long[]{dx, dy}, i -> new HashSet<>()).add(k);
             prev.put(k, d);
         });
     }
 
-    public JsonObject query(int id, Position pos, boolean moved, Set<LongPair> cache) {
+    public JsonObject query(int id, Position pos, Position ppos, Set<LongPair> cache) {
         Set<String> add = new HashSet<>(), delete = new HashSet<>();
         Set<LongPair> addBlock = new HashSet<>(), deleteBlock = new HashSet<>();
-        if (moved) {
-            long qx = quantize(pos.x), qy = quantize(pos.y);
+        long qx = quantize(pos.x), qy = quantize(pos.y), pqx = quantize(ppos.x), pqy = quantize(ppos.y);
+        if (!pos.equals(ppos)) {
             var res = tree.query(
                     new long[]{qx - blockRange, qy - blockRange},
                     new long[]{qx + blockRange, qy + blockRange});
@@ -86,19 +100,24 @@ public class MsgDiffer {
         }
         for (var c : changed) {
             var d = prev.get(c.s);
-            var p = new LongPair(c.x, c.y);
             var inRange = false;
             if (d != null) {
-                long qx = quantize(pos.x), qy = quantize(pos.y);
                 long dx = quantize(d.x), dy = quantize(d.y);
                 inRange = qx - blockRange <= dx && dx <= qx + blockRange
                         && qy - blockRange <= dy && dy <= qy + blockRange;
             }
-            if (d != null && (inRange || cache.contains(p))) {
+            var inPrevRange = pqx - blockRange <= c.x() && c.x() <= pqx + blockRange
+                    && pqy - blockRange <= c.y() && c.y() <= pqy + blockRange;
+            if (d != null && (inRange || inPrevRange)) {
                 if (d.user == -1 || d.user == id) add.add(c.s);
             }
-            if ((d == null || !inRange) && cache.contains(p)) {
+//            if ((d != null && !inRange) && c.s.length() == 36) {
+//                long dx = quantize(d.x), dy = quantize(d.y);
+//                System.out.format("@delete %s prev(%d, %d) now(%d, %d) user(%d, %d)\n", c.s, c.x, c.y, dx, dy, qx, qy);
+//            }
+            if ((d == null || !inRange) && inPrevRange) {
                 delete.add(c.s);
+//                System.out.format("delete %s\n", c.s);
             }
         }
         cache.addAll(addBlock);

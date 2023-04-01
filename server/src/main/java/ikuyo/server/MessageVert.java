@@ -45,13 +45,12 @@ public class MessageVert extends AsyncVerticle {
         updaterId = config().getString("updaterId");
         starEvents = eventBus.consumer("star." + starId, this::starEventsHandler);
         vertEvents = eventBus.localConsumer(deploymentID(), msg -> {
-            var startTime = System.nanoTime();
-            vertEventsHandler(msg);
-            var sendTime = System.nanoTime() - startTime;
-            if (sendTime > 1000_000_000 / UpdateVert.MaxFps * 2)
-                logger.info(JsonObject.of(
-                        "type", "message.largeFrame",
-                        "sendTime", sendTime / 1000_000.));
+            try {
+                vertEventsHandler(msg);
+            } catch (Throwable e) {
+                logger.error(e.getLocalizedMessage());
+                e.printStackTrace();
+            }
         });
     }
 
@@ -82,9 +81,14 @@ public class MessageVert extends AsyncVerticle {
                         "payload", JsonObject.of("star",
                                 MsgDiffer.jsonDiff(userState.specialCache, JsonObject.of()))
                 ).toBuffer());
-                eventBus.send(userState.socket, JsonObject.of(
-                        "type", "seq.operate",
-                        "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
+                lock(barrier);
+                try {
+                    eventBus.send(userState.socket, JsonObject.of(
+                            "type", "seq.operate",
+                            "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
+                } finally {
+                    barrier.unlock();
+                }
                 userStates.remove(id);
                 msg.reply(JsonObject.of("type", "success"));
                 if (userStates.isEmpty()) {
@@ -121,6 +125,7 @@ public class MessageVert extends AsyncVerticle {
         switch (json.getString("type")) {
             case "star.updated" -> {
                 lock(barrier);
+                var startTime = System.nanoTime();
                 try {
                     var drawables = json.getJsonObject("commonSeq");
                     if (enableMsgLog) {
@@ -139,6 +144,11 @@ public class MessageVert extends AsyncVerticle {
                     await(CompositeFuture.all(fs));
                 } finally {
                     barrier.unlock();
+                    var sendTime = System.nanoTime() - startTime;
+                    if (sendTime > 1000_000_000 / UpdateVert.MaxFps * 2)
+                        logger.info(JsonObject.of(
+                                "type", "message.largeFrame",
+                                "sendTime", sendTime / 1000_000.));
                 }
             }
         }
@@ -168,12 +178,9 @@ public class MessageVert extends AsyncVerticle {
                     "x", userState.camera.x,
                     "y", userState.camera.y);
         }
-        var cx = camera_.getInteger("x");
-        var cy = camera_.getInteger("y");
-        var moved = cx != userState.camera.x || cy != userState.camera.y;
-        userState.camera.x = cx;
-        userState.camera.y = cy;
-        var diff = msgDiffer.query(id, userState.camera, moved, userState.drawableCache);
+        var pos = new Position(camera_.getInteger("x"), camera_.getInteger("y"));
+        var diff = msgDiffer.query(id, userState.camera, pos, userState.drawableCache);
+        userState.camera = pos;
         if (diff != null) {
             msg.add(JsonObject.of(
                     "type", "seq.operate",

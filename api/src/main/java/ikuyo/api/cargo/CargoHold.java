@@ -36,7 +36,7 @@ public class CargoHold {
         var item = CargoItem.get(type);
         if (item == null) return 1;
         if (item.volume * num > restVolume) return 2;
-        items.put(type, items.computeIfAbsent(type, i -> 0) + num);
+        items.put(type, items.getOrDefault(type, 0) + num);
         restVolume -= item.volume * num;
         return 0;
     }
@@ -83,7 +83,7 @@ public class CargoHold {
     public int unpack(String type, int num) {
         var item = CargoItem.get(type);
         if (item == null) return 1;
-        var totalNum = items.get(type);
+        var totalNum = items.getOrDefault(type, 0);
         if (totalNum < num) return 3;
         var deltaVolume = (item.unpackVolume - item.volume) * num;
         if (deltaVolume > restVolume) return 2;
@@ -108,7 +108,7 @@ public class CargoHold {
     public int take(String type, int num) {
         var item = CargoItem.get(type);
         if (item == null) return 1;
-        var totalNum = items.get(type);
+        var totalNum = items.getOrDefault(type, 0);
         if (totalNum < num) return 3;
         var deltaVolume = -item.volume * num;
         if (deltaVolume > restVolume) return 2;
