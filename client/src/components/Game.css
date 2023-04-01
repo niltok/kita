@@ -98,6 +98,7 @@
 
 .transfer-background {
     background-color: #242424;
+    z-index: 10;
 }
 
 .no-cursor {

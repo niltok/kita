@@ -1,5 +1,6 @@
 package ikuyo.server.renderers;
 
+import com.google.common.collect.Sets;
 import ikuyo.api.Drawable;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
@@ -17,12 +18,15 @@ import java.util.Map;
 public class UserRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(CommonContext ctx, Map<String, Drawable> drawables) {
-        ctx.star().starInfo().starUsers.forEach((id, info) -> {
-            drawPosition(ctx, drawables, id);
-            drawCursor(ctx, drawables, id);
-            drawGravityArrow(ctx, drawables, id);
-            drawEnemyArrow(ctx, drawables, id);
-        });
+        Sets.union(ctx.getInfos().keySet(), ctx.updated().users())
+            .forEach((id) -> drawUser(ctx, drawables, id));
+    }
+
+    private static void drawUser(CommonContext ctx, Map<String, Drawable> drawables, Integer id) {
+        drawPosition(ctx, drawables, id);
+        drawCursor(ctx, drawables, id);
+        drawGravityArrow(ctx, drawables, id);
+        drawEnemyArrow(ctx, drawables, id);
     }
 
     private static void drawPosition(CommonContext ctx, Map<String, Drawable> drawables, Integer id) {
@@ -101,6 +105,7 @@ public class UserRenderer implements DrawablesRenderer {
 
     private static void  drawEnemyArrow(CommonContext ctx, Map<String, Drawable> drawables, Integer id) {
         var info = ctx.star().starInfo().starUsers.get(id);
+        if (info == null || !info.online) return;
         var userPos = new Vector2(info.x, info.y);
         Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
                 ctx.engine().broadPhaseDetect(new AABB(userPos, 80),
@@ -119,7 +124,7 @@ public class UserRenderer implements DrawablesRenderer {
                 arrow.asset = "redArrow";
                 arrow.zIndex = 2;
                 arrow.user = id;
-                drawables.put("user#%d.EnemyArrow-#%d".formatted(id, userid), arrow);
+                drawables.put("!user#%d.EnemyArrow-#%d".formatted(id, userid), arrow);
             }
         }
     }
