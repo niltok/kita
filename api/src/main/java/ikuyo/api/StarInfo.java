@@ -68,7 +68,7 @@ public class StarInfo {
         //生成噪声参数
         double noiseLength = 30.0;
 
-        tierNum = Math.max(maxTier - baseTier - 100, tierNum);
+        tierNum = Math.max(maxTier - baseTier - (int)(random.nextDouble() * 100) - 100, tierNum);
 
 //        System.out.println("[blocks:]: %d".formatted(info.blocks.length));
 //        System.out.printf("max:%d\tmin:%d%n", info.maxTier, info.minTier);
