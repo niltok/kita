@@ -30,6 +30,8 @@ class UserState {
 }
 
 public class MessageVert extends AsyncVerticle {
+    public static final boolean reserveStar = false;
+    public static final Duration reserveTime = Duration.ofMinutes(5);
     int starId;
     String updaterId;
     MessageConsumer<JsonObject> starEvents;
@@ -92,7 +94,7 @@ public class MessageVert extends AsyncVerticle {
                 userStates.remove(id);
                 msg.reply(JsonObject.of("type", "success"));
                 if (userStates.isEmpty()) {
-                    await(delay(Duration.ofMinutes(5)));
+                    if (reserveStar) await(delay(reserveTime));
                     if (userStates.isEmpty())
                         eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
                 }
@@ -101,7 +103,7 @@ public class MessageVert extends AsyncVerticle {
                 userStates.remove(json.getInteger("id"));
                 await(eventBus.request(updaterId, json));
                 if (userStates.isEmpty()) {
-                    await(delay(Duration.ofMinutes(5)));
+                    if (reserveStar) await(delay(reserveTime));
                     if (userStates.isEmpty())
                         eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
                 }

@@ -33,13 +33,12 @@ public class MsgDiffer {
     }
 
     public void next(JsonObject msg) {
-        changed.clear();
+        changed = new HashSet<>(traced);
         traced.forEach(c -> {
-            changed.add(c);
             tree.get(c.x(), c.y()).remove(c.s());
             prev.remove(c.s());
         });
-        traced.clear();
+        traced = new HashSet<>();
         msg.getMap().forEach((k, v) -> {
             var pd = prev.get(k);
             if (v == null) {

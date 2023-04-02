@@ -23,6 +23,8 @@ public class AbstractSpaceship implements UnpackItem {
         weapons = new AbstractWeapon[ship.weaponMax];
     }
 
+    public AbstractSpaceship() {}
+
     public AbstractWeapon getCurrentWeapon() {
         return weapons[currentWeapon];
     }

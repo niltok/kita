@@ -19,6 +19,8 @@ public class AbstractWeapon implements UnpackItem {
         hp = weapon.hpMax;
     }
 
+    public AbstractWeapon() {}
+
     public double getMaxHp() {
         return Objects.requireNonNull(WeaponItem.get(type)).hpMax;
     }

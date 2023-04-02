@@ -77,8 +77,8 @@ public class UpdateVert extends AsyncVerticle {
         vertx.cancelTimer(mainLoopId);
         await(CompositeFuture.all(
                 vertEvents.unregister(),
-                vertx.undeploy(msgVertId),
-                async(this::stopPool)));
+                vertx.undeploy(msgVertId)));
+        stopPool();
         logger.info(JsonObject.of(
                 "type", "updater.undeploy",
                 "starId", star.index(),
@@ -122,7 +122,7 @@ public class UpdateVert extends AsyncVerticle {
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
         try {
             star = Star.get(pool, id);
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
             star = Star.getSummery(pool, id);
             assert star != null;
             logger.info(JsonObject.of("type", "star.generating", "id", id, "name", star.name()));
@@ -134,6 +134,11 @@ public class UpdateVert extends AsyncVerticle {
             star = Star.get(pool, id);
             assert star != null;
             logger.info(JsonObject.of("type", "star.generated", "id", id, "name", star.name()));
+        } catch (Exception e) {
+            logger.info(e.getLocalizedMessage());
+            e.printStackTrace();
+            vertx.undeploy(deploymentID());
+            return;
         }
         commonContext = new CommonContext(vertx, star);
         startTime = System.nanoTime();
@@ -274,7 +279,9 @@ public class UpdateVert extends AsyncVerticle {
             var buf = new ObjectMapper().writeValueAsBytes(star.starInfo());
             return runBlocking(() -> await(pool.preparedQuery(
                     "update star set star_info = $1 where index = $2 and vert_id = $3;"
-            ).execute(Tuple.of(DataStatic.gzipEncode(buf), star.index(), context.deploymentID()))).rowCount() == 1);
+            ).execute(Tuple.of(DataStatic.gzipEncode(buf),
+                    star.index(),
+                    context.deploymentID()))).rowCount() == 1, false);
         } catch (JsonProcessingException e) {
             return Future.failedFuture(e);
         }
