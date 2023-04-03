@@ -12,6 +12,7 @@ public class AbstractWeapon implements UnpackItem {
     public int ammoAmount = 0;
     public long restFireTime = 0;
     public double hp;
+    public boolean loading = false;
 
     public AbstractWeapon(String type) {
         this.type = type;
@@ -51,12 +52,16 @@ public class AbstractWeapon implements UnpackItem {
     public int loadAmmo(int provide) {
         var use = Math.min(getInfo().ammoMax - ammoAmount, provide);
         ammoAmount += use;
-        if (use > 0) restFireTime = 90;
+        if (use > 0) {
+            loading = true;
+            restFireTime = 90;
+        }
         return use;
     }
 
     public void frame() {
         if (restFireTime > 0) restFireTime--;
+        if (restFireTime == 0) loading = false;
     }
 
     @Override

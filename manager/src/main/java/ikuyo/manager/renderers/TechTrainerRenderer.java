@@ -33,7 +33,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
         return new UIElement("div",
                 new UIElement("span"),
                 new UIElement("span", new UIElement.Text(rightText.toString()))
-        ).withClass("tech-tree-item", "tech-trainer-header");
+        ).withClass("label-item", "tech-trainer-header");
     }
 
     public UIElement techList(CommonContext context, int id) {

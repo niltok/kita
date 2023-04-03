@@ -25,6 +25,9 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
             if ("fly".equals(info.controlType)) {
                 ui.add(getHeightInfo(context, info));
             }
+            var ammo = weapon.loading ?
+                    "Loading..." :
+                    "%d / %d".formatted(weapon.ammoAmount, weapon.getInfo().ammoMax);
             ui.add(new UIElement("div",
                     new UIElement.Text("Shield: %.0f".formatted(ship.shield)),
                     new UIElement("br"),
@@ -32,7 +35,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                     new UIElement("br"),
                     new UIElement.Text("Weapon: %s".formatted(weapon.getInfo().displayName)),
                     new UIElement("br"),
-                    new UIElement.Text("Ammo: %d / %d".formatted(weapon.ammoAmount, weapon.getInfo().ammoMax))
+                    new UIElement.Text("Ammo: %s".formatted(ammo))
             ).withClass("left-bottom", "pointer-pass-all", "background"));
 
         });
