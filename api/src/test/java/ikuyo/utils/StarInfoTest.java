@@ -31,8 +31,16 @@ public class StarInfoTest {
     @Test
     public void Test_newRealIndexOf() {
         int testTier = 1000;
-        for (int index = 0; index < testTier * (testTier+1) * 3; index++) {
-            Position pos = StarInfo.posOf(index);
+
+        Position pos = StarInfo.posOf(0);
+        for (int i = 0; i < 6; i++) {
+            var v = new Vector2(pos.x, pos.y)
+                    .add(new Vector2(0.5, 0).rotate(i * Math.PI / 3));
+            Assertions.assertEquals(StarInfo.realIndexOf(v.x, v.y), 0);
+        }
+
+        for (int index = 1; index < testTier * (testTier+1) * 3; index++) {
+            pos = StarInfo.posOf(index);
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
                         .add(new Vector2(0.499, 0).rotate(i * Math.PI / 3));

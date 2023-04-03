@@ -388,7 +388,7 @@ public class StarInfo {
         return index;
     }
 
-/** <p>realIndex 周围 n 层的块的真实编号<p/>
+/** <p>realIndex 周围 n 层的块的编号<p/>
  * 返回的List中存储可以直接调用的 index , 而不是 realIndex*/
     public static ArrayList<Integer> nTierAround(int realIndex, int n) {
         ArrayList<Integer> res = new ArrayList<>();
@@ -443,6 +443,34 @@ public class StarInfo {
         }
 
         return result;
+    }
+
+    /** <p>查询 realIndex 所属区域的编号<p/>*/
+    public static int getAreaOf(int realIndex, int tier) {
+        Position pos = posOf(realIndex);
+        Vector2 trans = new Vector2(pos.x, pos.y);
+        trans.rotate(Math.PI / 6).divide(tierDistance * tier);
+
+        return realIndexOf(trans.x, trans.y);
+    }
+
+    /** <p>area内块的编号<p/>
+     * 返回的List中存储可以直接调用的 index , 而不是 realIndex*/
+    public static ArrayList<Integer> getBlocksAt(int area, int tier) {
+        Position center = posOf(area);
+        Vector2 trans = new Vector2(center.x, center.y);
+        trans.rotate(-Math.PI / 6).multiply(tierDistance * tier);
+        int centerIndex = realIndexOf(trans.x, trans.y);
+        ArrayList<Integer> list = nTierAround(centerIndex, tier - 1);
+
+        int extraBlock = minTier * (minTier - 1) * 3;
+        for (int index = tier * (tier - 1) * 3 + 1; index < tier * (tier + 1) * 3 + 1; index++) {
+            int thisTier = tierOf(index);
+            if (thisTier >= minTier && thisTier <= maxTier && getAreaOf(index, tier) == area)
+                list.add(index - extraBlock - 1);
+        }
+
+        return list;
     }
 
 //    /**创建属于你的星球
