@@ -473,6 +473,12 @@ public class StarInfo {
         return list;
     }
 
+    public static ArrayList<Integer> areasAround(double x, double y, double r, int tier) {
+        Vector2 trans = new Vector2(x, y);
+        trans.rotate(-Math.PI / 6).multiply(tierDistance * tier);
+        return nTierAround(new Position(trans.x, trans.y), r / tierDistance / tier + edgeLength);
+    }
+
 //    /**创建属于你的星球
 //     * @param seed random
 //     * */
