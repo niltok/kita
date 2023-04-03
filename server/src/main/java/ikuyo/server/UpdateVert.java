@@ -136,7 +136,7 @@ public class UpdateVert extends AsyncVerticle {
             assert star != null;
             logger.info(JsonObject.of("type", "star.generated", "id", id, "name", star.name()));
         } catch (Exception e) {
-            logger.info(e.getLocalizedMessage());
+            logger.error(e.getLocalizedMessage());
             e.printStackTrace();
             vertx.undeploy(deploymentID());
             return;

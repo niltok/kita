@@ -13,6 +13,7 @@ import java.util.Random;
 public class TransferRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
+        // TODO: Lazy
         for (Integer id : context.updated().users()) {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             if (!"transfer".equals(context.userState().get(id).page)) {

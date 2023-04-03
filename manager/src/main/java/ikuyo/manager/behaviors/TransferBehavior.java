@@ -17,11 +17,6 @@ public class TransferBehavior implements Behavior<BehaviorContext> {
                 var state = context.context().userState().get(context.id());
                 state.page = "transfer";
             }
-            case "transfer.toggle" -> {
-                context.context().updated().users().add(context.id());
-                var state = context.context().userState().get(context.id());
-                state.page = "transfer".equals(state.page) ? "" : "transfer";
-            }
         }
     }
 }

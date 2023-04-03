@@ -9,7 +9,7 @@ export function renderUI(elem: UIElement | undefined): JSX.Element {
     const commonProp = {
         style: elem.style,
         className: elem.classes.join(' '),
-        children: elem.children.map(e => renderUI(e)),
+        children: elem.children.filter(e => e).map(e => renderUI(e)),
         title: elem.title ?? undefined
     }
     const clickCallback = elem.callback && JSON.stringify(elem.callback) != "{}" ? {

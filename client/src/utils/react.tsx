@@ -104,6 +104,10 @@ export function useWindowSize() {
 }
 
 export function applyReduxDiff(obj: any, diff: { [key: string]: any }) {
+    if (Array.isArray(original(obj)) && Array.isArray(diff)) {
+        const delta = obj.length - diff.length
+        for (let i = 0; i < delta; i++) obj.pop()
+    }
     for (const ptr in diff) {
         const val = diff[ptr]
         if (val === null) delete obj[ptr]

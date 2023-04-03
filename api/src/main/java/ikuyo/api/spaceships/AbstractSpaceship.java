@@ -4,7 +4,8 @@ import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.CargoHold;
 import ikuyo.api.equipments.AbstractWeapon;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -12,7 +13,7 @@ public class AbstractSpaceship implements UnpackItem {
     public String type;
     public double hp, shield;
     public CargoHold cargoHold;
-    public AbstractWeapon[] weapons;
+    public List<AbstractWeapon> weapons;
     public int currentWeapon = 0;
     public AbstractSpaceship(String type) {
         this.type = type;
@@ -20,17 +21,21 @@ public class AbstractSpaceship implements UnpackItem {
         hp = getMaxHp();
         shield = getMaxShield();
         cargoHold = new CargoHold(ship.cargoVolume);
-        weapons = new AbstractWeapon[ship.weaponMax];
+        weapons = new ArrayList<>(getMaxWeapon());
     }
 
     public AbstractSpaceship() {}
 
     public AbstractWeapon getCurrentWeapon() {
-        return weapons[currentWeapon];
+        return weapons.get(currentWeapon);
     }
 
     public double getMaxHp() {
         return Objects.requireNonNull(SpaceshipItem.get(type)).hpMax;
+    }
+
+    public int getMaxWeapon() {
+        return Objects.requireNonNull(SpaceshipItem.get(type)).weaponMax;
     }
 
     public double getMaxShield() {
@@ -58,7 +63,7 @@ public class AbstractSpaceship implements UnpackItem {
     @Override
     public boolean canPack() {
         return hp >= getMaxHp() && shield >= getMaxShield()
-                && Arrays.stream(weapons).allMatch(w -> w == null || w.canPack());
+                && weapons.stream().allMatch(w -> w == null || w.canPack());
     }
 
     @Override
@@ -70,7 +75,7 @@ public class AbstractSpaceship implements UnpackItem {
     @Override
     public double packSize() {
         return Objects.requireNonNull(SpaceshipItem.get(type)).volume
-                + Arrays.stream(weapons).mapToDouble(w -> w == null ? 0 : w.packSize()).sum();
+                + weapons.stream().mapToDouble(w -> w == null ? 0 : w.packSize()).sum();
     }
 
     @Override

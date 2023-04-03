@@ -11,9 +11,9 @@ public class WeaponBehavior implements Behavior<CommonContext> {
             var info = context.getInfo(id);
             var ship = info.spaceship;
             if (input.prevWeapon > 0)
-                ship.currentWeapon = (ship.currentWeapon - 1 + ship.weapons.length) % ship.weapons.length;
+                ship.currentWeapon = (ship.currentWeapon - 1 + ship.weapons.size()) % ship.weapons.size();
             if (input.nextWeapon > 0)
-                ship.currentWeapon = (ship.currentWeapon + 1) % ship.weapons.length;
+                ship.currentWeapon = (ship.currentWeapon + 1) % ship.weapons.size();
         });
     }
 }

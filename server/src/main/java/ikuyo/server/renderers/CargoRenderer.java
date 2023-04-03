@@ -12,12 +12,11 @@ public class CargoRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         context.getInfos().forEach((id, info) -> {
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             var state = context.getState(id);
-            if (!"cargoHold".equals(state.page) || !info.online) {
-                ui.add(new UIElement("div").withClass("placeholder"));
+            if (!info.online || !"cargoHold".equals(state.page)) {
                 return;
             }
+            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             ui.add(new UIElement("div",
                     info.spaceship.cargoHold.renderUI()
             ).withClass("popout-container", "flex-box-container", "background"));

@@ -17,11 +17,10 @@ public class StarMapRenderer implements UIRenderer<CommonContext> {
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         var fs = new HashMap<Integer, Future<Pair<Star, Star[]>>>();
         for (Integer id : context.updated().users()) {
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             if (!"starMap".equals(context.userState().get(id).page)) {
-                ui.add(new UIElement("div").withClass("placeholder"));
                 continue;
             }
+            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             var user = context.userState().get(id).user;
             var client = context.sql();
             fs.put(id, async(() -> {

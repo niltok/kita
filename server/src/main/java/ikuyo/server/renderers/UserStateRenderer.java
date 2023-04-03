@@ -16,15 +16,15 @@ import java.util.Map;
 public class UserStateRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
-        context.star().starInfo().starUsers.forEach((id, info) -> {
-            if (!info.online) return;
+        context.updated().users().forEach((id) -> {
+            var info = context.getInfo(id);
+            if (info == null || !info.online) return;
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             var ship = info.spaceship;
             var weapon = ship.getCurrentWeapon();
             if ("fly".equals(info.controlType)) {
                 ui.add(getHeightInfo(context, info));
             }
-            else ui.add(new UIElement("div").withClass("placeholder"));
             ui.add(new UIElement("div",
                     new UIElement.Text("Shield: %.0f".formatted(ship.shield)),
                     new UIElement("br"),

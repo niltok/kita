@@ -11,12 +11,6 @@ public class TechTrainerBehavior implements Behavior<BehaviorContext> {
     @Override
     public void update(BehaviorContext context) {
         switch (context.event().getString("type")) {
-            case "techTrainer.toggle" -> {
-                var state = context.context().userState().get(context.id());
-                if ("transfer".equals(state.page)) break;
-                context.context().updated().users().add(context.id());
-                state.page = "techTrainer".equals(state.page) ? "" : "techTrainer";
-            }
             case "techTrainer.train" -> {
                 context.context().updated().users().add(context.id());
                 var tech = TechItem.get(context.event().getString("tech"));

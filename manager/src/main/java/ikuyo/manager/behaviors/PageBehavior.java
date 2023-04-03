@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public class PageBehavior implements Behavior<BehaviorContext> {
-    public static Set<String> supportedPage = Set.of("transfer", "cargoHold", "techTrainer");
-    public static Set<String> stationPage = Set.of("starMap");
+    public static Set<String> supportedPage = Set.of("transfer", "starMap", "techTrainer");
+    public static Set<String> stationPage = Set.of("cargoHold");
     @Override
     public void update(BehaviorContext context) {
         var type = context.event().getString("type");

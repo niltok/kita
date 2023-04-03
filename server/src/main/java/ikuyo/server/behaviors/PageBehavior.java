@@ -12,6 +12,7 @@ public class PageBehavior implements Behavior<CommonContext> {
     public void update(CommonContext context) {
         context.updated().users().forEach(id -> {
             var state = context.getState(id);
+            if (state == null) return;
             var toggleMsg = state.events.get("page.toggle");
             if (toggleMsg == null || toggleMsg.isEmpty()) return;
             var page = toggleMsg.get(toggleMsg.size() - 1).getString("page");
