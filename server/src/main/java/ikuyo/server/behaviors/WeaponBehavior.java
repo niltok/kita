@@ -6,7 +6,8 @@ import ikuyo.server.api.CommonContext;
 public class WeaponBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
-        context.userInputs().forEach((id, input) -> {
+        context.userStates().forEach((id, state) -> {
+            var input = state.input;
             var info = context.getInfo(id);
             var ship = info.spaceship;
             if (input.prevWeapon > 0)

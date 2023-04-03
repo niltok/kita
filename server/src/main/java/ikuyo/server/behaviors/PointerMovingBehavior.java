@@ -4,10 +4,22 @@ import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
 import org.dyn4j.geometry.Vector2;
 
+import static ikuyo.api.Drawable.scaling;
+
 public class PointerMovingBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
-        context.userInputs().forEach((id, input) -> {
+        context.updated().users().forEach((id) -> {
+            var input = context.getState(id).input;
+            var pointerMsgs = context.getState(id).events.get("star.operate.mouse");
+            if (pointerMsgs != null && !pointerMsgs.isEmpty()) {
+                var pointerMsg = pointerMsgs.get(pointerMsgs.size() - 1);
+                var pos = input.relativePointer;
+                if (pointerMsg.getDouble("x") != null && pointerMsg.getDouble("y") != null) {
+                    pos.x = pointerMsg.getDouble("x") / scaling;
+                    pos.y = pointerMsg.getDouble("y") / scaling;
+                }
+            }
             var camera = context.star().starInfo().starUsers.get(id);
             switch (camera.controlType) {
                 case "fly" -> {

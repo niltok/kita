@@ -11,9 +11,7 @@ import ikuyo.manager.api.BehaviorContext;
 import ikuyo.manager.api.CommonContext;
 import ikuyo.manager.api.UpdatedContext;
 import ikuyo.manager.api.UserState;
-import ikuyo.manager.behaviors.StarMapBehavior;
-import ikuyo.manager.behaviors.TechTrainerBehavior;
-import ikuyo.manager.behaviors.TransferBehavior;
+import ikuyo.manager.behaviors.*;
 import ikuyo.manager.renderers.StarMapRenderer;
 import ikuyo.manager.renderers.TechTrainerRenderer;
 import ikuyo.manager.renderers.TransferRenderer;
@@ -56,6 +54,8 @@ public class HttpVert extends AsyncVerticle {
     CommonContext commonContext;
     UpdatedContext updatedContext;
     Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
+            new PageBehavior(),
+            new CargoBehavior(),
             new StarMapBehavior(),
             new TechTrainerBehavior(),
             new TransferBehavior()
@@ -208,9 +208,11 @@ public class HttpVert extends AsyncVerticle {
             }
             default -> {
                 var id = socketCache.get(socket.writeHandlerID()).id();
-                mainBehavior.update(new BehaviorContext(id, msg, commonContext));
+                var ctx = new BehaviorContext(id, msg, commonContext);
+                mainBehavior.update(ctx);
                 renderUI();
-                eventBus.send(socketAddress(socket), JsonObject.of(
+                if (ctx.forward().get())
+                    eventBus.send(socketAddress(socket), JsonObject.of(
                         "type", "user.message",
                         "socket", socket.writeHandlerID(),
                         "userId", id,

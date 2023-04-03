@@ -16,7 +16,8 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
 
     @Override
     public void update(CommonContext context) {
-        context.userInputs().forEach((id, input) -> {
+        context.userStates().forEach((id, state) -> {
+            var input = state.input;
             var userInfo = context.star().starInfo().starUsers.get(id);
             if (!userInfo.online) return;
 

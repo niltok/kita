@@ -23,7 +23,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
                 continue;
             }
             ui.add(new UIElement("div", displayPoint(context, id), techList(context, id))
-                    .withClass("popout-container", "tech-trainer-container", "background"));
+                    .withClass("popout-container", "flex-box-container", "background"));
         }
     }
 
@@ -53,18 +53,22 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
                 stateStr.append("Max Level");
             }
             var style = JsonObject.of();
-            var callback = JsonObject.of();
+            JsonObject callback = null;
             if (data.level < tech.maxLevel && tree.canTrain(new TechLevel(tech, data.level + 1))) {
                 style.put("cursor", "pointer");
-                callback.put("type", "techTrainer.train");
-                callback.put("tech", tech.name());
-                callback.put("level", data.level + 1);
+                callback = JsonObject.of(
+                        "type", "techTrainer.train",
+                        "tech", tech.name(),
+                        "level", data.level + 1
+                );
             }
-            return new UIElement.Callback("div", callback,
-                    new UIElement("span", new UIElement.Text(tech.displayName)),
-                    new UIElement("span", new UIElement.Text(stateStr.toString()))
-            ).withClass("tech-tree-item", "hover-label").withStyle(style);
-        }).toArray(UIElement[]::new)).withClass("tech-tree", "auto-flow-container");
+            return UIElement.labelItem(
+                    new UIElement.Text(tech.displayName),
+                    new UIElement.Text(stateStr.toString()),
+                    callback
+            ).withStyle(style).withTitle(tech.description);
+        }).toArray(UIElement[]::new))
+                .withClass("tech-tree", "column2", "auto-expand", "auto-flow-container");
     }
 
     public static String displayDuration(Duration duration) {

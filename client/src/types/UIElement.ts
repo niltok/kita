@@ -8,4 +8,5 @@ export interface UIElement {
     callback?: any
     stateName?: string
     text?: string
+    title?: string
 }

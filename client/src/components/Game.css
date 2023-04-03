@@ -64,11 +64,17 @@
 }
 
 .tech-tree {
-    column-count: 2;
+}
+
+.auto-expand {
     flex: 1 1 0;
 }
 
-.tech-tree-item {
+.column2 {
+    column-count: 2;
+}
+
+.label-item {
     display: flex;
     justify-content: space-between;
     margin: .2em;
@@ -78,7 +84,7 @@
     flex: none;
 }
 
-.tech-trainer-container {
+.flex-box-container {
     display: flex;
     flex-direction: column;
     gap: 1em;

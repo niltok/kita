@@ -37,7 +37,7 @@ public class UserRenderer implements DrawablesRenderer {
         }
         var text = new Drawable.Text();
         text.y = -70;
-        text.text = "%s(%.1f, %.1f)".formatted(ctx.users().get(id).name(), info.x, info.y);
+        text.text = "%s(%.1f, %.1f)".formatted(ctx.getState(id).user.name(), info.x, info.y);
         text.style = "{\"fill\":\"red\",\"fontSize\":20}";
         var pic = new Drawable.Sprite();
         pic.bundle = "other";
@@ -67,7 +67,7 @@ public class UserRenderer implements DrawablesRenderer {
             drawables.put("user#%d.cursor".formatted(id), null);
             return;
         }
-        var pos = ctx.userInputs().get(id).pointAt;
+        var pos = ctx.getState(id).input.pointAt;
         var cursor = new Drawable.Sprite();
         cursor.x = pos.x * Drawable.scaling;
         cursor.y = pos.y * Drawable.scaling;

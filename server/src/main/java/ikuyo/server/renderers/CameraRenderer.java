@@ -11,7 +11,7 @@ public class CameraRenderer implements Renderer<CommonContext> {
         var res = JsonObject.of();
         ctx.updated().users().forEach(id -> {
             var info = ctx.star().starInfo().starUsers.get(id);
-            if (info == null) res.putNull(id.toString());
+            if (info == null || !info.online) res.putNull(id.toString());
             else res.put(id.toString(), JsonObject.of(
                     "x", info.x * Drawable.scaling,
                     "y", info.y * Drawable.scaling,

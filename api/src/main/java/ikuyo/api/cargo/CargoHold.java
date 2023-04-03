@@ -1,12 +1,11 @@
 package ikuyo.api.cargo;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import ikuyo.api.UIElement;
 import ikuyo.api.UnpackItem;
+import io.vertx.core.json.JsonObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 货舱<br>
@@ -136,5 +135,27 @@ public class CargoHold {
         unpacks.remove(index);
         restVolume -= -item.unpackVolume;
         return 0;
+    }
+    public UIElement renderUI() {
+        var uis = new ArrayList<UIElement>();
+        items.forEach((type, num) -> {
+            var item = Objects.requireNonNull(CargoItem.get(type));
+            JsonObject callback = null;
+            uis.add(UIElement.labelItem(
+                    new UIElement.Text(item.displayName),
+                    new UIElement.Text("Num: %d".formatted(num)),
+                    callback
+            ).withTitle(item.description));
+        });
+        unpacks.forEach(unpack -> {
+            var item = Objects.requireNonNull(CargoItem.get(unpack.getItemType()));
+            JsonObject callback = null;
+            uis.add(UIElement.labelItem(
+                    new UIElement.Text(item.displayName),
+                    new UIElement.Text(unpack.getItemInfo()),
+                    callback
+            ).withTitle(item.description));
+        });
+        return new UIElement("div", uis.toArray(UIElement[]::new));
     }
 }

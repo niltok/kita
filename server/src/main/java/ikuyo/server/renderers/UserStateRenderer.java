@@ -17,6 +17,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         context.star().starInfo().starUsers.forEach((id, info) -> {
+            if (!info.online) return;
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             var ship = info.spaceship;
             var weapon = ship.getCurrentWeapon();

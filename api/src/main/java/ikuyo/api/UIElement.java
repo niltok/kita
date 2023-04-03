@@ -2,8 +2,11 @@ package ikuyo.api;
 
 import io.vertx.core.json.JsonObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UIElement {
-    public String type;
+    public String type, title;
     public UIElement[] children;
     public JsonObject style = JsonObject.of();
     public String[] classes = new String[0];
@@ -16,13 +19,32 @@ public class UIElement {
         this.children = children;
     }
     public UIElement withStyle(JsonObject style) {
-        this.style = style;
+        this.style.mergeIn(style, true);
         return this;
     }
 
     public UIElement withClass(String... classes) {
         this.classes = classes;
         return this;
+    }
+
+    public UIElement withTitle(String title) {
+        this.title = title;
+        return this;
+    }
+
+    public UIElement appendClass(String... classes) {
+        var list = new ArrayList<>(List.of(this.classes));
+        list.addAll(List.of(classes));
+        this.classes = list.toArray(String[]::new);
+        return this;
+    }
+
+    public static UIElement labelItem(UIElement left, UIElement right, JsonObject callback) {
+        return new UIElement.Callback("div", callback,
+                new UIElement("span", left),
+                new UIElement("span", right)
+        ).withClass("label-item", "hover-label");
     }
 
     public static class Callback extends UIElement {

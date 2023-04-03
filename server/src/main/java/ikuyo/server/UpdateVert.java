@@ -29,9 +29,8 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
+import java.util.ArrayList;
 import java.util.Objects;
-
-import static ikuyo.api.Drawable.scaling;
 
 public class UpdateVert extends AsyncVerticle {
     public static final double MaxFps = 80;
@@ -47,7 +46,8 @@ public class UpdateVert extends AsyncVerticle {
             new PointerMovingBehavior(),
             new WeaponBehavior(),
             new UserAttackBehavior(),
-            new BulletBehavior()
+            new BulletBehavior(),
+            new PageBehavior()
     );
     Renderer<CommonContext> commonSeqRenderer = new CompositeRenderer<>(false,
             new DrawablesRenderer.Composite(
@@ -60,7 +60,8 @@ public class UpdateVert extends AsyncVerticle {
     Renderer<CommonContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer().withName("camera"),
             new UIRenderer.Composite<>(
-                    new UserStateRenderer()
+                    new UserStateRenderer(),
+                    new CargoRenderer()
             ).withName("ui")
     ).withName("star");
     CommonContext commonContext;
@@ -184,7 +185,7 @@ public class UpdateVert extends AsyncVerticle {
             }
             case "user.update" -> {
                 var id = json.getInteger("id");
-                commonContext.users().put(id, User.getUserById(pool, id));
+                commonContext.getState(id).user = User.getUserById(pool, id);
             }
             case "user.message" -> userEventHandler(json);
         }
@@ -192,19 +193,16 @@ public class UpdateVert extends AsyncVerticle {
 
     void userEventHandler(JsonObject json) {
         var msg = json.getJsonObject("msg");
-        switch (msg.getString("type")) {
+        var type = msg.getString("type");
+        var id = json.getInteger("userId");
+        switch (type) {
             case "star.operate.key" -> {
-                var id = json.getInteger("userId");
-                commonContext.userInputs().get(id).input(
+                commonContext.getState(id).input.input(
                         msg.getString("action"), msg.getInteger("value", 1));
                 commonContext.updated().users().add(id);
             }
-            case "star.operate.mouse" -> {
-                var id = json.getInteger("userId");
-                var pos = commonContext.userInputs().get(id).relativePointer;
-                if (msg.getDouble("x") == null || msg.getDouble("y") == null) break;
-                pos.x = msg.getDouble("x") / scaling;
-                pos.y = msg.getDouble("y") / scaling;
+            default -> {
+                commonContext.getState(id).events.computeIfAbsent(type, i -> new ArrayList<>()).add(msg);
                 commonContext.updated().users().add(id);
             }
         }
