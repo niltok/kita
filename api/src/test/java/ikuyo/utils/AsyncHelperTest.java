@@ -1,6 +1,5 @@
 package ikuyo.utils;
 
-import io.vertx.await.Async;
 import io.vertx.await.impl.VirtualThreadContext;
 import io.vertx.core.Vertx;
 import org.junit.jupiter.api.Assertions;

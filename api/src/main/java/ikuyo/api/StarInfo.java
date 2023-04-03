@@ -8,10 +8,16 @@ import ikuyo.api.spaceships.AbstractSpaceship;
 import ikuyo.utils.DataStatic;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import org.dyn4j.collision.narrowphase.Gjk;
+import org.dyn4j.collision.narrowphase.Raycast;
+import org.dyn4j.collision.narrowphase.RaycastDetector;
+import org.dyn4j.geometry.*;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 public class StarInfo {
     public Block[] blocks;
@@ -228,11 +234,42 @@ public class StarInfo {
     }
 
     public static void main(String[] args) {
-//        for (int i = 0; i < 100; i++) {
-//            System.out.println(OpenSimplex2S.noise2(0, i, 0) + 1);
-//        }
-//        System.out.println(OpenSimplex2S.noise2(0, 6, 0) + 1);
-//        System.out.println(Math.tan(0.8 * Math.PI / 2));
+/*
+        for (int i = 0; i < 100; i++) {
+            System.out.println(OpenSimplex2S.noise2(0, i, 0) + 1);
+        }
+        System.out.println(OpenSimplex2S.noise2(0, 6, 0) + 1);
+        System.out.println(Math.tan(0.8 * Math.PI / 2));
+*/
+
+/*
+        int testTier = 1000;
+        int error = 0;
+        for (int index = 0; index < testTier * (testTier+1) * 3 + 1; index++) {
+            Position position = posOf(index);
+            double x = position.x, y = position.y;
+
+            double radian = (Math.atan2(y, x) + Math.PI * 2) % (Math.PI * 2);
+            double PIDiv3 = Math.PI / 3;
+            int edge = (int)(radian / PIDiv3);
+            double i = radian % PIDiv3;
+            int tier = (int)(Math.cos(Math.abs(Math.PI / 6 - i))
+                    * Math.hypot(x, y) / tierDistance);
+            double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
+            percent += tier == 0 ? 0 : 1.0 / tier / 2;
+            percent = Math.round(percent * 1e6) / 1e6;
+
+            int detectIndex = edge * tier
+                    + (int)(percent * tier)
+                    + (tier - 1) * tier * 3 + Math.min(tier, 1);
+            if (detectIndex != index)
+                error++;
+            System.out.print(index + ", " + detectIndex + ", " + percent + "\n");
+        }
+        System.out.println(error);
+*/
+
+
     }
 
     public static int realIndexOf(int index, int mintier) {
@@ -302,41 +339,53 @@ public class StarInfo {
         return realIndex - minTier * (minTier - 1) * 3 - 1;
     }
 
+    //    todo: new Real
+    private static final Polygon hexagon = Geometry.createPolygon(getVertices());
+    private static Vector2[] getVertices() {
+        Vector2[] vertices = new Vector2[6];
+        for (int i = 0; i < 6; i++) {
+            vertices[i] = new Vector2(StarInfo.edgeLength * 1.001, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
+        }
+        return vertices;
+    }
     public static int realIndexOf(double x, double y) {
-        double radian = (Math.atan2(y,x) + Math.PI*2) % (Math.PI*2);
-        radian = Double.parseDouble(String.format("%.6f", radian));
-        double PIDiv3 = Double.parseDouble(String.format("%.6f", Math.PI/3));
+        double radian = (Math.atan2(y, x) + Math.PI * 2) % (Math.PI * 2);
+        double PIDiv3 = Math.PI / 3;
         int edge = (int)(radian / PIDiv3);
         double i = radian % PIDiv3;
-        int tier = (int)(Math.cos(Math.abs(Math.PI/6-i))*Math.hypot(x,y) / tierDistance);
-        double percent = (Math.tan(i)/Math.sin(Math.PI/3)) / (Math.tan(i)/Math.tan(Math.PI/3)+1);
-        if (percent > 1) percent -= 1.0;
+        int tier = (int)(Math.cos(Math.abs(Math.PI / 6 - i))
+                * Math.hypot(x, y) / tierDistance);
+        double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
+        double roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e9) / 1e9;
 
-//        System.out.println("{realIndexOf}\t[tier]: %d, [edge]: %d, [i]: %f, [percent]: %f"
-//                .formatted(tier, edge, i, percent));
+        int detectIndex = edge * tier
+                + (int)(roundPercent * tier)
+                + (tier - 1) * tier * 3 + Math.min(tier, 1);
+        if (tier != 0 && detectIndex / ((tier) * (tier + 1) * 3 + 1) >= 1)
+            detectIndex = (tier) * (tier - 1) * 3 + 1;
+        Position pos = posOf(detectIndex);
 
-        Map<Integer, Double> map = new HashMap<>();
-        if (tier == 0) map.put(0,Math.hypot(x, y));
-        for (i = 0; i < 2; i++) {
-            int index = edge * tier + (int)(percent * tier) + tier * (tier - 1) * 3 + 1;
-            Position pos = posOf(index);
-            map.put(index, Math.hypot(pos.x - x, pos.y - y));
+        RaycastDetector raycastDetector = new Gjk();
+        Transform transform = new Transform();
+        transform.setTranslation(pos.x, pos.y);
+        Raycast raycast = new Raycast();
 
-            if ((index + 1) / (double)(tier * (tier + 1) * 3) <= 1) index += 1;
-            else index = (tier - 1) * tier * 3 + 1;
-            pos = posOf(index);
-            map.put(index, Math.hypot(pos.x - x, pos.y - y));
+        raycastDetector.raycast(new Ray(new Vector2(), radian), Math.hypot(x, y), hexagon, transform, raycast);
+        raycastDetector.raycast(new Ray(raycast.getPoint().add(new Vector2(radian).multiply(1.5)),
+                radian + Math.PI),1.5, hexagon, transform, raycast);
+
+        int index = detectIndex;
+        if (raycast.getPoint().getMagnitude() < Math.hypot(x, y)) {
             tier++;
+            roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e9) / 1e9;
+            index = edge * tier
+                    + (int)(roundPercent * tier)
+                    + (tier - 1) * tier * 3 + Math.min(tier, 1);
+            if (index / ((tier) * (tier + 1) * 3 + 1) >= 1)
+                index = (tier) * (tier - 1) * 3 + 1;
         }
 
-        List<Entry<Integer, Double>> list = new ArrayList<>(map.entrySet());
-        list.sort(Entry.comparingByValue());
-
-//        for (var v: list) {
-//            System.out.println("[K]: %d, [V]: %f".formatted(v.getKey(), v.getValue()));
-//        }
-
-        return list.get(0).getKey();
+        return index;
     }
 
 /** <p>realIndex 周围 n 层的块的真实编号<p/>
