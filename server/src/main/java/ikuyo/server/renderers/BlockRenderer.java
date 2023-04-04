@@ -3,32 +3,46 @@ package ikuyo.server.renderers;
 import ikuyo.api.Drawable;
 import ikuyo.api.Position;
 import ikuyo.api.Star;
+import ikuyo.api.StarInfo;
 import ikuyo.server.api.CommonContext;
+import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.buffer.Buffer;
 
+import java.util.HashSet;
 import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
+    public static boolean surfaceOnly = false;
     @Override
     public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
         var star = context.star();
+        var update = new HashSet<>(context.updated().blocks());
 
-        if (!context.updated().init().get())
-            context.updated().blocks().forEach(id -> {
-                renderBlock(drawables, star, id);
+        context.updated().users().forEach(id -> {
+            var info = context.getInfo(id);
+            if (info == null || !info.online) return;
+            StarUtils.areasAround(info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling).forEach(area -> {
+                var state = context.areaStates().get(area);
+                if (state.loaded) return;
+                state.loaded = true;
+                update.addAll(StarInfo.getBlocksAt(area));
             });
-        else for (var i = 0; i < star.starInfo().blocks.length; i++)
-//            Surface only mode
-//            if (context.engine().surfaceBlocks.containsKey(i))
-            renderBlock(drawables, star, i);
+//            var area = StarInfo.getAreaOf(StarInfo.realIndexOf(info.x, info.y), StarInfo.areaSize);
+//            var state = context.areaStates().get(area);
+//            if (state.loaded) return;
+//            state.loaded = true;
+//            update.addAll(StarInfo.getBlocksAt(area));
+        });
+
+        update.forEach(id -> renderBlock(drawables, star, id));
     }
 
     private static void renderBlock(Map<String, Drawable> drawables, Star star, int i) {
         var block = star.starInfo().blocks[i];
-        if (block.isVisible) {
+        if (block.isVisible && (!surfaceOnly || block.isSurface)) {
             var d = new Drawable.Sprite();
-            Position pos = StarUtils.posOf(StarUtils.realIndexOf(i, star.starInfo().minTier));
+            Position pos = StarUtils.posOf(StarUtils.realIndexOf(i, StarInfo.minTier));
 //                System.out.println("[x]: %f, [y]: %f".formatted(pos.x, pos.y));
             d.x = pos.x * Drawable.scaling;
             d.y = pos.y * Drawable.scaling;

@@ -5,18 +5,24 @@ import ikuyo.api.StarInfo;
 import ikuyo.api.User;
 import io.vertx.core.Vertx;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static ikuyo.api.StarInfo.areaNum;
 
 public record CommonContext(
         Vertx vertx,
         Star star,
         Map<Integer, UserState> userStates,
+        List<AreaState> areaStates,
         UpdatedContext updated,
         PhysicsEngine engine
 ) {
     public CommonContext(Vertx vertx, Star star) {
-        this(vertx, star, new HashMap<>(), new UpdatedContext(), new PhysicsEngine());
+        this(vertx, star, new HashMap<>(), new ArrayList<>(areaNum), new UpdatedContext(), new PhysicsEngine());
+        for (int i = 0; i < areaNum * 10; i++) areaStates.add(new AreaState());
     }
     public void remove(Integer id) {
         engine().removeUser(id);
