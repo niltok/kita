@@ -10,7 +10,9 @@ public class PointerMovingBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
         context.updated().users().forEach((id) -> {
-            var input = context.getState(id).input;
+            var state = context.getState(id);
+            if (state == null) return;
+            var input = state.input;
             var pointerMsgs = context.getState(id).events.get("star.operate.mouse");
             if (pointerMsgs != null && !pointerMsgs.isEmpty()) {
                 var pointerMsg = pointerMsgs.get(pointerMsgs.size() - 1);

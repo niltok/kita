@@ -12,7 +12,7 @@ public class AbstractWeapon implements UnpackItem {
     public int ammoAmount = 0;
     public long restFireTime = 0;
     public double hp;
-    public boolean loading = false;
+    public boolean reloading = false;
 
     public AbstractWeapon(String type) {
         this.type = type;
@@ -34,6 +34,10 @@ public class AbstractWeapon implements UnpackItem {
         return Objects.requireNonNull(WeaponItem.get(type)).damage;
     }
 
+    public int getAmmoMax() {
+        return Objects.requireNonNull(getInfo()).ammoMax;
+    }
+
     public WeaponItem getInfo() {
         return WeaponItem.get(type);
     }
@@ -45,15 +49,15 @@ public class AbstractWeapon implements UnpackItem {
         return true;
     }
     /**
-     * 装入弹药（只会加装到 {@link WeaponItem#ammoMax}）
+     * 装入弹药（只会加装到 {@link AbstractWeapon#getAmmoMax()}）
      * @param provide 提供的弹药总量
      * @return 实际使用的弹药量
      * */
     public int loadAmmo(int provide) {
-        var use = Math.min(getInfo().ammoMax - ammoAmount, provide);
+        var use = Math.min(getAmmoMax() - ammoAmount, provide);
         ammoAmount += use;
         if (use > 0) {
-            loading = true;
+            reloading = true;
             restFireTime = 90;
         }
         return use;
@@ -61,7 +65,7 @@ public class AbstractWeapon implements UnpackItem {
 
     public void frame() {
         if (restFireTime > 0) restFireTime--;
-        if (restFireTime == 0) loading = false;
+        if (restFireTime == 0) reloading = false;
     }
 
     @Override
@@ -89,6 +93,7 @@ public class AbstractWeapon implements UnpackItem {
 
     @Override
     public String getItemInfo() {
-        return "";
+        if (reloading) return "(%s) Reloading".formatted(getAmmoType().displayName);
+        return "(%s) %d / %d".formatted(getAmmoType().displayName, ammoAmount, getAmmoMax());
     }
 }

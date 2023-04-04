@@ -35,14 +35,14 @@
     overflow: hidden;
 }
 
-.hover-label {
+.hover-label, .normal-label, .focus-label {
     border: 1px solid transparent;
     padding: 0.3em;
     border-radius: 8px;
     white-space: nowrap;
 }
 
-.hover-label:hover {
+.hover-label:hover, .focus-label {
     background: #1a1a1a;
     border-color: #646cff;
     z-index: 1;
@@ -78,6 +78,7 @@
     display: flex;
     justify-content: space-between;
     margin: .2em;
+    gap: 1em;
 }
 
 .tech-trainer-header {
@@ -109,6 +110,14 @@
 
 .no-cursor {
     cursor: none;
+}
+
+.pointer-cursor {
+    cursor: none;
+}
+
+.normal-cursor {
+    cursor: default;
 }
 
 .no-overflow {
