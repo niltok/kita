@@ -3,8 +3,8 @@ package ikuyo.server.renderers;
 import ikuyo.api.Drawable;
 import ikuyo.api.Position;
 import ikuyo.api.Star;
-import ikuyo.api.StarInfo;
 import ikuyo.server.api.CommonContext;
+import ikuyo.utils.StarUtils;
 import io.vertx.core.buffer.Buffer;
 
 import java.util.Map;
@@ -28,7 +28,7 @@ public class BlockRenderer implements DrawablesRenderer {
         var block = star.starInfo().blocks[i];
         if (block.isVisible) {
             var d = new Drawable.Sprite();
-            Position pos = StarInfo.posOf(StarInfo.realIndexOf(i, star.starInfo().minTier));
+            Position pos = StarUtils.posOf(StarUtils.realIndexOf(i, star.starInfo().minTier));
 //                System.out.println("[x]: %f, [y]: %f".formatted(pos.x, pos.y));
             d.x = pos.x * Drawable.scaling;
             d.y = pos.y * Drawable.scaling;

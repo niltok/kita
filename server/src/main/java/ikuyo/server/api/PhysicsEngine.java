@@ -5,6 +5,7 @@ import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.User;
 import ikuyo.server.UpdateVert;
+import ikuyo.utils.StarUtils;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Settings;
@@ -166,7 +167,7 @@ public class PhysicsEngine{
         BodyFixture fixture = body.addFixture(hexagon);
         fixture.setFriction(0.1);
         fixture.setFilter(BLOCK);
-        Position pos = StarInfo.posOf(StarInfo.realIndexOf(id, StarInfo.minTier));
+        Position pos = StarUtils.posOf(StarUtils.realIndexOf(id, StarInfo.minTier));
         body.translate(pos.x, pos.y);
 //        body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
         body.setMass(MassType.INFINITE);

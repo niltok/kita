@@ -7,7 +7,7 @@ public class StarTest {
     @Test
     public void starGenTest() {
         var startTime = System.nanoTime();
-        var star = StarInfo.gen(0);
+        var star = StarInfo.generate(0);
         var size = star.toString().length() / 1024.;
         var sizeCompressed = star.toBuffer().length() / 1024.;
         var runTime = System.nanoTime() - startTime;

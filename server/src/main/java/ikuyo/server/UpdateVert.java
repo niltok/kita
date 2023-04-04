@@ -128,7 +128,7 @@ public class UpdateVert extends AsyncVerticle {
             assert star != null;
             logger.info(JsonObject.of("type", "star.generating", "id", id, "name", star.name()));
             Buffer starInfo = await(Vertx.currentContext().executeBlocking(p ->
-                    p.complete(StarInfo.gen(star.seed()).toBuffer()), false));
+                    p.complete(StarInfo.generate(star.seed()).toBuffer()), false));
             await(pool.preparedQuery("""
                 update star set star_info = $2 where index = $1 returning index
                 """).execute(Tuple.of(id, starInfo)));

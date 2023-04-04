@@ -9,6 +9,7 @@ import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;
+import ikuyo.utils.StarUtils;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.AABB;
 import org.dyn4j.geometry.Vector2;
@@ -70,7 +71,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
     private void blockHandler(Vector2 position, Damage damage, CommonContext context) {
         var starInfo = context.star().starInfo();
 
-        int[] blocklist = StarInfo.nTierAround(new Position(position.x, position.y), damage.range)
+        int[] blocklist = StarUtils.nTierAround(new Position(position.x, position.y), damage.range)
                 .stream().mapToInt(Integer::valueOf).toArray();
         for (var b : blocklist) {
             if (starInfo.blocks[b].isDestructible) {
@@ -83,8 +84,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
             }
         }
 
-        for (var i : StarInfo.surfaceBlocks(
-                StarInfo.realIndexOf(position.x, position.y),
+        for (var i : StarUtils.surfaceBlocks(
+                StarUtils.realIndexOf(position.x, position.y),
                 (int) ((damage.range + StarInfo.edgeLength) * Math.sqrt(3) / 2 / StarInfo.tierDistance) - 1,
                 (int) ((damage.range + StarInfo.edgeLength) / StarInfo.tierDistance) + 2,
                 starInfo)) {
