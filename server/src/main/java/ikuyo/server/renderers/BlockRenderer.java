@@ -26,7 +26,7 @@ public class BlockRenderer implements DrawablesRenderer {
                 var state = context.areaStates().get(area);
                 if (state.loaded) return;
                 state.loaded = true;
-                update.addAll(StarInfo.getBlocksAt(area));
+                update.addAll(StarUtils.getBlocksAt(area));
             });
 //            var area = StarInfo.getAreaOf(StarInfo.realIndexOf(info.x, info.y), StarInfo.areaSize);
 //            var state = context.areaStates().get(area);
