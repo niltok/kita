@@ -64,7 +64,7 @@ public final class StarUtils {
             double rr = Math.hypot(pos.x - x, pos.y - y) + r;
             int tiers = (int) (rr / StarInfo.tierDistance) + 1;
 
-            int[] blocklist = nTierAround(index, tiers)
+            int[] blocklist = nTierAround(index, tiers, false)
                     .stream().mapToInt(Integer::valueOf).toArray();
 
 //            System.out.println("[r]: %f, [rr]: %f, [tier]: %d, [blocks]: %d".formatted(r, rr, tiers, blocklist.length));
@@ -135,32 +135,49 @@ public final class StarUtils {
 
     /**
      * <p>realIndex 周围 n 层的块的编号<p/>
-     * 返回的List中存储可以直接调用的 index , 而不是 realIndex
+     * @param realIndex 被查询块的真实编号
+     * @param n 查询层数
+     * @param returnRealIndex 是否返回真实编号<br/> <p> false 时会返回可以直接调用的 index 并进行过滤<p/>
      */
-    public static ArrayList<Integer> nTierAround(int realIndex, int n) {
+    public static ArrayList<Integer> nTierAround(int realIndex, int n, boolean returnRealIndex) {
         ArrayList<Integer> res = new ArrayList<>();
         Position pos = posOf(realIndex);
-        int extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3;
+        int extraBlock = 0;
+        if (!returnRealIndex)
+            extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
         for (int i = 0; i < n * (n + 1) * 3; i++) {
             Position posI = posOf(i + 1);
             int index = realIndexOf(pos.x + posI.x, pos.y + posI.y);
             int tier = tierOf(index);
-            if (tier >= StarInfo.minTier && tier <= StarInfo.maxTier) res.add(index - extraBlock - 1);
+            if (returnRealIndex ||
+                    (tier >= StarInfo.minTier && tier <= StarInfo.maxTier))
+                res.add(index - extraBlock);
         }
         return res;
     }
 
-    public static ArrayList<Integer> nTierAround(Position position, double r) {
+    /**
+     * <p>position 周围 r 范围内的块的编号<p/>
+     * @param position 中心位置
+     * @param r 覆盖半径
+     * @param returnRealIndex 是否返回真实编号<br/> <p> false 时会返回可以直接调用的 index 并进行过滤<p/>
+     */
+    public static ArrayList<Integer> nTierAround(Position position, double r, boolean returnRealIndex) {
         ArrayList<Integer> res = new ArrayList<>();
         Position pos = posOf(realIndexOf(position.x, position.y));
-        int extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3;
+        int extraBlock = 0;
+        if (!returnRealIndex)
+            extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
         int nTier = (int) ((r + StarInfo.edgeLength) / StarInfo.tierDistance) + 1;
         for (int i = 0; i < nTier * (nTier + 1) * 3 + 1; i++) {
             Position posI = posOf(i);
-            int index = realIndexOf(pos.x + posI.x, pos.y + posI.y);
-            int tier = tierOf(index);
-            if (tier >= StarInfo.minTier && tier <= StarInfo.maxTier && position.distance(posOf(index)) <= r)
-                res.add(index - extraBlock - 1);
+            int realIndex = realIndexOf(pos.x + posI.x, pos.y + posI.y);
+            int tier = tierOf(realIndex);
+            if (returnRealIndex ||
+                    (tier >= StarInfo.minTier
+                            && tier <= StarInfo.maxTier
+                            && position.distance(posOf(realIndex)) <= r))
+                res.add(realIndex - extraBlock);
         }
         return res;
     }
@@ -177,7 +194,7 @@ public final class StarUtils {
 
             if (tier >= StarInfo.minTier && tier <= StarInfo.maxTier) {
                 if (star.blocks[indexOf(index, StarInfo.minTier)].isVisible) {
-                    int[] blocklist = nTierAround(index, 1)
+                    int[] blocklist = nTierAround(index, 1, false)
                             .stream().mapToInt(Integer::valueOf).toArray();
                     for (var b : blocklist) {
                         if (star.blocks[b].type == 0) {
@@ -198,7 +215,7 @@ public final class StarUtils {
     public static int getAreaOf(int realIndex, int tier) {
         Position pos = posOf(realIndex);
         Vector2 trans = new Vector2(pos.x, pos.y);
-        trans.rotate(Math.PI / 6).divide(StarInfo.tierDistance * tier);
+        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * tier * 2);
 
         return realIndexOf(trans.x, trans.y);
     }
@@ -210,9 +227,9 @@ public final class StarUtils {
     public static ArrayList<Integer> getBlocksAt(int area, int tier) {
         Position center = posOf(area);
         Vector2 trans = new Vector2(center.x, center.y);
-        trans.rotate(-Math.PI / 6).multiply(StarInfo.tierDistance * tier);
+        trans.rotate(Math.PI / 6).multiply(StarInfo.tierDistance * tier * 2);
         int centerIndex = realIndexOf(trans.x, trans.y);
-        ArrayList<Integer> list = nTierAround(centerIndex, tier - 1);
+        ArrayList<Integer> list = nTierAround(centerIndex, tier - 1, false);
 
         int extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3;
         for (int index = tier * (tier - 1) * 3 + 1; index < tier * (tier + 1) * 3 + 1; index++) {
@@ -226,8 +243,8 @@ public final class StarUtils {
 
     public static ArrayList<Integer> areasAround(double x, double y, double r, int tier) {
         Vector2 trans = new Vector2(x, y);
-        trans.rotate(Math.PI / 6).divide(StarInfo.tierDistance * tier);
-        return nTierAround(new Position(trans.x, trans.y), r / StarInfo.tierDistance / tier + StarInfo.edgeLength);
+        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * tier * 2);
+        return nTierAround(new Position(trans.x, trans.y), r / (StarInfo.tierDistance * tier * 2) + StarInfo.edgeLength, true);
     }
 
     public static List<Integer> getBlocksAt(int area) {
@@ -240,6 +257,42 @@ public final class StarUtils {
 
     public static List<Integer> areasAround(double x, double y, double r) {
         return areasAround(x, y, r, areaSize);
+    }
+
+    public static String printBlock(int realIndex) {
+        Position position = posOf(realIndex);
+
+        double radian = (Math.atan2(position.y, position.x) + Math.PI * 2) % (Math.PI * 2);
+        double PIDiv3 = Math.PI / 3;
+        int edge = (int) (radian / PIDiv3);
+        double i = radian % PIDiv3;
+        int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
+                * Math.hypot(position.x, position.y) / StarInfo.tierDistance);
+        double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
+        double roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e8) / 1e8;
+
+        StringBuilder around = new StringBuilder("[aroundBlocks]:");
+        for (int index = 1; index < 7; index++) {
+            Position posI = posOf(index);
+            around.append(" {%d}".formatted(realIndexOf(position.x + posI.x, position.y + posI.y)));
+        }
+
+        return ("""
+                [info - %d]: {\s
+                \t[realIndex]: %d, [index]: %d, [tier]: %d, [position]: x - %f, y - %f\s
+                \t[angle]: %f, [edge]: %d, [edgePercent]: %f, [roundPercent], %f\s
+                \t%s\s
+                }""")
+                .formatted(realIndex,
+                        realIndex,
+                        indexOf(realIndex, StarInfo.minTier),
+                        tierOf(realIndex),
+                        position.x, position.y,
+                        radian,
+                        edge + 1,
+                        percent,
+                        roundPercent,
+                        around.toString());
     }
 
     public static void main(String[] args) {

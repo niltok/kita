@@ -1,12 +1,43 @@
 package ikuyo.utils;
 
 import ikuyo.api.Position;
+import ikuyo.api.StarInfo;
 import org.dyn4j.geometry.Vector2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 
-public class StarInfoTest {
+
+public class StarUtilsTest {
+    @Test
+    public void printBlock() {
+        System.out.println(StarUtils.printBlock(7));
+    }
+    @Test
+    public void Teat_area() {
+        int num = 0, error = 0;
+        int testArea = StarUtils.areaNum;
+        for (int i = 0; i < 10; i++) {
+            List<Integer> list = StarUtils.getBlocksAt(i);
+            for (var index: list) {
+                num++;
+                int reaIndex = StarUtils.realIndexOf(index, StarInfo.minTier);
+//                System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";index: " + reaIndex);
+
+                if (StarUtils.getAreaOf(reaIndex) != i) {
+                    error++;
+                    System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";realIndex: " + reaIndex);
+                }
+
+//                Assertions.assertEquals(StarUtils.getAreaOf(reaIndex), i);
+            }
+        }
+
+        System.out.println(num + "," + error);
+
+    }
+
     @Test
     public void Test_realIndexOf() {
         int testTier = 1000;

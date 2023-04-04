@@ -71,7 +71,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
     private void blockHandler(Vector2 position, Damage damage, CommonContext context) {
         var starInfo = context.star().starInfo();
 
-        int[] blocklist = StarUtils.nTierAround(new Position(position.x, position.y), damage.range)
+        int[] blocklist = StarUtils.nTierAround(new Position(position.x, position.y), damage.range, false)
                 .stream().mapToInt(Integer::valueOf).toArray();
         for (var b : blocklist) {
             if (starInfo.blocks[b].isDestructible) {
