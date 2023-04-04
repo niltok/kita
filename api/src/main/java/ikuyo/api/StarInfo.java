@@ -478,7 +478,7 @@ public class StarInfo {
 
     public static ArrayList<Integer> areasAround(double x, double y, double r, int tier) {
         Vector2 trans = new Vector2(x, y);
-        trans.rotate(-Math.PI / 6).multiply(tierDistance * tier);
+        trans.rotate(Math.PI / 6).divide(tierDistance * tier);
         return nTierAround(new Position(trans.x, trans.y), r / tierDistance / tier + edgeLength);
     }
 
