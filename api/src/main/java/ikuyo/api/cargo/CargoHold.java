@@ -145,7 +145,7 @@ public class CargoHold {
                     new UIElement.Text(item.displayName),
                     new UIElement.Text("Num: %d".formatted(num)),
                     callback
-            ).withTitle(item.description));
+            ).appendClass("hover-label").withTitle(item.description));
         });
         unpacks.forEach(unpack -> {
             var item = Objects.requireNonNull(CargoItem.get(unpack.getItemType()));
@@ -154,7 +154,7 @@ public class CargoHold {
                     new UIElement.Text(item.displayName),
                     new UIElement.Text(unpack.getItemInfo()),
                     callback
-            ).withTitle(item.description));
+            ).appendClass("hover-label").withTitle(item.description));
         });
         return new UIElement("div", uis.toArray(UIElement[]::new));
     }

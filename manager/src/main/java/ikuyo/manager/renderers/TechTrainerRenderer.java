@@ -51,10 +51,8 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
             } else {
                 stateStr.append("Max Level");
             }
-            var style = JsonObject.of();
             JsonObject callback = null;
             if (data.level < tech.maxLevel && tree.canTrain(new TechLevel(tech, data.level + 1))) {
-                style.put("cursor", "pointer");
                 callback = JsonObject.of(
                         "type", "techTrainer.train",
                         "tech", tech.name(),
@@ -65,7 +63,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
                     new UIElement.Text(tech.displayName),
                     new UIElement.Text(stateStr.toString()),
                     callback
-            ).withStyle(style).withTitle(tech.description);
+            ).appendClass("hover-label").withTitle(tech.description);
         }).toArray(UIElement[]::new))
                 .withClass("tech-tree", "column2", "auto-expand", "auto-flow-container");
     }

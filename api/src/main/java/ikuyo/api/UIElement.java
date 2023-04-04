@@ -41,10 +41,22 @@ public class UIElement {
     }
 
     public static UIElement labelItem(UIElement left, UIElement right, JsonObject callback) {
+        var clickable = callback != null && !callback.isEmpty();
         return new UIElement.Callback("div", callback,
                 new UIElement("span", left),
                 new UIElement("span", right)
-        ).withClass("label-item", "hover-label");
+        ).withClass("label-item", clickable ? "pointer-cursor" : "normal-cursor");
+    }
+
+    public static UIElement labelItem(UIElement left, UIElement right) {
+        return new UIElement("div",
+                new UIElement("span", left),
+                new UIElement("span", right)
+        ).withClass("label-item", "normal-cursor");
+    }
+
+    public static UIElement labelItem(String left, String right) {
+        return labelItem(new UIElement.Text(left), new UIElement.Text(right));
     }
 
     public static class Callback extends UIElement {
