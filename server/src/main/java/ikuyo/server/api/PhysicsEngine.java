@@ -128,9 +128,9 @@ public class PhysicsEngine{
                     (double) 50 * 50 / 12));
 
             if (user.isAdmin()) {
-//                fixture.setFilter(filter -> false);
-                fixture.setFilter(USER);
-                body.setLinearDamping(5);
+                fixture.setFilter(filter -> false);
+//                fixture.setFilter(USER);
+                body.setLinearDamping(2);
                 body.setGravityScale(0);
                 body.setRotatable(true);
             }
@@ -167,7 +167,7 @@ public class PhysicsEngine{
         BodyFixture fixture = body.addFixture(hexagon);
         fixture.setFriction(0.1);
         fixture.setFilter(BLOCK);
-        Position pos = StarUtils.posOf(StarUtils.realIndexOf(id, StarInfo.minTier));
+        Position pos = StarUtils.positionOf(StarUtils.realIndexOf(id));
         body.translate(pos.x, pos.y);
 //        body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
         body.setMass(MassType.INFINITE);

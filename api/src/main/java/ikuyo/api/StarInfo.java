@@ -68,7 +68,7 @@ public class StarInfo {
         tierNum = Math.max(maxTier - baseTier - (int)(random.nextDouble() * 100) - 100, tierNum);
 
  //        圆角修饰部分_in
-        int indexInside = StarUtils.realIndexOf(0, minTier);
+        int indexInside = StarUtils.realIndexOf(0);
         double rInside = StarUtils.heightOf(indexInside);
         int tierInside = (int)((Math.sqrt(3)*2/3-1) * rInside) + 1 + minTier;
         int roundNumInside = tierInside*(tierInside+1)*3 - minTier *(minTier -1)*3;
@@ -101,7 +101,7 @@ public class StarInfo {
         }
 
 //        圆角修饰部分_out
-        int index_out = StarUtils.realIndexOf(roundNumOutside, minTier);
+        int index_out = StarUtils.realIndexOf(roundNumOutside);
         info.star_r = StarUtils.heightOf(tierNum*(tierNum-1)*3+1) * tierDistance;
         double dropHeight = baseTier * StarInfo.tierDistance;
 
@@ -142,12 +142,12 @@ public class StarInfo {
 */
 
 //        石头
-        int index = StarUtils.realIndexOf(0, minTier);
+        int index = StarUtils.realIndexOf(0);
         noiseSeed = random.nextLong();
         range = new Range(random.nextLong());
         for (int i = 0; i < groundNum; i++) {
             if (info.blocks[i].isVisible) {
-                Position pos = StarUtils.posOf(index);
+                Position pos = StarUtils.positionOf(index);
                 double height = Math.hypot(pos.x, pos.y);
                 double percent = StarUtils.angleOf(index) / Math.PI / 2.0;
                 double Random = range.Random(percent);
