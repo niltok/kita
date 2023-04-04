@@ -42,6 +42,7 @@ public class UpdateVert extends AsyncVerticle {
     String msgVertId;
     PgPool pool;
     Behavior<CommonContext> mainBehavior = new CompositeBehavior<>(
+            new KeyInputBehavior(),
             new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
             new PointerMovingBehavior(),
@@ -194,22 +195,11 @@ public class UpdateVert extends AsyncVerticle {
                 var id = json.getInteger("id");
                 commonContext.getState(id).user = User.getUserById(pool, id);
             }
-            case "user.message" -> userEventHandler(json);
-        }
-    }
-
-    void userEventHandler(JsonObject json) {
-        var msg = json.getJsonObject("msg");
-        var type = msg.getString("type");
-        var id = json.getInteger("userId");
-        switch (type) {
-            case "star.operate.key" -> {
-                commonContext.getState(id).input.input(
-                        msg.getString("action"), msg.getInteger("value", 1));
-                commonContext.updated().users().add(id);
-            }
-            default -> {
-                commonContext.getState(id).events.computeIfAbsent(type, i -> new ArrayList<>()).add(msg);
+            case "user.message" -> {
+                var userMsg = json.getJsonObject("msg");
+                var type = userMsg.getString("type");
+                var id = json.getInteger("userId");
+                commonContext.getState(id).events.computeIfAbsent(type, i -> new ArrayList<>()).add(userMsg);
                 commonContext.updated().users().add(id);
             }
         }
