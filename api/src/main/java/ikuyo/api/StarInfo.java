@@ -198,6 +198,15 @@ public class StarInfo {
             this.y = y;
             online = true;
         }
+
+        public boolean frame() {
+            boolean update = false;
+            for (var weapon : spaceship.weapons) {
+                if (weapon.restFireTime > 0) update = true;
+                weapon.frame();
+            }
+            return update;
+        }
     }
 
 //        /**创建属于你的星球

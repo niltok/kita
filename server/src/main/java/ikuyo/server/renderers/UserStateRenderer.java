@@ -32,9 +32,11 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
 
     private static UIElement getShipInfo(AbstractSpaceship ship) {
         return new UIElement("div",
-                UIElement.labelItem("Shield", "%.0f".formatted(ship.shield))
+                UIElement.labelItem("Shield", "%.0f".formatted(ship.shield),
+                                ship.shield / ship.getMaxShield())
                         .appendClass("normal-label"),
-                UIElement.labelItem("HP", "%.0f".formatted(ship.hp))
+                UIElement.labelItem("HP", "%.0f".formatted(ship.hp),
+                                ship.hp / ship.getMaxHp())
                         .appendClass("normal-label")
         ).withClass("left-bottom", "pointer-pass-all", "background");
     }
@@ -43,7 +45,11 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         var ui = new ArrayList<UIElement>();
         var current = ship.getCurrentWeapon();
         ship.weapons.forEach(weapon -> {
-            ui.add(UIElement.labelItem(weapon.getInfo().displayName, weapon.getItemInfo())
+            var percent = weapon.reloading ? (double) weapon.restFireTime / weapon.getReloadingTime() :
+                    weapon.restFireTime == 0 ?
+                            (double) weapon.ammoAmount / weapon.getAmmoMax() :
+                            (double) weapon.restFireTime / weapon.getFireTime();
+            ui.add(UIElement.labelItem(weapon.getInfo().displayName, weapon.getItemInfo(), percent)
                     .appendClass(current == weapon ? "focus-label" : "normal-label"));
         });
         return new UIElement("div", ui.toArray(UIElement[]::new))

@@ -34,13 +34,11 @@ public record CommonContext(
         updated().users().add(id);
     }
     public void frame() {
+        updated().clear();
         getInfos().forEach((id, info) -> {
-            for (var weapon : info.spaceship.weapons) {
-                weapon.frame();
-            }
+            if (info.frame()) updated().users().add(id);
         });
         userStates().forEach((i, s) -> s.frame());
-        updated().clear();
     }
 
     public StarInfo.StarUserInfo getInfo(int id) {

@@ -55,6 +55,24 @@ public class UIElement {
         ).withClass("label-item", "normal-cursor");
     }
 
+    public static UIElement labelItem(UIElement left, UIElement right, double percent, String color) {
+        var style = JsonObject.of("width", "%f%%".formatted(percent * 100));
+        if (color != null && !color.isEmpty()) style.put("background-color", color);
+        return new UIElement("div",
+                new UIElement("div").withClass("label-percent").withStyle(style),
+                new UIElement("span", left),
+                new UIElement("span", right)
+        ).withClass("label-item", "normal-cursor");
+    }
+
+    public static UIElement labelItem(String left, String right, double percent, String color) {
+        return labelItem(new UIElement.Text(left), new UIElement.Text(right), percent, color);
+    }
+
+    public static UIElement labelItem(String left, String right, double percent) {
+        return labelItem(left, right, percent, null);
+    }
+
     public static UIElement labelItem(String left, String right) {
         return labelItem(new UIElement.Text(left), new UIElement.Text(right));
     }

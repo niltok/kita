@@ -51,7 +51,7 @@ public class AbstractSpaceship implements UnpackItem {
         var weapon = getCurrentWeapon();
         var ammo = weapon.getAmmoType().type();
         if (weapon.ammoAmount == 0)
-            cargoHold.take(ammo, weapon.loadAmmo(cargoHold.items.getOrDefault(ammo, 0)));
+            cargoHold.take(ammo, weapon.reloadAmmo(cargoHold.items.getOrDefault(ammo, 0)));
         return weapon.tryFire();
     }
 

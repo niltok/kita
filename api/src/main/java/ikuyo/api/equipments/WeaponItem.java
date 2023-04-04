@@ -9,7 +9,7 @@ public class WeaponItem extends EquipmentItem {
     public final Damage damage;
     public final int ammoMax;
     public final double velocity, collisionRange;
-    public final long fireTime;
+    public final long fireTime, reloadingTime;
     public final AmmoItem ammoType;
 
     public WeaponItem(String displayName,
@@ -23,6 +23,7 @@ public class WeaponItem extends EquipmentItem {
                       double velocity,
                       double collisionRange,
                       long fireTime,
+                      long reloadingTime,
                       AmmoItem ammoType) {
         super(displayName, description, volume, unpackVolume, unpackClass, hpMax);
         this.damage = damage;
@@ -30,6 +31,7 @@ public class WeaponItem extends EquipmentItem {
         this.collisionRange = collisionRange;
         this.ammoMax = ammoMax;
         this.fireTime = fireTime;
+        this.reloadingTime = reloadingTime;
         this.ammoType = ammoType;
     }
     public static WeaponItem get(String index) {

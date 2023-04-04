@@ -23,28 +23,36 @@ public class AbstractWeapon implements UnpackItem {
     public AbstractWeapon() {}
 
     public double getMaxHp() {
-        return Objects.requireNonNull(WeaponItem.get(type)).hpMax;
+        return getInfo().hpMax;
     }
 
     public AmmoItem getAmmoType() {
-        return Objects.requireNonNull(WeaponItem.get(type)).ammoType;
+        return getInfo().ammoType;
     }
 
     public Damage getDamage() {
-        return Objects.requireNonNull(WeaponItem.get(type)).damage;
+        return getInfo().damage;
     }
 
     public int getAmmoMax() {
-        return Objects.requireNonNull(getInfo()).ammoMax;
+        return getInfo().ammoMax;
+    }
+
+    public long getFireTime() {
+        return getInfo().fireTime;
+    }
+
+    public long getReloadingTime() {
+        return getInfo().reloadingTime;
     }
 
     public WeaponItem getInfo() {
-        return WeaponItem.get(type);
+        return Objects.requireNonNull(WeaponItem.get(type));
     }
 
     public boolean tryFire() {
         if (restFireTime != 0 || ammoAmount == 0) return false;
-        restFireTime = Objects.requireNonNull(WeaponItem.get(type)).fireTime;
+        restFireTime = getFireTime();
         ammoAmount--;
         return true;
     }
@@ -53,12 +61,12 @@ public class AbstractWeapon implements UnpackItem {
      * @param provide 提供的弹药总量
      * @return 实际使用的弹药量
      * */
-    public int loadAmmo(int provide) {
+    public int reloadAmmo(int provide) {
         var use = Math.min(getAmmoMax() - ammoAmount, provide);
         ammoAmount += use;
         if (use > 0) {
             reloading = true;
-            restFireTime = 90;
+            restFireTime = getReloadingTime();
         }
         return use;
     }

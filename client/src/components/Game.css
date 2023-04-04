@@ -1,4 +1,4 @@
-.absolute {
+.absolute, .label-percent {
     position: absolute;
     top: 0;
     left: 0;
@@ -36,16 +36,24 @@
 }
 
 .hover-label, .normal-label, .focus-label {
+    position: relative;
     border: 1px solid transparent;
     padding: 0.3em;
     border-radius: 8px;
     white-space: nowrap;
+    overflow: hidden;
 }
 
 .hover-label:hover, .focus-label {
     background: #1a1a1a;
     border-color: #646cff;
     z-index: 1;
+}
+
+.label-percent {
+    background-color: #ff000080;
+    height: 100%;
+    z-index: -1;
 }
 
 .starmap-dot {
