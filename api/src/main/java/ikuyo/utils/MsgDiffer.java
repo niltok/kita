@@ -11,9 +11,9 @@ import io.vertx.core.json.JsonObject;
 import java.util.*;
 
 public class MsgDiffer {
-    static final double blockSize = Math.sqrt(Drawable.scaling * StarInfo.maxTier * 2);
-    static final double cacheRange = 1500;
-    static final long blockRange = (long) (cacheRange / blockSize);
+    public static final double blockSize = Math.sqrt(Drawable.scaling * StarInfo.maxTier * 2);
+    public static final double cacheRange = 1500;
+    public static final long blockRange = (long) (cacheRange / blockSize);
     Map<String, Drawable> prev = new HashMap<>();
     PhTree<Set<String>> tree = PhTree.create(2);
     Set<Changed> changed = new HashSet<>(), traced = new HashSet<>();
