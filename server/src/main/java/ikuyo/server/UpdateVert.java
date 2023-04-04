@@ -164,10 +164,13 @@ public class UpdateVert extends AsyncVerticle {
             }
             case "user.add" -> {
                 var id = json.getInteger("id");
-                var info = json.getJsonObject("userInfo");
+                var infoJson = json.getJsonObject("userInfo");
                 var user = User.getUserById(pool, id);
-                star.starInfo().starUsers.computeIfAbsent(id, i ->
-                        info == null ? new UserInfo() : info.mapTo(UserInfo.class)).online = true;
+                var info = star.starInfo().starUsers.computeIfAbsent(id, i ->
+                        infoJson == null ? new UserInfo() : infoJson.mapTo(UserInfo.class));
+                info.online = true;
+                info.x = 0;
+                info.y = StarInfo.maxTier;
                 assert user != null;
                 commonContext.add(id, user);
                 msg.reply(JsonObject.of("type", "success"));
