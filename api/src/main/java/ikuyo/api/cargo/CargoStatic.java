@@ -2,9 +2,9 @@ package ikuyo.api.cargo;
 
 import com.google.common.collect.ImmutableList;
 import ikuyo.api.Damage;
-import ikuyo.api.equipments.AbstractWeapon;
 import ikuyo.api.equipments.EquipmentItem;
 import ikuyo.api.equipments.WeaponItem;
+import ikuyo.api.equipments.WeaponItemBuilder;
 import ikuyo.api.spaceships.AbstractSpaceship;
 import ikuyo.api.spaceships.SpaceshipItem;
 
@@ -22,12 +22,10 @@ public class CargoStatic {
             5000, AbstractSpaceship.class, 100, 100, 10, 2);
     public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01);
     public static final WeaponItem
-            defaultWeapon = new WeaponItem("默认武器", "",
-            5, 5, AbstractWeapon.class, 10, new Damage(50).setRange(5),
-            60, 150, 0.3, 60, defaultAmmo),
-            r400 = new WeaponItem("R400", "",
-            5, 5, AbstractWeapon.class, 10, new Damage(1).setRange(0.1).setIfBreakBlock(false),
-            60, 150, 0.1, 6, defaultAmmo)
+            defaultWeapon = WeaponItemBuilder.create("默认武器", "",
+                    new Damage(50).setRange(5)).withCollisionRange(0.3).build(),
+            r400 = WeaponItemBuilder.create("R400", "",
+                    new Damage(1).setRange(0.1).setIfBreakBlock(false)).withFireTime(6).build()
     ;
 
     public static <W, T> ImmutableList<T> filterType(List<W> list, Class<T> clazz) {
