@@ -4,6 +4,10 @@
     left: 0;
 }
 
+.relative {
+    position: relative;
+}
+
 .fullscreen {
     height: 100vh;
     width: 100vw;
@@ -36,12 +40,10 @@
 }
 
 .hover-label, .normal-label, .focus-label {
-    position: relative;
     border: 1px solid transparent;
     padding: 0.3em;
     border-radius: 8px;
     white-space: nowrap;
-    overflow: hidden;
 }
 
 .hover-label:hover, .focus-label {

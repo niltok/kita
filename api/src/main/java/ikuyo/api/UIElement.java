@@ -62,7 +62,7 @@ public class UIElement {
                 new UIElement("div").withClass("label-percent").withStyle(style),
                 new UIElement("span", left),
                 new UIElement("span", right)
-        ).withClass("label-item", "normal-cursor");
+        ).withClass("label-item", "no-overflow", "relative", "normal-cursor");
     }
 
     public static UIElement labelItem(String left, String right, double percent, String color) {
