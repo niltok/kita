@@ -42,7 +42,7 @@ public class StarInfoTest {
             pos = StarUtils.posOf(index);
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
-                        .add(new Vector2(0.499, 0).rotate(i * Math.PI / 3));
+                        .add(new Vector2(0.4999, 0).rotate(i * Math.PI / 3));
                 Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), index);
             }
         }

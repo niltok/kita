@@ -10,7 +10,7 @@ import org.dyn4j.geometry.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StarUtils {
+public final class StarUtils {
     public static final int areaTier = 30;
     public static final int areaNum = areaTier * (areaTier + 1) * 3 + 1;
     public static final int areaSize = 15;
@@ -101,7 +101,7 @@ public class StarUtils {
         int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
                 * Math.hypot(x, y) / StarInfo.tierDistance);
         double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
-        double roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e9) / 1e9;
+        double roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e8) / 1e8;
 
         int detectIndex = edge * tier
                 + (int) (roundPercent * tier)
@@ -122,7 +122,7 @@ public class StarUtils {
         int index = detectIndex;
         if (raycast.getPoint().getMagnitude() < Math.hypot(x, y)) {
             tier++;
-            roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e9) / 1e9;
+            roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e8) / 1e8;
             index = edge * tier
                     + (int) (roundPercent * tier)
                     + (tier - 1) * tier * 3 + Math.min(tier, 1);
@@ -244,6 +244,7 @@ public class StarUtils {
 
     public static void main(String[] args) {
 
+/*
         int testTier = 1000;
         int error = 0;
         for (int index = 0; index < testTier * (testTier+1) * 3 + 1; index++) {
@@ -268,6 +269,19 @@ public class StarUtils {
             System.out.print(index + ", " + detectIndex + ", " + percent + "\n");
         }
         System.out.println(error);
+*/
 
+        Position pos = posOf(2);
+        RaycastDetector raycastDetector = new Gjk();
+        Transform transform = new Transform();
+        transform.setTranslation(pos.x, pos.y);
+        Raycast raycast = new Raycast();
+
+        raycastDetector.raycast(
+                new Ray(new Vector2(Math.PI / 2).getNormalized().multiply(5), -Math.PI / 2),
+                10, hexagon, transform, raycast);
+
+        System.out.println(raycast.getPoint());
+        System.out.println(StarInfo.edgeLength * 2);
     }
 }
