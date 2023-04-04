@@ -145,8 +145,8 @@ public final class StarUtils {
         int extraBlock = 0;
         if (!returnRealIndex)
             extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
-        for (int i = 0; i < n * (n + 1) * 3; i++) {
-            Position posI = posOf(i + 1);
+        for (int i = 0; i < n * (n + 1) * 3 + 1; i++) {
+            Position posI = posOf(i);
             int index = realIndexOf(pos.x + posI.x, pos.y + posI.y);
             int tier = tierOf(index);
             if (returnRealIndex ||
@@ -194,9 +194,9 @@ public final class StarUtils {
 
             if (tier >= StarInfo.minTier && tier <= StarInfo.maxTier) {
                 if (star.blocks[indexOf(index, StarInfo.minTier)].isVisible) {
-                    int[] blocklist = nTierAround(index, 1, false)
-                            .stream().mapToInt(Integer::valueOf).toArray();
-                    for (var b : blocklist) {
+                    ArrayList<Integer> list = nTierAround(index, 1, false);
+                    if (!list.isEmpty()) list.remove(0);
+                    for (var b : list) {
                         if (star.blocks[b].type == 0) {
                             result.add(indexOf(index, StarInfo.minTier));
                             break;
