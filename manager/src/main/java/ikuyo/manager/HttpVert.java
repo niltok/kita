@@ -133,7 +133,7 @@ public class HttpVert extends AsyncVerticle {
     }
 
     static final int timeout = 10000;
-    void registerUser(User user, String socket, int retry) {
+    void registerUser(User user, String socket, JsonObject info, int retry) {
         try {
             var summery = Star.getSummery(pool, user.star());
             assert summery != null;
@@ -146,7 +146,7 @@ public class HttpVert extends AsyncVerticle {
                 ), new DeliveryOptions().setSendTimeout(timeout)));
             }
             await(eventBus.request("star." + user.star(), JsonObject.of(
-                    "type", "user.add", "socket", socket, "id", user.id()
+                    "type", "user.add", "socket", socket, "id", user.id(), "userInfo", info
             ), new DeliveryOptions().setSendTimeout(timeout)));
         } catch (Exception e) {
             // 尝试切换节点再加载
@@ -162,7 +162,7 @@ public class HttpVert extends AsyncVerticle {
             if (retry > 0) {
                 await(delay(Duration.ofSeconds(3)));
                 logger.info(JsonObject.of("type", "user.register.retry", "remain", retry));
-                registerUser(user, socket, retry - 1);
+                registerUser(user, socket, info, retry - 1);
             }
             else throw new RuntimeException("server busy");
         }
@@ -185,7 +185,7 @@ public class HttpVert extends AsyncVerticle {
                 commonContext.userState().put(user.id(), new UserState(socket.writeHandlerID(), user));
                 mainBehavior.update(new BehaviorContext(user.id(), msg, commonContext));
                 renderUI();
-                registerUser(user, socket.writeHandlerID(), 6);
+                registerUser(user, socket.writeHandlerID(), null, 6);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
             case "user.move" -> {
@@ -193,14 +193,14 @@ public class HttpVert extends AsyncVerticle {
                 var id = socketCache.get(socket.writeHandlerID()).id();
                 mainBehavior.update(new BehaviorContext(id, msg, commonContext));
                 renderUI();
-                await(eventBus.request(socketAddress(socket), JsonObject.of(
-                        "type", "user.remove", "id", id)));
+                var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
+                        "type", "user.remove", "id", id))).body();
                 await(pool.preparedQuery("""
                     update "user" set star = $2 where id = $1
                     """).execute(Tuple.of(id, target)));
                 var user = User.getUserById(pool, id);
                 assert user != null;
-                registerUser(user, socket.writeHandlerID(), 3);
+                registerUser(user, socket.writeHandlerID(), res.getJsonObject("userInfo"), 3);
                 socketCache.put(socket.writeHandlerID(), user);
                 commonContext.userState().get(id).user = user;
                 commonContext.updated().users().add(id);

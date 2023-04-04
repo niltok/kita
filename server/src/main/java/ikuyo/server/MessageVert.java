@@ -18,17 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static ikuyo.utils.AsyncStatic.delay;
 
-class UserState {
-    JsonObject specialCache = JsonObject.of();
-    Set<MsgDiffer.LongPair> drawableCache = new HashSet<>();
-    Position camera = new Position();
-    /** 发往这个地址的内容必须序列化为 Buffer 或 String */
-    String socket;
-    public UserState(String socket) {
-        this.socket = socket;
-    }
-}
-
 public class MessageVert extends AsyncVerticle {
     public static final boolean reserveStar = false;
     public static final Duration reserveTime = Duration.ofMinutes(5);
@@ -40,6 +29,17 @@ public class MessageVert extends AsyncVerticle {
     Map<Integer, UserState> userStates = new HashMap<>();
     JsonObject commonCache = JsonObject.of(), drawableCache = JsonObject.of();
     Lock barrier = new ReentrantLock(true);
+
+    static class UserState {
+        JsonObject specialCache = JsonObject.of();
+        Set<MsgDiffer.LongPair> drawableCache = new HashSet<>();
+        Position camera = new Position();
+        /** 发往这个地址的内容必须序列化为 Buffer 或 String */
+        String socket;
+        public UserState(String socket) {
+            this.socket = socket;
+        }
+    }
 
     @Override
     public void start() throws Exception {
@@ -76,7 +76,7 @@ public class MessageVert extends AsyncVerticle {
             case "user.remove" -> {
                 var id = json.getInteger("id");
                 var userState = userStates.get(id);
-                await(eventBus.request(updaterId, json));
+                var res = await(eventBus.request(updaterId, json)).body();
                 eventBus.send(userState.socket, JsonObject.of(
                         "type", "state.dispatch",
                         "action", "gameState/diffGame",
@@ -92,7 +92,7 @@ public class MessageVert extends AsyncVerticle {
                     barrier.unlock();
                 }
                 userStates.remove(id);
-                msg.reply(JsonObject.of("type", "success"));
+                msg.reply(res);
                 if (userStates.isEmpty()) {
                     if (reserveStar) await(delay(reserveTime));
                     if (userStates.isEmpty())
