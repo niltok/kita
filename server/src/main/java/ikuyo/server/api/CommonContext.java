@@ -3,14 +3,13 @@ package ikuyo.server.api;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.User;
+import ikuyo.utils.StarUtils;
 import io.vertx.core.Vertx;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static ikuyo.api.StarInfo.areaNum;
 
 public record CommonContext(
         Vertx vertx,
@@ -21,8 +20,8 @@ public record CommonContext(
         PhysicsEngine engine
 ) {
     public CommonContext(Vertx vertx, Star star) {
-        this(vertx, star, new HashMap<>(), new ArrayList<>(areaNum), new UpdatedContext(), new PhysicsEngine());
-        for (int i = 0; i < areaNum * 10; i++) areaStates.add(new AreaState());
+        this(vertx, star, new HashMap<>(), new ArrayList<>(StarUtils.areaNum), new UpdatedContext(), new PhysicsEngine());
+        for (int i = 0; i < StarUtils.areaNum * 10; i++) areaStates.add(new AreaState());
     }
     public void remove(Integer id) {
         engine().removeUser(id);
