@@ -22,7 +22,7 @@ public record CommonContext(
 ) {
     public CommonContext(Vertx vertx, Star star) {
         this(vertx, star, new HashMap<>(), new ArrayList<>(areaNum), new UpdatedContext(), new PhysicsEngine());
-        for (int i = 0; i < areaNum; i++) areaStates.add(new AreaState());
+        for (int i = 0; i < areaNum * 10; i++) areaStates.add(new AreaState());
     }
     public void remove(Integer id) {
         engine().removeUser(id);
