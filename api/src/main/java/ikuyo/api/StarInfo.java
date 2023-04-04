@@ -14,19 +14,23 @@ import org.dyn4j.collision.narrowphase.RaycastDetector;
 import org.dyn4j.geometry.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class StarInfo {
     public Block[] blocks;
     public Map<Integer, StarUserInfo> starUsers;
+    public static final int
+            areaTier = 30,
+            areaSize = 15,
+            areaNum = areaTier * (areaTier + 1) * 3 + 1;
     /**层级最大值*/
-    public static final int maxTier = 1000;
+    public static final int maxTier = 2 * areaSize * areaTier;
     /**<p>层级最小值<p/>
      * [Warn]: Plz make sure mintier > 0*/
     public static final int minTier = 10;
+    public static final int
+            blockRealNum = maxTier * (maxTier + 1) * 3,
+            blockNum = blockRealNum - minTier * (minTier - 1) * 3;
     /**层级间距*/
     public static final double tierDistance = Math.sqrt(3)/2;
     /**六边形块边长*/
@@ -57,7 +61,6 @@ public class StarInfo {
     public static StarInfo gen(int seed) {
         var info = new StarInfo();
         Random random = new Random(seed);
-        int blockNum = maxTier *(maxTier +1)*3 - minTier *(minTier -1)*3;
         info.blocks = new Block[blockNum];
         for (int i = 0;i < info.blocks.length; i++) {
             info.blocks[i] = new Block.Normal();
@@ -477,6 +480,18 @@ public class StarInfo {
         Vector2 trans = new Vector2(x, y);
         trans.rotate(-Math.PI / 6).multiply(tierDistance * tier);
         return nTierAround(new Position(trans.x, trans.y), r / tierDistance / tier + edgeLength);
+    }
+
+    public static List<Integer> getBlocksAt(int area) {
+        return getBlocksAt(area, areaSize);
+    }
+
+    public static int getAreaOf(int realIndex) {
+        return getAreaOf(realIndex, areaSize);
+    }
+
+    public static List<Integer> areasAround(double x, double y, double r) {
+        return areasAround(x, y, r, areaSize);
     }
 
 //    /**创建属于你的星球
