@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.User;
+import ikuyo.api.UserInfo;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.CompositeRenderer;
@@ -164,7 +165,7 @@ public class UpdateVert extends AsyncVerticle {
             case "user.add" -> {
                 var id = json.getInteger("id");
                 var user = User.getUserById(pool, id);
-                star.starInfo().starUsers.computeIfAbsent(id, i -> new StarInfo.StarUserInfo()).online = true;
+                star.starInfo().starUsers.computeIfAbsent(id, i -> new UserInfo()).online = true;
                 assert user != null;
                 commonContext.add(id, user);
                 msg.reply(JsonObject.of("type", "success"));

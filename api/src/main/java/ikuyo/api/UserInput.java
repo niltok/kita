@@ -1,7 +1,6 @@
 package ikuyo.api;
 
 import java.time.Instant;
-import java.util.Objects;
 
 /** key input fields must be int
  * <p>
@@ -22,16 +21,19 @@ public class UserInput {
             return false;
         }
     }
-    public void frame() {
+    public boolean frame() {
+        var update = false;
         try {
             for (var field : this.getClass().getFields()) {
-                if (Objects.equals(field.get(this), 3)) // 上升沿
-                    field.set(this, 2);
-                if (Objects.equals(field.get(this), 1)) // 下降沿
-                    field.set(this, 0);
+                var val = field.get(this);
+                if (!(val instanceof Integer i)) continue;
+                if (i > 0) update = true;
+                if (i == 3) field.set(this, 2); // 上升沿
+                if (i == 1) field.set(this, 0); // 下降沿
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return update;
     }
 }

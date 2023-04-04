@@ -1,7 +1,7 @@
 package ikuyo.server.renderers;
 
-import ikuyo.api.StarInfo;
 import ikuyo.api.UIElement;
+import ikuyo.api.UserInfo;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.api.spaceships.AbstractSpaceship;
 import ikuyo.server.api.CommonContext;
@@ -56,7 +56,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                 .withClass("right-bottom", "pointer-pass-all", "background");
     }
 
-    private static UIElement getHeightInfo(CommonContext context, StarInfo.StarUserInfo info) {
+    private static UIElement getHeightInfo(CommonContext context, UserInfo info) {
         var height = context.engine().rayCast(
                         new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
                         Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))

@@ -18,8 +18,10 @@ public class UserState {
         this.user = user;
     }
 
-    public void frame() {
+    public boolean frame() {
+        var update = false;
         events = new HashMap<>();
-        input.frame();
+        update |= input.frame();
+        return update;
     }
 }

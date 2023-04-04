@@ -1,8 +1,8 @@
 package ikuyo.server.api;
 
 import ikuyo.api.Star;
-import ikuyo.api.StarInfo;
 import ikuyo.api.User;
+import ikuyo.api.UserInfo;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.Vertx;
 
@@ -38,14 +38,16 @@ public record CommonContext(
         getInfos().forEach((id, info) -> {
             if (info.frame()) updated().users().add(id);
         });
-        userStates().forEach((i, s) -> s.frame());
+        userStates().forEach((id, state) -> {
+            if (state.frame()) updated().users().add(id);
+        });
     }
 
-    public StarInfo.StarUserInfo getInfo(int id) {
+    public UserInfo getInfo(int id) {
         return getInfos().get(id);
     }
 
-    public Map<Integer, StarInfo.StarUserInfo> getInfos() {
+    public Map<Integer, UserInfo> getInfos() {
         return star().starInfo().starUsers;
     }
 

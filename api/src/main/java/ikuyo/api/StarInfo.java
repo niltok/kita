@@ -2,9 +2,6 @@ package ikuyo.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ikuyo.api.cargo.CargoStatic;
-import ikuyo.api.equipments.AbstractWeapon;
-import ikuyo.api.spaceships.AbstractSpaceship;
 import ikuyo.utils.DataStatic;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.buffer.Buffer;
@@ -28,7 +25,7 @@ public class StarInfo {
     /**星球半径*/
     protected double star_r;
     public Block[] blocks;
-    public Map<Integer, StarUserInfo> starUsers;
+    public Map<Integer, UserInfo> starUsers;
 
     @Override
     public String toString() {
@@ -177,36 +174,6 @@ public class StarInfo {
 
     public static StarInfo fromJson(JsonObject json) {
         return json.mapTo(StarInfo.class);
-    }
-
-    public static class StarUserInfo {
-        public double x, y = maxTier;
-
-        public double rotation;
-        public boolean online;
-        public double san = 100;
-        public AbstractSpaceship spaceship = new AbstractSpaceship(CargoStatic.shuttle.type());
-        public String controlType = "walk";
-        public StarUserInfo() {
-            spaceship.weapons.add(new AbstractWeapon(CargoStatic.defaultWeapon.type()));
-            spaceship.weapons.add(new AbstractWeapon(CargoStatic.r400.type()));
-            spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 500);
-        }
-        public StarUserInfo(double x, double y) {
-            this();
-            this.x = x;
-            this.y = y;
-            online = true;
-        }
-
-        public boolean frame() {
-            boolean update = false;
-            for (var weapon : spaceship.weapons) {
-                if (weapon.restFireTime > 0) update = true;
-                weapon.frame();
-            }
-            return update;
-        }
     }
 
 //        /**创建属于你的星球

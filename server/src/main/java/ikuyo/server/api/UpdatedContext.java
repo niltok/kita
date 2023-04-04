@@ -1,17 +1,29 @@
 package ikuyo.server.api;
 
-import ikuyo.utils.Property;
-
 import java.util.HashSet;
 import java.util.Set;
 
-public record UpdatedContext(Property<Boolean> init, Set<Integer> blocks, Set<Integer> users) {
-    public UpdatedContext() {
-        this(new Property<>(true), new HashSet<>(), new HashSet<>());
+public class UpdatedContext {
+    public boolean init = true;
+    public Set<Integer> blocks = new HashSet<>(), users = new HashSet<>();
+
+    public UpdatedContext() {}
+
+    public Set<Integer> blocks() {
+        return blocks;
     }
+
+    public Set<Integer> users() {
+        return users;
+    }
+
+    public boolean init() {
+        return init;
+    }
+
     public void clear() {
-        init.set(false);
-        blocks().clear();
-        users().clear();
+        init = false;
+        blocks = new HashSet<>();
+        users = new HashSet<>();
     }
 }
