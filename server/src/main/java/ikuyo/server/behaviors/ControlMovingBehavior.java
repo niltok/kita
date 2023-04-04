@@ -21,10 +21,11 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
     private static final Vector2 i = new Vector2(1, 0);
     @Override
     public void update(CommonContext context) {
-        context.userStates().forEach((id, state) -> {
+        context.updated().users().forEach((id) -> {
+            var state = context.getState(id);
+            var userInfo = context.getInfo(id);
+            if (state == null || userInfo == null || !userInfo.online) return;
             var input = state.input;
-            var userInfo = context.star().starInfo().starUsers.get(id);
-            if (!userInfo.online) return;
             var body = context.engine().users.get(id).getValue();
 
             if (userInfo.controlType.equals("fly")) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.Star;
 import ikuyo.api.StarInfo;
 import ikuyo.api.User;
+import ikuyo.api.UserInfo;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.CompositeRenderer;
@@ -41,6 +42,7 @@ public class UpdateVert extends AsyncVerticle {
     String msgVertId;
     PgPool pool;
     Behavior<CommonContext> mainBehavior = new CompositeBehavior<>(
+            new KeyInputBehavior(),
             new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
             new PointerMovingBehavior(),
@@ -163,8 +165,13 @@ public class UpdateVert extends AsyncVerticle {
             }
             case "user.add" -> {
                 var id = json.getInteger("id");
+                var infoJson = json.getJsonObject("userInfo");
                 var user = User.getUserById(pool, id);
-                star.starInfo().starUsers.computeIfAbsent(id, i -> new StarInfo.StarUserInfo()).online = true;
+                var info = star.starInfo().starUsers.computeIfAbsent(id, i ->
+                        infoJson == null ? new UserInfo() : infoJson.mapTo(UserInfo.class));
+                info.online = true;
+                info.x = 0;
+                info.y = StarInfo.maxTier;
                 assert user != null;
                 commonContext.add(id, user);
                 msg.reply(JsonObject.of("type", "success"));
@@ -179,30 +186,20 @@ public class UpdateVert extends AsyncVerticle {
             }
             case "user.remove" -> {
                 var id = json.getInteger("id");
+                var info = JsonObject.mapFrom(star.starInfo().starUsers.get(id));
                 star.starInfo().starUsers.remove(id);
                 commonContext.remove(id);
-                msg.reply(JsonObject.of("type", "success"));
+                msg.reply(JsonObject.of("type", "success", "userInfo", info));
             }
             case "user.update" -> {
                 var id = json.getInteger("id");
                 commonContext.getState(id).user = User.getUserById(pool, id);
             }
-            case "user.message" -> userEventHandler(json);
-        }
-    }
-
-    void userEventHandler(JsonObject json) {
-        var msg = json.getJsonObject("msg");
-        var type = msg.getString("type");
-        var id = json.getInteger("userId");
-        switch (type) {
-            case "star.operate.key" -> {
-                commonContext.getState(id).input.input(
-                        msg.getString("action"), msg.getInteger("value", 1));
-                commonContext.updated().users().add(id);
-            }
-            default -> {
-                commonContext.getState(id).events.computeIfAbsent(type, i -> new ArrayList<>()).add(msg);
+            case "user.message" -> {
+                var userMsg = json.getJsonObject("msg");
+                var type = userMsg.getString("type");
+                var id = json.getInteger("userId");
+                commonContext.getState(id).events.computeIfAbsent(type, i -> new ArrayList<>()).add(userMsg);
                 commonContext.updated().users().add(id);
             }
         }

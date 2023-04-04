@@ -1,9 +1,6 @@
 package ikuyo.server.api;
 
-import ikuyo.api.Position;
-import ikuyo.api.Star;
-import ikuyo.api.StarInfo;
-import ikuyo.api.User;
+import ikuyo.api.*;
 import ikuyo.server.UpdateVert;
 import ikuyo.utils.StarUtils;
 import org.dyn4j.collision.Filter;
@@ -107,7 +104,7 @@ public class PhysicsEngine{
         world.removeBody(body);
     }
 
-    public void addUser(User user, StarInfo.StarUserInfo userInfo) {
+    public void addUser(User user, UserInfo userInfo) {
         if (!users.containsKey(user.id())) {
             KitasBody body = new KitasBody();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));

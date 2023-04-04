@@ -1,9 +1,6 @@
 package ikuyo.server.behaviors;
 
-import ikuyo.api.Block;
-import ikuyo.api.Damage;
-import ikuyo.api.Position;
-import ikuyo.api.StarInfo;
+import ikuyo.api.*;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
@@ -47,7 +44,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
             var body = userIterator.next().getBody();
 
 //            todo: check damage position
-            StarInfo.StarUserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
+            UserInfo userInfo = context.star().starInfo().starUsers.get((int)body.getUserData());
             double shieldDamage = damage.shieldOnlyDamage,
                     hpDamage = damage.hpOnlyDamage,
                     sanDamage = damage.sanDamage;
