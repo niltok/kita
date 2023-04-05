@@ -11,7 +11,7 @@ import java.util.List;
 public class StarUtilsTest {
     @Test
     public void printBlock() {
-        System.out.println(StarUtils.printBlock(10664));
+        System.out.println(StarUtils.printBlock(10));
     }
     @Test
     public void Teat_area() {
@@ -31,11 +31,11 @@ public class StarUtilsTest {
 ////                    System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";realIndex: " + reaIndex);
 //                }
 
-                if (StarUtils.positionOf(reaIndex).distance(new Position(trans.x, trans.y))
-                        > StarInfo.edgeLength * StarUtils.areaSize)
-                    error++;
+//                if (StarUtils.positionOf(reaIndex).distance(new Position(trans.x, trans.y))
+//                        > StarUtils.areaSize)
+//                    error++;
 
-//                Assertions.assertEquals(StarUtils.getAreaOf(reaIndex), i);
+                Assertions.assertEquals(StarUtils.getAreaOf(reaIndex), i);
             }
         }
 
@@ -58,7 +58,7 @@ public class StarUtilsTest {
             Position pos = StarUtils.positionOf(index);
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
-                        .add(new Vector2(0, 0).rotate(i * Math.PI / 3));
+                        .add(new Vector2(0.49, 0).rotate(i * Math.PI / 3));
                 if (index != StarUtils.realIndexOf(v.x, v.y)) {
                     error++;
                     int tier = StarUtils.tierOf(index);
@@ -102,7 +102,7 @@ public class StarUtilsTest {
             }
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
-                        .add(new Vector2(StarInfo.edgeLength * 0.8, 0)
+                        .add(new Vector2(StarInfo.edgeLength * 0.9, 0)
                                 .rotate(Math.PI / 3 * i + Math.PI / 6));
                 Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), index);
             }
