@@ -1,22 +1,18 @@
 package ikuyo.manager.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.manager.api.BehaviorContext;
+import ikuyo.manager.api.CommonContext;
 
-public class TransferBehavior implements Behavior<BehaviorContext> {
+public class TransferBehavior implements Behavior<CommonContext> {
     @Override
-    public void update(BehaviorContext context) {
-        switch (context.event().getString("type")) {
-            case "transfer.done" -> {
-                context.context().updated().users().add(context.id());
-                var state = context.context().userState().get(context.id());
-                state.page = "";
+    public void update(CommonContext context) {
+        context.updated().users().forEach(id -> {
+            var state = context.getState(id);
+            if (state == null) return;
+            var transferredMsgs = state.events.get("transfer.done");
+            if (transferredMsgs != null && !transferredMsgs.isEmpty()) {
+                state.setPage("");
             }
-            case "auth.request", "user.move" -> {
-                context.context().updated().users().add(context.id());
-                var state = context.context().userState().get(context.id());
-                state.page = "transfer";
-            }
-        }
+        });
     }
 }

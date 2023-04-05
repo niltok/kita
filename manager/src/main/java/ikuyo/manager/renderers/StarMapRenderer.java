@@ -7,58 +7,59 @@ import ikuyo.manager.api.CommonContext;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.math3.util.Pair;
 
 import java.util.*;
 
 public class StarMapRenderer implements UIRenderer<CommonContext> {
     static final double displayScale = 20;
+    record StarResult(Star base, Star user, Star[] stars) {}
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
-        var fs = new HashMap<Integer, Future<Pair<Star, Star[]>>>();
+        var fs = new HashMap<Integer, Future<StarResult>>();
         for (Integer id : context.updated().users()) {
-            if (!"starMap".equals(context.userState().get(id).page)) {
-                continue;
-            }
+            var state = context.getState(id);
+            if (state == null || !"starMap".equals(state.page) || state.pageEdge < 2) continue;
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
-            var user = context.userState().get(id).user;
-            var client = context.sql();
             fs.put(id, async(() -> {
-                var summery = Star.getSummery(client, user.star());
+                var user = async(() -> Star.getSummery(context.sql(), state.user.star()));
+                var summery = Star.getSummery(context.sql(), state.starFocus);
                 assert summery != null;
-                return Pair.create(summery, Star.query(client, user.universe(),
+                return new StarResult(summery, await(user), Star.query(context.sql(), state.user.universe(),
                         summery.x() - Star.viewRange, summery.x() + Star.viewRange,
                         summery.y() - Star.viewRange, summery.y() + Star.viewRange));
             }));
         }
         await(CompositeFuture.all(fs.values().stream().map(x -> (Future)x).toList()));
         fs.forEach((id, fut) -> {
-            var pair = await(fut);
-            result.get(id).add(new UIElement("div", Arrays.stream(pair.getSecond())
-                    .map(star -> renderStar(pair.getFirst(), star))
+            var res = await(fut);
+            result.get(id).add(new UIElement("div", Arrays.stream(res.stars())
+                    .map(star -> renderStar(res.base(), star, res.user()))
                     .toArray(UIElement[]::new))
                     .withClass("popout-container", "background"));
         });
     }
 
-    private static UIElement renderStar(Star base, Star star) {
-        var dx = star.x() - base.x();
-        var dy = star.y() - base.y();
+    private static UIElement renderStar(Star base, Star star, Star user) {
+        double bx = star.x() - base.x(), by = star.y() - base.y();
+        double ux = star.x() - user.x(), uy = star.y() - user.y();
         var boxStyle = JsonObject.of(
-                "top", "calc(50%% + %fpx + 2px)".formatted(displayScale * dy),
-                "left", "calc(50%% + %fpx + 2px)".formatted(displayScale * dx));
+                "top", "calc(50%% + %fpx + 2px)".formatted(displayScale * by),
+                "left", "calc(50%% + %fpx + 2px)".formatted(displayScale * bx));
+        var isUser = user.index() == star.index();
+        var isBase = base.index() == star.index();
         var dotStyle = JsonObject.of();
-        if (base.index() == star.index()) {
+        if (isUser) {
             dotStyle.put("background-color", "green");
-        } else {
-            boxStyle.put("cursor", "pointer");
         }
-        var text = base.index() == star.index() ?
-                star.name() :
-                "%s(%.1fly)".formatted(star.name(), Math.hypot(dx, dy));
-        var callback = base.index() == star.index() ?
-                JsonObject.of() :
-                JsonObject.of("type", "user.move", "target", star.index());
+        if (!(isUser && isBase)) {
+            boxStyle.put("cursor", "pointer");
+        } else {
+            boxStyle.put("cursor", "default");
+        }
+        var text = isUser ? star.name() : "%s(%.1fly)".formatted(star.name(), Math.hypot(ux, uy));
+        JsonObject callback = null;
+        if (isBase && !isUser) callback = JsonObject.of("type", "user.move.star", "target", star.index());
+        if (!isBase) callback = JsonObject.of("type", "starMap.focus", "target", star.index());
         return new UIElement.Callback("div", callback,
                 new UIElement("div").withClass("starmap-dot").withStyle(dotStyle),
                 new UIElement.Text(text)).withClass("hover-label", "absolute").withStyle(boxStyle);
