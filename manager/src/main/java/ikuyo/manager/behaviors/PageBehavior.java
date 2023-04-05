@@ -1,26 +1,28 @@
 package ikuyo.manager.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.manager.api.BehaviorContext;
+import ikuyo.manager.api.CommonContext;
 
 import java.util.Objects;
 import java.util.Set;
 
-public class PageBehavior implements Behavior<BehaviorContext> {
+public class PageBehavior implements Behavior<CommonContext> {
     public static Set<String> supportedPage = Set.of("transfer", "starMap", "techTrainer");
     public static Set<String> stationPage = Set.of("cargoHold");
     @Override
-    public void update(BehaviorContext context) {
-        var type = context.event().getString("type");
-        switch (type) {
-            case "page.toggle" -> {
-                var page = context.event().getString("page");
-                var state = context.getState(context.id());
-                if ("transfer".equals(state.page)) break;
-                context.updated().users().add(context.id());
-                state.page = Objects.equals(state.page, page) || !supportedPage.contains(page) ? "" : page;
+    public void update(CommonContext context) {
+        context.updated().users().forEach(id -> {
+            var state = context.getState(id);
+            if (state == null) return;
+            var toggleMsgs = state.events.get("page.toggle");
+            if (toggleMsgs == null || toggleMsgs.isEmpty() || !state.allowOperate()) return;
+            var msg = toggleMsgs.get(toggleMsgs.size() - 1);
+            var page = msg.getString("page");
+            if (Objects.equals(state.page, page) || !supportedPage.contains(page)) {
+                state.setPage("");
+            } else  {
+                state.setPage(page);
             }
-        }
-        context.forward().set(!"transfer".equals(context.getState(context.id()).page));
+        });
     }
 }

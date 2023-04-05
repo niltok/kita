@@ -13,13 +13,10 @@ import java.util.Random;
 public class TransferRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
-        // TODO: Lazy
         for (Integer id : context.updated().users()) {
+            var state = context.getState(id);
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
-            if (!"transfer".equals(context.userState().get(id).page)) {
-                ui.add(new UIElement("div").withClass("placeholder"));
-                continue;
-            }
+            if (state == null || !"transfer".equals(state.page) || state.pageEdge < 2) continue;
             ui.add(new UIElement("div", transferAnimation(), new UIElement.Text("Transferring..."))
                     .withClass("flex-center", "fullscreen", "transfer-background"));
         }

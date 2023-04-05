@@ -17,9 +17,8 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
     @Override
     public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
         for (Integer id : context.updated().users()) {
-            if (!"techTrainer".equals(context.userState().get(id).page)) {
-                continue;
-            }
+            var state = context.getState(id);
+            if (state == null || !"techTrainer".equals(state.page) || state.pageEdge < 2) continue;
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             ui.add(new UIElement("div", displayPoint(context, id), techList(context, id))
                     .withClass("popout-container", "flex-box-container", "background"));

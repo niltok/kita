@@ -1,24 +1,17 @@
 package ikuyo.manager;
 
-import ikuyo.api.Star;
 import ikuyo.api.User;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;
-import ikuyo.manager.api.BehaviorContext;
 import ikuyo.manager.api.CommonContext;
-import ikuyo.manager.api.UpdatedContext;
-import ikuyo.manager.api.UserState;
 import ikuyo.manager.behaviors.*;
 import ikuyo.manager.renderers.StarMapRenderer;
 import ikuyo.manager.renderers.TechTrainerRenderer;
 import ikuyo.manager.renderers.TransferRenderer;
 import ikuyo.utils.AsyncVerticle;
-import io.reactivex.rxjava3.subjects.Subject;
-import io.reactivex.rxjava3.subjects.UnicastSubject;
-import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -37,28 +30,24 @@ import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.UUID;
 
-import static ikuyo.utils.AsyncStatic.delay;
 import static ikuyo.utils.MsgDiffer.jsonDiff;
 
 public class HttpVert extends AsyncVerticle {
+    static long millisPerFrame = 500;
     HttpServer server;
     PgPool pool;
     Router router;
-    Map<String, User> socketCache = new HashMap<>();
-    Subject<Integer> render$ = UnicastSubject.create();
     CommonContext commonContext;
-    UpdatedContext updatedContext;
-    Behavior<BehaviorContext> mainBehavior = new CompositeBehavior<>(
+    long mainLoopId;
+    Behavior<CommonContext> mainBehavior = new CompositeBehavior<>(
             new PageBehavior(),
+            new TransferBehavior(),
             new CargoBehavior(),
             new StarMapBehavior(),
-            new TechTrainerBehavior(),
-            new TransferBehavior()
+            new TechTrainerBehavior()
     );
     Renderer<CommonContext> uiRenderer = new CompositeRenderer<>(true,
             new UIRenderer.Composite<>(
@@ -73,9 +62,7 @@ public class HttpVert extends AsyncVerticle {
         pool = PgPool.pool(vertx, new PoolOptions());
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
-        updatedContext = new UpdatedContext();
-        commonContext = new CommonContext(render$, pool, eventBus, updatedContext);
-        render$.subscribe(i -> renderUI());
+        commonContext = new CommonContext(pool, eventBus, logger);
         router = Router.router(vertx);
         router.allowForward(AllowForwardHeaders.ALL);
         // sockjs handler 前面不能加任何 async handler 所以别改这段代码
@@ -91,10 +78,16 @@ public class HttpVert extends AsyncVerticle {
                         .socketHandler(this::handleSocket));
         // == do not edit end ==
         router.post("/login").handler(this::loginHandler);
-        router.route().handler(StaticHandler.create());
+        router.route().handler(StaticHandler.create().setCachingEnabled(false));
         server.requestHandler(router);
         await(server.listen(8070));
+        mainLoopId = vertx.setPeriodic(millisPerFrame, l -> mainLoop());
         System.out.println("listening...");
+    }
+
+    @Override
+    public void stop() throws Exception {
+        vertx.cancelTimer(mainLoopId);
     }
 
     private void handleSocket(SockJSSocket socket) {
@@ -108,12 +101,14 @@ public class HttpVert extends AsyncVerticle {
             }
         });
         socket.closeHandler(v -> {
-            if (socketCache.get(socket.writeHandlerID()) == null) return;
+            var user = commonContext.getUser(socket.writeHandlerID());
+            if (user == null) return;
             eventBus.send(socketAddress(socket), JsonObject.of(
                     "type", "user.disconnect",
-                    "id", socketCache.get(socket.writeHandlerID()).id()));
-            commonContext.userState().remove(socketCache.get(socket.writeHandlerID()).id());
-            socketCache.remove(socket.writeHandlerID());
+                    "id", user.id()));
+            commonContext.userState().remove(user.id());
+            commonContext.socketCache().remove(socket.writeHandlerID());
+            commonContext.updated().users().add(user.id());
         });
     }
 
@@ -132,42 +127,6 @@ public class HttpVert extends AsyncVerticle {
         await(req.response().end(token));
     }
 
-    static final int timeout = 10000;
-    void registerUser(User user, String socket, JsonObject info, int retry) {
-        try {
-            var summery = Star.getSummery(pool, user.star());
-            assert summery != null;
-            async(() -> Star.query(pool, user.universe(),
-                    summery.x() - Star.viewRange, summery.x() + Star.viewRange,
-                    summery.y() - Star.viewRange, summery.y() + Star.viewRange));
-            if (summery.vertId() == null) {
-                await(eventBus.request("star.none", JsonObject.of(
-                        "type", "star.load", "id", user.star()
-                ), new DeliveryOptions().setSendTimeout(timeout)));
-            }
-            await(eventBus.request("star." + user.star(), JsonObject.of(
-                    "type", "user.add", "socket", socket, "id", user.id(), "userInfo", info
-            ), new DeliveryOptions().setSendTimeout(timeout)));
-        } catch (Exception e) {
-            // 尝试切换节点再加载
-            if (retry < 3) {
-                // time lock
-                var res = await(pool.preparedQuery("""
-                        update star set vert_id = null, time_lock = now() + interval '15 seconds'
-                        where index = $1 and time_lock < now()
-                        """).execute(Tuple.of(user.star()))).rowCount();
-                if (res > 0) logger.info(JsonObject.of(
-                        "type", "star.ownership.release", "starId", user.star()));
-            }
-            if (retry > 0) {
-                await(delay(Duration.ofSeconds(3)));
-                logger.info(JsonObject.of("type", "user.register.retry", "remain", retry));
-                registerUser(user, socket, info, retry - 1);
-            }
-            else throw new RuntimeException("server busy");
-        }
-    }
-
     private void socketHandler(SockJSSocket socket, @NotNull JsonObject msg) {
         if (enableMsgLog) logger.info(msg);
         switch (msg.getString("type")) {
@@ -181,18 +140,15 @@ public class HttpVert extends AsyncVerticle {
                     socket.close(4001, "auth.repeat");
                     return;
                 }
-                socketCache.put(socket.writeHandlerID(), user);
-                commonContext.userState().put(user.id(), new UserState(socket.writeHandlerID(), user));
-                mainBehavior.update(new BehaviorContext(user.id(), msg, commonContext));
-                renderUI();
-                registerUser(user, socket.writeHandlerID(), null, 6);
+                commonContext.addUser(socket.writeHandlerID(), user);
+                commonContext.registerUser(user, socket.writeHandlerID(), null, 6);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
             }
-            case "user.move" -> {
+            case "user.move.star" -> {
                 var target = msg.getInteger("target");
-                var id = socketCache.get(socket.writeHandlerID()).id();
-                mainBehavior.update(new BehaviorContext(id, msg, commonContext));
-                renderUI();
+                var id = commonContext.getUser(socket.writeHandlerID()).id();
+                commonContext.getState(id).page = "transfer";
+                commonContext.updated().users().add(id);
                 var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
                         "type", "user.remove", "id", id))).body();
                 await(pool.preparedQuery("""
@@ -200,32 +156,33 @@ public class HttpVert extends AsyncVerticle {
                     """).execute(Tuple.of(id, target)));
                 var user = User.getUserById(pool, id);
                 assert user != null;
-                registerUser(user, socket.writeHandlerID(), res.getJsonObject("userInfo"), 3);
-                socketCache.put(socket.writeHandlerID(), user);
-                commonContext.userState().get(id).user = user;
-                commonContext.updated().users().add(id);
-                await(socket.write(JsonObject.of("type", "move.success").toBuffer()));
+                commonContext.registerUser(user, socket.writeHandlerID(),
+                        res.getJsonObject("userInfo"), 3);
+                commonContext.addUser(socket.writeHandlerID(), user);
             }
             default -> {
-                var id = socketCache.get(socket.writeHandlerID()).id();
-                var ctx = new BehaviorContext(id, msg, commonContext);
-                mainBehavior.update(ctx);
-                renderUI();
-                if (ctx.forward().get())
+                var id = commonContext.getUser(socket.writeHandlerID()).id();
+                var state = commonContext.userState().get(id);
+                state.events.computeIfAbsent(msg.getString("type"), i -> new ArrayList<>()).add(msg);
+                commonContext.updated().users().add(id);
+                if (state.allowOperate()) {
                     eventBus.send(socketAddress(socket), JsonObject.of(
-                        "type", "user.message",
-                        "socket", socket.writeHandlerID(),
-                        "userId", id,
-                        "msg", msg));
+                            "type", "user.message",
+                            "socket", socket.writeHandlerID(),
+                            "userId", id,
+                            "msg", msg));
+                }
             }
         }
     }
 
-    private void renderUI() {
+    private void mainLoop() {
+        mainBehavior.update(commonContext);
         uiRenderer.render(commonContext).forEach(e -> {
-            var id = Integer.valueOf(e.getKey());
+            var id = Integer.parseInt(e.getKey());
             var json = (JsonObject) e.getValue();
-            var state = commonContext.userState().get(id);
+            var state = commonContext.getState(id);
+            if (state == null) return;
             var diff = jsonDiff(state.cache, json);
             if (!diff.isEmpty()) {
                 state.cache = json;
@@ -236,12 +193,12 @@ public class HttpVert extends AsyncVerticle {
                 ).toBuffer());
             }
         });
-        updatedContext.clear();
+        commonContext.frame();
     }
 
     @NotNull
     private String socketAddress(SockJSSocket socket) {
-        return "star." + socketCache.get(socket.writeHandlerID()).star();
+        return "star." + commonContext.getUser(socket.writeHandlerID()).star();
     }
 
     public static void CorsHandler(RoutingContext ctx) {

@@ -1,12 +1,10 @@
 package ikuyo.manager.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.manager.api.BehaviorContext;
+import ikuyo.manager.api.CommonContext;
 
-public class CargoBehavior implements Behavior<BehaviorContext> {
+public class CargoBehavior implements Behavior<CommonContext> {
     @Override
-    public void update(BehaviorContext context) {
-        switch (context.event().getString("type")) {
-        }
+    public void update(CommonContext context) {
     }
 }
