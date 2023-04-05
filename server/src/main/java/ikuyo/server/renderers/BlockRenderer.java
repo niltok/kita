@@ -22,7 +22,7 @@ public class BlockRenderer implements DrawablesRenderer {
             var info = context.getInfo(id);
             if (info == null || !info.online) return;
             StarUtils.areasAround(info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling).forEach(area -> {
-                var state = context.areaStates().get(area);
+                var state = context.areaStates.get(area);
                 if (state.loaded) return;
                 state.loaded = true;
                 update.addAll(StarUtils.getBlocksAt(area));
@@ -80,7 +80,7 @@ public class BlockRenderer implements DrawablesRenderer {
 
     private static void showAreas(CommonContext context, Map<String, Drawable> drawables, int start, int end, String asset) {
         for (int area = start; area <= end; area++) {
-            var state = context.areaStates().get(area);
+            var state = context.areaStates.get(area);
             if (!state.loaded) {
                 state.loaded = true;
                 for (var id : StarUtils.getBlocksAt(area))

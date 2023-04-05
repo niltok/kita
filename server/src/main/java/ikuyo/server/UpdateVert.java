@@ -173,7 +173,7 @@ public class UpdateVert extends AsyncVerticle {
                 info.x = 0;
                 info.y = StarInfo.minTier + 10;
                 assert user != null;
-                commonContext.add(id, user);
+                commonContext.add(user);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
@@ -223,6 +223,8 @@ public class UpdateVert extends AsyncVerticle {
             commonContext.frame();
             updateCount++;
             updateTime = System.nanoTime() - startTime;
+            commonContext.delta.put(deltaTime / 1000_000.0);
+            commonContext.update.put(updateTime / 1000_000.0);
             if (updateTime > 1000_000_000 / MaxFps * 2) logger.warn(JsonObject.of(
                     "type", "update.largeFrame",
                     "updateTime", updateTime / 1000_000.0));

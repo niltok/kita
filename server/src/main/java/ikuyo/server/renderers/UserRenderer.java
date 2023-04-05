@@ -85,10 +85,15 @@ public class UserRenderer implements DrawablesRenderer {
             return;
         }
 
-        var height = ctx.engine().rayCast(
+        var minHit = ctx.engine().rayCast(
                         new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
                         Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))
-                .stream().min(RaycastResult::compareTo).get().copy().getRaycast().getDistance();
+                .stream().min(RaycastResult::compareTo);
+        if (minHit.isEmpty()) {
+            drawables.put("user#%d.gravityArrow".formatted(id), null);
+            return;
+        }
+        var height = minHit.get().copy().getRaycast().getDistance();
 
         var pos = new Vector2(info.x, info.y);
         pos.multiply(pos.normalize() - Math.min(1 + height / 200, 2) * 5);
