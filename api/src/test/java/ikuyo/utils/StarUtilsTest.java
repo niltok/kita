@@ -17,15 +17,23 @@ public class StarUtilsTest {
     public void Teat_area() {
         int num = 0, error = 0;
         int testArea = StarUtils.areaNum;
-        for (int i = 0; i < 19; i++) {
+        for (int i = 0; i < testArea; i++) {
+            Position center = StarUtils.positionOf(i);
+            Vector2 trans = new Vector2(center.x, center.y);
+            trans.multiply(StarInfo.tierDistance * StarUtils.areaSize * 2)
+                    .rotate(Math.PI / 6);
             List<Integer> list = StarUtils.getBlocksAt(i);
             for (var index: list) {
                 num++;
                 int reaIndex = StarUtils.realIndexOf(index);
-                if (StarUtils.getAreaOf(reaIndex) != i) {
+//                if (StarUtils.getAreaOf(reaIndex) != i) {
+//                    error++;
+////                    System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";realIndex: " + reaIndex);
+//                }
+
+                if (StarUtils.positionOf(reaIndex).distance(new Position(trans.x, trans.y))
+                        > StarInfo.edgeLength * StarUtils.areaSize)
                     error++;
-//                    System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";realIndex: " + reaIndex);
-                }
 
 //                Assertions.assertEquals(StarUtils.getAreaOf(reaIndex), i);
             }
