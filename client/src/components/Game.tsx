@@ -8,12 +8,16 @@ import './Game.css'
 
 export function Game() {
     const ui = useAppSelector(state => state.gameState.ui)
+    const starUI = useAppSelector(state => state.gameState.star.ui)
     const differ = useDiffGame()
     useEffect(() => {
         differ({ ui: undefined })
     }, [])
     return (<Socket>
-        <div className={"absolute fullscreen"} style={{pointerEvents: "none"}}>{renderUI(ui)}</div>
+        <div className={"absolute fullscreen pointer-pass"}>
+            {ui?.children?.map(e => renderUI(e))}
+            {starUI?.children?.map(e => renderUI(e))}
+        </div>
         <Stage/>
     </Socket>)
 }
