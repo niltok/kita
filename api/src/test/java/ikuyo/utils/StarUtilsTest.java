@@ -89,7 +89,7 @@ public class StarUtilsTest {
         Position pos = StarUtils.positionOf(0);
         for (int i = 0; i < 6; i++) {
             var v = new Vector2(pos.x, pos.y)
-                    .add(new Vector2(0, 0).rotate(i * Math.PI / 3));
+                    .add(new Vector2(0.5, 0).rotate(i * Math.PI / 3));
             Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), 0);
         }
 
