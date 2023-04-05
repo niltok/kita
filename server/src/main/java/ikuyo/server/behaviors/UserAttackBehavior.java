@@ -1,13 +1,13 @@
 package ikuyo.server.behaviors;
 
-import ikuyo.api.Damage;
-import ikuyo.api.Position;
-import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
-import ikuyo.api.equipments.AbstractWeapon;
+import ikuyo.api.datatypes.Damage;
+import ikuyo.api.datatypes.UserInput;
+import ikuyo.api.equipments.Weapon;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.PhysicsEngine;
+import ikuyo.utils.Position;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
 import org.dyn4j.world.result.RaycastResult;
@@ -27,7 +27,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         });
     }
 
-    private void shot(Integer id, UserInput input, AbstractWeapon weapon, CommonContext context) {
+    private void shot(Integer id, UserInput input, Weapon weapon, CommonContext context) {
         BulletInfo info = new BulletInfo();
         info.type = weapon.type;
         info.userId = id;

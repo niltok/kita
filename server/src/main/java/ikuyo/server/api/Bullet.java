@@ -1,6 +1,6 @@
 package ikuyo.server.api;
 
-import ikuyo.api.Damage;
+import ikuyo.api.datatypes.Damage;
 import ikuyo.server.behaviors.UserAttackBehavior;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;

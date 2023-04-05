@@ -2,12 +2,12 @@ package ikuyo.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ikuyo.api.Star;
-import ikuyo.api.StarInfo;
-import ikuyo.api.User;
-import ikuyo.api.UserInfo;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
+import ikuyo.api.datatypes.StarInfo;
+import ikuyo.api.datatypes.UserInfo;
+import ikuyo.api.entities.Star;
+import ikuyo.api.entities.User;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;

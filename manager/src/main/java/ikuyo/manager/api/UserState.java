@@ -1,6 +1,6 @@
 package ikuyo.manager.api;
 
-import ikuyo.api.User;
+import ikuyo.api.entities.User;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Duration;

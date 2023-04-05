@@ -1,4 +1,6 @@
-package ikuyo.api;
+package ikuyo.api.datatypes;
+
+import ikuyo.utils.Position;
 
 import java.time.Instant;
 

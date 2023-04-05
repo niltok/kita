@@ -1,15 +1,15 @@
 package ikuyo.api.equipments;
 
-import ikuyo.api.Damage;
-import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.AmmoItem;
 import ikuyo.api.cargo.CargoStatic;
+import ikuyo.api.cargo.UnpackItem;
+import ikuyo.api.datatypes.Damage;
 
-public class WeaponItem extends EquipmentItem {
+public class WeaponItem extends ActiveEquipmentItem {
     public final Damage damage;
     public final int ammoMax;
     public final double velocity, collisionRange;
-    public final long fireTime, reloadingTime;
+    public final long reloadingTime;
     public final AmmoItem ammoType;
 
     public WeaponItem(String displayName,
@@ -22,15 +22,14 @@ public class WeaponItem extends EquipmentItem {
                       int ammoMax,
                       double velocity,
                       double collisionRange,
-                      long fireTime,
+                      long activeTime,
                       long reloadingTime,
                       AmmoItem ammoType) {
-        super(displayName, description, volume, unpackVolume, unpackClass, hpMax);
+        super(displayName, description, volume, unpackVolume, unpackClass, hpMax, activeTime);
         this.damage = damage;
         this.velocity = velocity;
         this.collisionRange = collisionRange;
         this.ammoMax = ammoMax;
-        this.fireTime = fireTime;
         this.reloadingTime = reloadingTime;
         this.ammoType = ammoType;
     }

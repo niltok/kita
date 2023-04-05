@@ -1,8 +1,8 @@
 package ikuyo.manager;
 
-import ikuyo.api.User;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
+import ikuyo.api.entities.User;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;

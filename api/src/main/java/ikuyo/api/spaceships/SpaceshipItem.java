@@ -1,8 +1,8 @@
 package ikuyo.api.spaceships;
 
-import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.CargoItem;
 import ikuyo.api.cargo.CargoStatic;
+import ikuyo.api.cargo.UnpackItem;
 
 public class SpaceshipItem extends CargoItem {
     public final double hpMax, shieldMax, cargoVolume;

@@ -2,9 +2,8 @@ package ikuyo.utils;
 
 import ch.ethz.globis.phtree.PhTree;
 import com.google.common.collect.Sets;
-import ikuyo.api.Drawable;
-import ikuyo.api.Position;
-import ikuyo.api.StarInfo;
+import ikuyo.api.datatypes.Drawable;
+import ikuyo.api.datatypes.StarInfo;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 

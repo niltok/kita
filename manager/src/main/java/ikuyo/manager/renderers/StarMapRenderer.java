@@ -1,7 +1,7 @@
 package ikuyo.manager.renderers;
 
-import ikuyo.api.Star;
-import ikuyo.api.UIElement;
+import ikuyo.api.datatypes.UIElement;
+import ikuyo.api.entities.Star;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.CompositeFuture;

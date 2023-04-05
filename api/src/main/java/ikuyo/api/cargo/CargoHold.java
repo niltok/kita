@@ -1,8 +1,7 @@
 package ikuyo.api.cargo;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import ikuyo.api.UIElement;
-import ikuyo.api.UnpackItem;
+import ikuyo.api.datatypes.UIElement;
 import io.vertx.core.json.JsonObject;
 
 import java.util.*;

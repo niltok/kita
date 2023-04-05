@@ -1,21 +1,29 @@
 package ikuyo.api.spaceships;
 
-import ikuyo.api.UnpackItem;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import ikuyo.api.cargo.CargoHold;
-import ikuyo.api.equipments.AbstractWeapon;
+import ikuyo.api.cargo.UnpackItem;
+import ikuyo.api.datatypes.UserInfo;
+import ikuyo.api.equipments.Weapon;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class AbstractSpaceship implements UnpackItem {
+public class Spaceship implements UnpackItem {
     public String type;
     public double hp, shield;
     public CargoHold cargoHold;
-    public List<AbstractWeapon> weapons;
+    @JsonManagedReference
+    public List<Weapon> weapons;
     public int currentWeapon = 0;
-    public AbstractSpaceship(String type) {
+    @JsonBackReference
+    @Nullable
+    public UserInfo user;
+    public Spaceship(String type) {
         this.type = type;
         var ship = Objects.requireNonNull(SpaceshipItem.get(type));
         hp = getMaxHp();
@@ -24,22 +32,39 @@ public class AbstractSpaceship implements UnpackItem {
         weapons = new ArrayList<>(getMaxWeapon());
     }
 
-    public AbstractSpaceship() {}
+    public Spaceship() {}
 
-    public AbstractWeapon getCurrentWeapon() {
+    public Weapon getCurrentWeapon() {
         return weapons.get(currentWeapon);
     }
 
     public double getMaxHp() {
-        return Objects.requireNonNull(SpaceshipItem.get(type)).hpMax;
+        return getInfo().hpMax;
     }
 
     public int getMaxWeapon() {
-        return Objects.requireNonNull(SpaceshipItem.get(type)).weaponMax;
+        return getInfo().weaponMax;
     }
 
     public double getMaxShield() {
-        return Objects.requireNonNull(SpaceshipItem.get(type)).shieldMax;
+        if (user == null) return getInfo().shieldMax;
+        return user.hooks.getShield(getInfo().shieldMax);
+    }
+
+    public SpaceshipItem getInfo() {
+        return Objects.requireNonNull(SpaceshipItem.get(type));
+    }
+
+    public void undeploy() {
+        if (user != null) user.spaceship = null;
+        user = null;
+    }
+
+    public void deploy(UserInfo user) {
+        undeploy();
+        if (user.spaceship != null) user.spaceship.undeploy();
+        user.spaceship = this;
+        this.user = user;
     }
 
     public void inflict(double shieldDamage, double hpDamage) {
@@ -50,9 +75,31 @@ public class AbstractSpaceship implements UnpackItem {
     public boolean tryFire() {
         var weapon = getCurrentWeapon();
         var ammo = weapon.getAmmoType().type();
-        if (weapon.ammoAmount == 0)
+        var flag = weapon.tryActive();
+        if (!flag && weapon.ammoAmount == 0)
             cargoHold.take(ammo, weapon.reloadAmmo(cargoHold.items.getOrDefault(ammo, 0)));
-        return weapon.tryFire();
+        return flag;
+    }
+
+    public boolean frame() {
+        boolean update = false;
+        for (var weapon : weapons) {
+            if (weapon.restActiveTime > 0) update = true;
+            weapon.frame();
+        }
+        if (hp > getMaxHp()) {
+            hp = getMaxHp();
+            update = true;
+        }
+        if (shield > getMaxShield()) {
+            shield = getMaxShield();
+            update = true;
+        }
+        if (currentWeapon >= getMaxWeapon()) {
+            currentWeapon = getMaxWeapon() - 1;
+            update = true;
+        }
+        return update;
     }
 
     @Override

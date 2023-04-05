@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,7 +7,7 @@ import java.util.Random;
 public class Range {
     ArrayList<Double> list;
     boolean test;
-    Range(long seed) {
+    public Range(long seed) {
         list = new ArrayList<>();
         Random random = new Random(seed);
         double length = 0.0;

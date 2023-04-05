@@ -1,9 +1,9 @@
 package ikuyo.server.renderers;
 
-import ikuyo.api.UIElement;
-import ikuyo.api.UserInfo;
+import ikuyo.api.datatypes.UIElement;
+import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.renderers.UIRenderer;
-import ikuyo.api.spaceships.AbstractSpaceship;
+import ikuyo.api.spaceships.Spaceship;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.PhysicsEngine;
 import org.dyn4j.geometry.Ray;
@@ -30,7 +30,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         });
     }
 
-    private static UIElement getShipInfo(AbstractSpaceship ship) {
+    private static UIElement getShipInfo(Spaceship ship) {
         return new UIElement("div",
                 UIElement.labelItem("Shield", "%.0f".formatted(ship.shield),
                                 ship.shield / ship.getMaxShield())
@@ -41,14 +41,14 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         ).withClass("left-bottom", "pointer-pass-all", "background");
     }
 
-    private static UIElement getWeaponInfo(AbstractSpaceship ship) {
+    private static UIElement getWeaponInfo(Spaceship ship) {
         var ui = new ArrayList<UIElement>();
         var current = ship.getCurrentWeapon();
         ship.weapons.forEach(weapon -> {
-            var percent = weapon.reloading ? (double) weapon.restFireTime / weapon.getReloadingTime() :
-                    weapon.restFireTime == 0 ?
+            var percent = weapon.reloading ? (double) weapon.restActiveTime / weapon.getReloadingTime() :
+                    weapon.restActiveTime == 0 ?
                             (double) weapon.ammoAmount / weapon.getAmmoMax() :
-                            (double) weapon.restFireTime / weapon.getFireTime();
+                            (double) weapon.restActiveTime / weapon.getActiveTime();
             ui.add(UIElement.labelItem(weapon.getInfo().displayName, weapon.getItemInfo(), percent)
                     .appendClass(current == weapon ? "focus-label" : "normal-label"));
         });

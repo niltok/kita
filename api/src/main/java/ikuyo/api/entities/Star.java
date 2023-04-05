@@ -1,6 +1,7 @@
-package ikuyo.api;
+package ikuyo.api.entities;
 
 import com.google.common.hash.Hashing;
+import ikuyo.api.datatypes.StarInfo;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;

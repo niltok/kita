@@ -1,7 +1,11 @@
 package ikuyo.server.api;
 
-import ikuyo.api.*;
+import ikuyo.api.datatypes.StarInfo;
+import ikuyo.api.datatypes.UserInfo;
+import ikuyo.api.entities.Star;
+import ikuyo.api.entities.User;
 import ikuyo.server.UpdateVert;
+import ikuyo.utils.Position;
 import ikuyo.utils.StarUtils;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;

@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.api.entities;
 
 import io.vertx.sqlclient.SqlClient;
 import io.vertx.sqlclient.Tuple;

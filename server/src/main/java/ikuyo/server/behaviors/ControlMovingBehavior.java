@@ -1,7 +1,7 @@
 package ikuyo.server.behaviors;
 
-import ikuyo.api.UserInput;
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.datatypes.UserInput;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
 import org.dyn4j.dynamics.BodyFixture;

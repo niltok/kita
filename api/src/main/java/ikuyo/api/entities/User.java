@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.api.entities;
 
 import ikuyo.api.techtree.TechTree;
 import io.vertx.sqlclient.Row;

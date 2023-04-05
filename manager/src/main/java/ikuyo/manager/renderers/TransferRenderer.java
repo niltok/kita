@@ -1,6 +1,6 @@
 package ikuyo.manager.renderers;
 
-import ikuyo.api.UIElement;
+import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;

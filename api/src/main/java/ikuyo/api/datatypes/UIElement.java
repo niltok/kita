@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.api.datatypes;
 
 import io.vertx.core.json.JsonObject;
 

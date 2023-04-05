@@ -1,10 +1,10 @@
 package ikuyo.server.renderers;
 
-import ikuyo.api.Drawable;
-import ikuyo.api.Position;
-import ikuyo.api.Star;
+import ikuyo.api.datatypes.Drawable;
+import ikuyo.api.entities.Star;
 import ikuyo.server.api.CommonContext;
 import ikuyo.utils.MsgDiffer;
+import ikuyo.utils.Position;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.buffer.Buffer;
 

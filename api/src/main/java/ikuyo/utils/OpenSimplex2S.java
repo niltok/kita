@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.utils;
 
 /**
  * K.jpg's OpenSimplex 2, smooth variant ("SuperSimplex")

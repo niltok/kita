@@ -1,6 +1,6 @@
 package ikuyo.server.renderers;
 
-import ikuyo.api.Drawable;
+import ikuyo.api.datatypes.Drawable;
 import ikuyo.server.api.CommonContext;
 import org.dyn4j.geometry.Vector2;
 

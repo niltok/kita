@@ -1,7 +1,7 @@
 package ikuyo.server.api;
 
-import ikuyo.api.User;
-import ikuyo.api.UserInput;
+import ikuyo.api.datatypes.UserInput;
+import ikuyo.api.entities.User;
 import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;

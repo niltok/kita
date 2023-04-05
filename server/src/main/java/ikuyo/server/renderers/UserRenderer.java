@@ -1,7 +1,7 @@
 package ikuyo.server.renderers;
 
 import com.google.common.collect.Sets;
-import ikuyo.api.Drawable;
+import ikuyo.api.datatypes.Drawable;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;

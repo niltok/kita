@@ -1,6 +1,6 @@
 package ikuyo.server.renderers;
 
-import ikuyo.api.Drawable;
+import ikuyo.api.datatypes.Drawable;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.server.api.CommonContext;
 import io.vertx.core.json.JsonObject;

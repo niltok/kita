@@ -1,11 +1,15 @@
 package ikuyo.server.behaviors;
 
-import ikuyo.api.*;
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.datatypes.Block;
+import ikuyo.api.datatypes.Damage;
+import ikuyo.api.datatypes.StarInfo;
+import ikuyo.api.datatypes.UserInfo;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;
+import ikuyo.utils.Position;
 import ikuyo.utils.StarUtils;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.AABB;

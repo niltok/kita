@@ -1,7 +1,5 @@
 package ikuyo.api.cargo;
 
-import ikuyo.api.UnpackItem;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;

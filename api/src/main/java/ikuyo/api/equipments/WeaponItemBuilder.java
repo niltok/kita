@@ -1,16 +1,16 @@
 package ikuyo.api.equipments;
 
-import ikuyo.api.Damage;
-import ikuyo.api.UnpackItem;
 import ikuyo.api.cargo.AmmoItem;
 import ikuyo.api.cargo.CargoStatic;
+import ikuyo.api.cargo.UnpackItem;
+import ikuyo.api.datatypes.Damage;
 
 public final class WeaponItemBuilder {
     private String displayName;
     private String description;
     private double volume = 5;
     private double unpackVolume = 5;
-    private Class<? extends UnpackItem> unpackClass = AbstractWeapon.class;
+    private Class<? extends UnpackItem> unpackClass = Weapon.class;
     private double hpMax = 10;
     private Damage damage;
     private int ammoMax = 60;
@@ -96,7 +96,7 @@ public final class WeaponItemBuilder {
         return this;
     }
 
-    public WeaponItem build() {
+    public ActiveEquipmentItem build() {
         return new WeaponItem(displayName,
                 description,
                 volume,

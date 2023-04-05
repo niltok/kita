@@ -1,9 +1,8 @@
-package ikuyo.api;
+package ikuyo.api.datatypes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ikuyo.utils.DataStatic;
-import ikuyo.utils.StarUtils;
+import ikuyo.utils.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 

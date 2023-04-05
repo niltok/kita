@@ -1,7 +1,5 @@
 package ikuyo.api.cargo;
 
-import ikuyo.api.UnpackItem;
-
 public final class CargoItemBuilder {
     private String displayName;
     private String description;

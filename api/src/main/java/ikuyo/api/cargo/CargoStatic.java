@@ -1,11 +1,12 @@
 package ikuyo.api.cargo;
 
 import com.google.common.collect.ImmutableList;
-import ikuyo.api.Damage;
+import ikuyo.api.datatypes.Damage;
+import ikuyo.api.equipments.ActiveEquipmentItem;
 import ikuyo.api.equipments.EquipmentItem;
 import ikuyo.api.equipments.WeaponItem;
 import ikuyo.api.equipments.WeaponItemBuilder;
-import ikuyo.api.spaceships.AbstractSpaceship;
+import ikuyo.api.spaceships.Spaceship;
 import ikuyo.api.spaceships.SpaceshipItem;
 
 import java.lang.reflect.Modifier;
@@ -19,9 +20,9 @@ public class CargoStatic {
             stone = new CargoItem("石头", "星球深处的岩浆凝固后的产物", 10);
     public static final SpaceshipItem
             shuttle = new SpaceshipItem("穿梭机", "速度快但是货舱小", 500,
-            5000, AbstractSpaceship.class, 100, 100, 10, 2);
+            5000, Spaceship.class, 100, 100, 10, 2);
     public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01);
-    public static final WeaponItem
+    public static final ActiveEquipmentItem
             defaultWeapon = WeaponItemBuilder.create("默认武器", "",
                     new Damage(50).setRange(5)).withCollisionRange(0.3).build(),
             r400 = WeaponItemBuilder.create("R400", "",

@@ -1,4 +1,4 @@
-package ikuyo.api;
+package ikuyo.utils;
 
 import com.google.common.base.Objects;
 

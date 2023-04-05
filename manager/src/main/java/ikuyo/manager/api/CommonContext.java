@@ -1,7 +1,7 @@
 package ikuyo.manager.api;
 
-import ikuyo.api.Star;
-import ikuyo.api.User;
+import ikuyo.api.entities.Star;
+import ikuyo.api.entities.User;
 import ikuyo.utils.AsyncHelper;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;

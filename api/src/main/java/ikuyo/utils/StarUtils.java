@@ -1,7 +1,6 @@
 package ikuyo.utils;
 
-import ikuyo.api.Position;
-import ikuyo.api.StarInfo;
+import ikuyo.api.datatypes.StarInfo;
 import org.dyn4j.collision.narrowphase.Gjk;
 import org.dyn4j.collision.narrowphase.Raycast;
 import org.dyn4j.collision.narrowphase.RaycastDetector;

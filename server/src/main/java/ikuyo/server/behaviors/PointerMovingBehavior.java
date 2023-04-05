@@ -4,7 +4,7 @@ import ikuyo.api.behaviors.Behavior;
 import ikuyo.server.api.CommonContext;
 import org.dyn4j.geometry.Vector2;
 
-import static ikuyo.api.Drawable.scaling;
+import static ikuyo.api.datatypes.Drawable.scaling;
 
 public class PointerMovingBehavior implements Behavior<CommonContext> {
     @Override

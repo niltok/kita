@@ -1,9 +1,9 @@
 package ikuyo.server;
 
-import ikuyo.api.Position;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.NoCopyBox;
+import ikuyo.utils.Position;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;

@@ -1,8 +1,8 @@
 package ikuyo.server.api;
 
-import ikuyo.api.Star;
-import ikuyo.api.User;
-import ikuyo.api.UserInfo;
+import ikuyo.api.datatypes.UserInfo;
+import ikuyo.api.entities.Star;
+import ikuyo.api.entities.User;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.Vertx;
 

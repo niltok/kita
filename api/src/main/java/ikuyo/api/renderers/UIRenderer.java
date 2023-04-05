@@ -1,6 +1,6 @@
 package ikuyo.api.renderers;
 
-import ikuyo.api.UIElement;
+import ikuyo.api.datatypes.UIElement;
 import ikuyo.utils.AsyncHelper;
 import io.vertx.core.json.JsonObject;
 

@@ -1,8 +1,8 @@
 package ikuyo.manager;
 
-import ikuyo.api.Star;
-import ikuyo.api.Universe;
-import ikuyo.api.User;
+import ikuyo.api.entities.Star;
+import ikuyo.api.entities.Universe;
+import ikuyo.api.entities.User;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgPool;

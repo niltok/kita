@@ -1,6 +1,5 @@
 package ikuyo.utils;
 
-import ikuyo.api.Position;
 import org.dyn4j.geometry.Vector2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

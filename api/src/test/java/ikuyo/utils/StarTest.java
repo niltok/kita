@@ -1,6 +1,6 @@
 package ikuyo.utils;
 
-import ikuyo.api.StarInfo;
+import ikuyo.api.datatypes.StarInfo;
 import org.junit.jupiter.api.Test;
 
 public class StarTest {
