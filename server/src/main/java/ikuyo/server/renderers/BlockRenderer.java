@@ -3,6 +3,7 @@ package ikuyo.server.renderers;
 import ikuyo.api.datatypes.Drawable;
 import ikuyo.api.entities.Star;
 import ikuyo.server.api.CommonContext;
+import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.Position;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.buffer.Buffer;
@@ -17,26 +18,26 @@ public class BlockRenderer implements DrawablesRenderer {
         var star = context.star();
         var update = new HashSet<>(context.updated().blocks());
 
-//        context.updated().users().forEach(id -> {
-//            var info = context.getInfo(id);
-//            if (info == null || !info.online) return;
-//            StarUtils.areasAround(info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling).forEach(area -> {
-//                var state = context.areaStates().get(area);
-//                if (state.loaded) return;
-//                state.loaded = true;
-//                update.addAll(StarUtils.getBlocksAt(area));
-//            });
-////            var area = StarUtils.getAreaOf(StarUtils.realIndexOf(info.x, info.y));
-////            var state = context.areaStates().get(area);
-////            if (state.loaded) return;
-////            state.loaded = true;
-////            update.addAll(StarUtils.getBlocksAt(area));
-//        });
-//
-//        update.forEach(id -> renderBlock(drawables, star, id));
+        context.updated().users().forEach(id -> {
+            var info = context.getInfo(id);
+            if (info == null || !info.online) return;
+            StarUtils.areasAround(info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling).forEach(area -> {
+                var state = context.areaStates().get(area);
+                if (state.loaded) return;
+                state.loaded = true;
+                update.addAll(StarUtils.getBlocksAt(area));
+            });
+//            var area = StarUtils.getAreaOf(StarUtils.realIndexOf(info.x, info.y));
+//            var state = context.areaStates().get(area);
+//            if (state.loaded) return;
+//            state.loaded = true;
+//            update.addAll(StarUtils.getBlocksAt(area));
+        });
 
-        showAreas(context, drawables, 7 , 7);
-        markDown(drawables, 10664, "40-4");
+        update.forEach(id -> renderBlock(drawables, star, id));
+
+//        showAreas(context, drawables, 0 , 36, "0-0");
+//        markDown(drawables, 10664, "40-4");
     }
 
     private static void renderBlock(Map<String, Drawable> drawables, Star star, int i) {
@@ -77,16 +78,13 @@ public class BlockRenderer implements DrawablesRenderer {
                 .appendString(".image").toString(), d);
     }
 
-    private static void showAreas(CommonContext context, Map<String, Drawable> drawables, int start, int end) {
+    private static void showAreas(CommonContext context, Map<String, Drawable> drawables, int start, int end, String asset) {
         for (int area = start; area <= end; area++) {
             var state = context.areaStates().get(area);
             if (!state.loaded) {
                 state.loaded = true;
-                for (var id : StarUtils.getBlocksAt(area)) {
-                    if (StarUtils.getAreaOf(StarUtils.realIndexOf(id)) != area)
-                        markDown(drawables, id, "40-4");
-                    else markDown(drawables, id, "0-0");
-                }
+                for (var id : StarUtils.getBlocksAt(area))
+                    markDown(drawables, id, asset);
             }
         }
     }

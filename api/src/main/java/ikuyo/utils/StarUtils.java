@@ -110,7 +110,10 @@ public final class StarUtils {
         int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
                 * Math.hypot(x, y) / StarInfo.tierDistance);
         double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
-        double roundPercent = percent + (tier == 0 ? 0 : 1.0 / tier / 2);
+        double ii = Math.tan(i - Math.PI / 6) *
+                (Math.hypot(x, y) * Math.cos(Math.abs(Math.PI / 6 - i)) - tier * StarInfo.tierDistance)
+                / tier;
+        double roundPercent = percent + ii + (tier == 0 ? 0 : 1.0 / tier / 2);
 
         int detectIndex = edge * tier
                 + (int) (roundPercent * tier)
@@ -130,13 +133,34 @@ public final class StarUtils {
         int index = detectIndex;
         if (raycast.getPoint().getMagnitude() < Math.hypot(x, y)) {
             tier++;
-            roundPercent = percent + (tier == 0 ? 0 : 1.0 / tier / 2);
+            ii = Math.tan(i - Math.PI / 6) *
+                    (tier * StarInfo.tierDistance - Math.hypot(x, y) * Math.cos(Math.abs(Math.PI / 6 - i)))
+                    / tier;
+            roundPercent = percent - ii + (tier == 0 ? 0 : 1.0 / tier / 2);
             index = edge * tier
                     + (int) (roundPercent * tier)
                     + (tier - 1) * tier * 3 + Math.min(tier, 1);
             if (index / ((tier) * (tier + 1) * 3 + 1) >= 1)
                 index = (tier) * (tier - 1) * 3 + 1;
         }
+
+
+//        Map<Integer, Double> map = new HashMap<>();
+//        if (tier == 0) map.put(0,Math.hypot(x, y));
+//        for (i = 0; i < 2; i++) {
+//            int index = edge * tier + (int)(percent * tier) + tier * (tier - 1) * 3 + 1;
+//            Position pos = posOf(index);
+//            map.put(index, Math.hypot(pos.x - x, pos.y - y));
+//
+//            if ((index + 1) / (double)(tier * (tier + 1) * 3) <= 1) index += 1;
+//            else index = (tier - 1) * tier * 3 + 1;
+//            pos = posOf(index);
+//            map.put(index, Math.hypot(pos.x - x, pos.y - y));
+//            tier++;
+//        }
+//
+//        List<Map.Entry<Integer, Double>> list = new ArrayList<>(map.entrySet());
+//        list.sort(Map.Entry.comparingByValue());
 
         return index;
     }
