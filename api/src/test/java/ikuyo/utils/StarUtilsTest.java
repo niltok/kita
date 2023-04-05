@@ -1,5 +1,6 @@
 package ikuyo.utils;
 
+import ikuyo.api.datatypes.StarInfo;
 import org.dyn4j.geometry.Vector2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,7 @@ import java.util.List;
 public class StarUtilsTest {
     @Test
     public void printBlock() {
-        System.out.println(StarUtils.printBlock(134727));
+        System.out.println(StarUtils.printBlock(10664));
     }
     @Test
     public void Teat_area() {
@@ -23,7 +24,7 @@ public class StarUtilsTest {
                 int reaIndex = StarUtils.realIndexOf(index);
                 if (StarUtils.getAreaOf(reaIndex) != i) {
                     error++;
-                    System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";realIndex: " + reaIndex);
+//                    System.out.println(i + "," + StarUtils.getAreaOf(reaIndex) + ";realIndex: " + reaIndex);
                 }
 
 //                Assertions.assertEquals(StarUtils.getAreaOf(reaIndex), i);
@@ -89,6 +90,12 @@ public class StarUtilsTest {
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
                         .add(new Vector2(0.4999, 0).rotate(i * Math.PI / 3));
+                Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), index);
+            }
+            for (int i = 0; i < 6; i++) {
+                var v = new Vector2(pos.x, pos.y)
+                        .add(new Vector2(StarInfo.edgeLength * 0.8, 0)
+                                .rotate(Math.PI / 3 * i + Math.PI / 6));
                 Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), index);
             }
         }

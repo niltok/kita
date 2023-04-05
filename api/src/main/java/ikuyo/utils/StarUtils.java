@@ -88,7 +88,8 @@ public final class StarUtils {
     private static Vector2[] getVertices() {
         Vector2[] vertices = new Vector2[6];
         for (int i = 0; i < 6; i++) {
-            vertices[i] = new Vector2(StarInfo.edgeLength, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
+            vertices[i] = new Vector2(StarInfo.edgeLength, 0)
+                    .rotate(Math.PI / 3 * i + Math.PI / 6);
         }
         return vertices;
     }
@@ -246,10 +247,9 @@ public final class StarUtils {
         ArrayList<Integer> list =
                 nTierAround(realIndexOf(trans.x, trans.y), areaSize - 1, false);
 
-        Position pos = positionOf(realIndexOf(trans.x, trans.y));
         for (int i = areaSize * (areaSize - 1) * 3 + 1; i < areaSize * (areaSize + 1) * 3 + 1; i++) {
             Position posI = positionOf(i);
-            int realIndexI = realIndexOf(pos.x + posI.x, pos.y + posI.y);
+            int realIndexI = realIndexOf(trans.x + posI.x, trans.y + posI.y);
             int tier = tierOf(realIndexI);
             if (tier >= StarInfo.minTier && tier <= StarInfo.maxTier && getAreaOf(realIndexI, areaSize) == area)
                 list.add(indexOf(realIndexI));
