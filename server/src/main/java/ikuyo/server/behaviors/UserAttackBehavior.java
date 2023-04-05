@@ -16,12 +16,13 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
 
     @Override
     public void update(CommonContext context) {
-        context.userStates().forEach((id, state) -> {
+        context.updated().users().forEach((id) -> {
+            var state = context.getState(id);
+            var userInfo = context.getInfo(id);
+            if (state == null || userInfo == null || !userInfo.online) return;
             var input = state.input;
-            var userInfo = context.star().starInfo().starUsers.get(id);
-            if (!userInfo.online) return;
 
-            if (input.shot > 0 && userInfo.spaceship.getCurrentWeapon() != null
+            if (input.shot > 0 && userInfo.spaceship != null && userInfo.spaceship.getCurrentWeapon() != null
                     && userInfo.spaceship.tryFire())
                 shot(id, input, userInfo.spaceship.getCurrentWeapon(), context);
         });

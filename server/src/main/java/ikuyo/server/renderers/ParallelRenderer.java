@@ -17,7 +17,7 @@ public class ParallelRenderer extends CompositeRenderer<CommonContext> {
     @Override
     public JsonObject render(CommonContext ctx) {
         return Arrays.stream(renderers)
-                .map(renderer -> AsyncStatic.runBlocking(ctx.vertx(), () -> renderer.render(ctx), false))
+                .map(renderer -> AsyncStatic.runBlocking(ctx.vertx, () -> renderer.render(ctx), false))
                 .reduce(
                     JsonObject.of(),
                     (json, future) -> json.mergeIn(Async.await(future), deep),

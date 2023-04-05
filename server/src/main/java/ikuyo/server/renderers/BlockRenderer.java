@@ -79,7 +79,7 @@ public class BlockRenderer implements DrawablesRenderer {
 
     private static void showAreas(CommonContext context, Map<String, Drawable> drawables, int start, int end) {
         for (int area = start; area <= end; area++) {
-            var state = context.areaStates().get(area);
+            var state = context.areaStates.get(area);
             if (!state.loaded) {
                 state.loaded = true;
                 for (var id : StarUtils.getBlocksAt(area)) {
