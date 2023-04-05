@@ -107,19 +107,10 @@ public final class StarUtils {
         }
         edge = (edge + 6) % 6;
 
-        int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
-                * Math.hypot(x, y) / StarInfo.tierDistance);
+        double height = Math.hypot(x, y) * Math.cos(Math.abs(Math.PI / 6 - i));
+        int tier = (int) (height / StarInfo.tierDistance);
         double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
-        double ii = Math.tan(i - Math.PI / 6) *
-                (Math.hypot(x, y) * Math.cos(Math.abs(Math.PI / 6 - i)) - tier * StarInfo.tierDistance)
-                / tier;
-        double roundPercent = percent + ii + (tier == 0 ? 0 : 1.0 / tier / 2);
-
-        int detectIndex = edge * tier
-                + (int) (roundPercent * tier)
-                + (tier - 1) * tier * 3 + Math.min(tier, 1);
-        if (tier != 0 && detectIndex / ((tier) * (tier + 1) * 3 + 1) >= 1)
-            detectIndex = (tier) * (tier - 1) * 3 + 1;
+        int detectIndex = getIndex(i, edge, height, tier, percent);
         Position pos = positionOf(detectIndex);
 
         RaycastDetector raycastDetector = new Gjk();
@@ -131,36 +122,22 @@ public final class StarUtils {
                 radian + Math.PI), 4, hexagon, transform, raycast);
 
         int index = detectIndex;
-        if (raycast.getPoint().getMagnitude() < Math.hypot(x, y)) {
-            tier++;
-            ii = Math.tan(i - Math.PI / 6) *
-                    (tier * StarInfo.tierDistance - Math.hypot(x, y) * Math.cos(Math.abs(Math.PI / 6 - i)))
-                    / tier;
-            roundPercent = percent - ii + (tier == 0 ? 0 : 1.0 / tier / 2);
-            index = edge * tier
-                    + (int) (roundPercent * tier)
-                    + (tier - 1) * tier * 3 + Math.min(tier, 1);
-            if (index / ((tier) * (tier + 1) * 3 + 1) >= 1)
-                index = (tier) * (tier - 1) * 3 + 1;
-        }
+        if (raycast.getPoint().getMagnitude() < Math.hypot(x, y))
+            index = getIndex(i, edge, height, ++tier, percent);
 
+        return index;
+    }
 
-//        Map<Integer, Double> map = new HashMap<>();
-//        if (tier == 0) map.put(0,Math.hypot(x, y));
-//        for (i = 0; i < 2; i++) {
-//            int index = edge * tier + (int)(percent * tier) + tier * (tier - 1) * 3 + 1;
-//            Position pos = posOf(index);
-//            map.put(index, Math.hypot(pos.x - x, pos.y - y));
-//
-//            if ((index + 1) / (double)(tier * (tier + 1) * 3) <= 1) index += 1;
-//            else index = (tier - 1) * tier * 3 + 1;
-//            pos = posOf(index);
-//            map.put(index, Math.hypot(pos.x - x, pos.y - y));
-//            tier++;
-//        }
-//
-//        List<Map.Entry<Integer, Double>> list = new ArrayList<>(map.entrySet());
-//        list.sort(Map.Entry.comparingByValue());
+    private static int getIndex(double i, int edge, double height, int tier, double percent) {
+        double roundPercent = percent
+                + (Math.tan(i - Math.PI / 6) * (height - tier * StarInfo.tierDistance) / tier)
+                + (tier == 0 ? 0 : 1.0 / tier / 2);
+        int index = edge * tier
+                + (int)(roundPercent * tier)
+                + (tier - 1) * tier * 3
+                + Math.min(tier, 1);
+        if (tier != 0 && index / ((tier) * (tier + 1) * 3 + 1) >= 1)
+            index = (tier) * (tier - 1) * 3 + 1;
 
         return index;
     }
@@ -316,14 +293,16 @@ public final class StarUtils {
         double i = radian - PI_DIV3 * edge;
         if (i <= 1e-8) {
             edge--;
-            i += PI_DIV3;
+            i = Math.min(1 + PI_DIV3, PI_DIV3);
         }
         edge = (edge + 6) % 6;
 
-        int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
-                * Math.hypot(position.x, position.y) / StarInfo.tierDistance);
+        double height = Math.hypot(position.x, position.y) * Math.cos(Math.abs(Math.PI / 6 - i));
+        int tier = (int) (height / StarInfo.tierDistance);
         double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
-        double roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e8) / 1e8;
+        double roundPercent = percent
+                + (Math.tan(i - Math.PI / 6) * (height - tier * StarInfo.tierDistance) / tier)
+                + (tier == 0 ? 0 : 1.0 / tier / 2);
 
         StringBuilder around = new StringBuilder("[aroundBlocks]:");
         for (int index = 1; index < 7; index++) {
@@ -334,7 +313,7 @@ public final class StarUtils {
         return ("""
                 [info - %d]: {\s
                 \t[realIndex]: %d, [index]: %d, [tier]: %d, [position]: (x) %f, (y) %f\s
-                \t[angle]: %f, [edge]: %d, [edgePercent]: %f, [roundPercent], %f\s
+                \t[angle]: %f, [edge]: %d, [Percent]: %f, [roundPercent], %f\s
                 \t[area]: %d, %s\s
                 }""")
                 .formatted(realIndex,

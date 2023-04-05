@@ -11,7 +11,7 @@ import java.util.List;
 public class StarUtilsTest {
     @Test
     public void printBlock() {
-        System.out.println(StarUtils.printBlock(10));
+        System.out.println(StarUtils.printBlock(6211));
     }
     @Test
     public void Teat_area() {
@@ -102,7 +102,7 @@ public class StarUtilsTest {
             }
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
-                        .add(new Vector2(StarInfo.edgeLength * 0.9, 0)
+                        .add(new Vector2(StarInfo.edgeLength * 0.99, 0)
                                 .rotate(Math.PI / 3 * i + Math.PI / 6));
                 Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), index);
             }
