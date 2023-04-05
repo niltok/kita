@@ -9,7 +9,6 @@ import {useAppSelector} from "../storeHook"
 import {throttleTime} from "rxjs"
 import './Stage.css'
 import {keyMapper, KeyType} from "../keyMapper";
-import {renderUI} from "./RenderUI";
 import {useDiffGame} from "../stores/gameState";
 
 export type SeqDrawable = { data: { [key: string]: Drawable } };
@@ -100,9 +99,7 @@ export const Stage = () => {
             seqSub.unsubscribe()
         }
     }, [canvas])
-    const ui = useAppSelector(state => state.gameState.star.ui)
     return (<>
-        <div className={"absolute fullscreen"} style={{pointerEvents: "none"}}>{renderUI(ui)}</div>
         <canvas ref={setCanvas} className={"no-cursor"}></canvas>
     </>)
 }
