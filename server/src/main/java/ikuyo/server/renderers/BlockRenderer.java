@@ -27,14 +27,16 @@ public class BlockRenderer implements DrawablesRenderer {
                 state.loaded = true;
                 update.addAll(StarUtils.getBlocksAt(area));
             });
-//            var area = StarInfo.getAreaOf(StarInfo.realIndexOf(info.x, info.y), StarInfo.areaSize);
+//            var area = StarUtils.getAreaOf(StarUtils.realIndexOf(info.x, info.y));
 //            var state = context.areaStates().get(area);
 //            if (state.loaded) return;
 //            state.loaded = true;
-//            update.addAll(StarInfo.getBlocksAt(area));
+//            update.addAll(StarUtils.getBlocksAt(area));
         });
 
         update.forEach(id -> renderBlock(drawables, star, id));
+
+//        showAreas(context, drawables, 16 , 16);
     }
 
     private static void renderBlock(Map<String, Drawable> drawables, Star star, int i) {
@@ -59,6 +61,33 @@ public class BlockRenderer implements DrawablesRenderer {
                     .appendString(String.valueOf(i))
                     .appendString(".image").toString(), null);
 
+        }
+    }
+
+    private static void markDown(Map<String, Drawable> drawables, int i, String asset) {
+        var d = new Drawable.Sprite();
+        Position pos = StarUtils.positionOf(StarUtils.realIndexOf(i));
+        d.x = pos.x * Drawable.scaling;
+        d.y = pos.y * Drawable.scaling;
+        d.bundle = "blocks";
+        d.asset = asset;
+        drawables.put(Buffer.buffer()
+                .appendString("block#")
+                .appendString(String.valueOf(i))
+                .appendString(".image").toString(), d);
+    }
+
+    private static void showAreas(CommonContext context, Map<String, Drawable> drawables, int start, int end) {
+        for (int area = start; area <= end; area++) {
+            var state = context.areaStates().get(area);
+            if (!state.loaded) {
+                state.loaded = true;
+                for (var id : StarUtils.getBlocksAt(area)) {
+                    if (StarUtils.getAreaOf(StarUtils.realIndexOf(id)) != area)
+                        markDown(drawables, id, "40-4");
+                    else markDown(drawables, id, "0-0");
+                }
+            }
         }
     }
 }

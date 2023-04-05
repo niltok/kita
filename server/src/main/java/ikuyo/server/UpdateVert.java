@@ -171,7 +171,7 @@ public class UpdateVert extends AsyncVerticle {
                         infoJson == null ? new UserInfo() : infoJson.mapTo(UserInfo.class));
                 info.online = true;
                 info.x = 0;
-                info.y = StarInfo.maxTier;
+                info.y = StarInfo.minTier + 10;
                 assert user != null;
                 commonContext.add(id, user);
                 msg.reply(JsonObject.of("type", "success"));

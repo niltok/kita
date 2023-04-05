@@ -13,11 +13,11 @@ public final class StarUtils {
     public static final int areaTier = 30;
     public static final int areaNum = areaTier * (areaTier + 1) * 3 + 1;
     public static final int areaSize = 15;
+    public static final int insideBlocks = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
     public static final int blockRealNum = StarInfo.maxTier * (StarInfo.maxTier + 1) * 3 + 1;
-    public static final int blockNum = blockRealNum - StarInfo.minTier * (StarInfo.minTier - 1) * 3 - 1;
-
+    public static final int blockNum = blockRealNum - insideBlocks;
     public static int realIndexOf(int index) {
-        return 3 * StarInfo.minTier * (StarInfo.minTier - 1) + index + 1;
+        return insideBlocks + index;
     }
 
     public static int tierOf(int realIndex) {
@@ -81,7 +81,7 @@ public final class StarUtils {
     }
 
     public static int indexOf(int realIndex) {
-        return realIndex - StarInfo.minTier * (StarInfo.minTier - 1) * 3 - 1;
+        return realIndex - insideBlocks;
     }
 
     private static final Polygon hexagon = Geometry.createPolygon(getVertices());
@@ -93,14 +93,23 @@ public final class StarUtils {
         return vertices;
     }
     public static int realIndexOf(double x, double y) {
-        double radian = (Math.atan2(y, x) + Math.PI * 2) % (Math.PI * 2);
-        double PIDiv3 = Math.PI / 3;
-        int edge = (int) (radian / PIDiv3);
-        double i = radian % PIDiv3;
+        double radian = Math.atan2(y, x);
+        if (radian < 0) radian += Math.PI * 2;
+        if (radian >= Math.PI * 2) radian -= Math.PI * 2;
+
+        double PI_DIV3 = Math.PI / 3;
+        int edge = (int) (Math.round((radian / PI_DIV3) * 1e8) / 1e8);
+        double i = radian - PI_DIV3 * edge;
+        if (i <= 1e-8) {
+            edge--;
+            i = Math.min(1 + PI_DIV3, PI_DIV3);
+        }
+        edge = (edge + 6) % 6;
+
         int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
                 * Math.hypot(x, y) / StarInfo.tierDistance);
         double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
-        double roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e8) / 1e8;
+        double roundPercent = percent + (tier == 0 ? 0 : 1.0 / tier / 2);
 
         int detectIndex = edge * tier
                 + (int) (roundPercent * tier)
@@ -114,14 +123,13 @@ public final class StarUtils {
         transform.setTranslation(pos.x, pos.y);
         Raycast raycast = new Raycast();
 
-        raycastDetector.raycast(new Ray(new Vector2(), radian), Math.hypot(x, y), hexagon, transform, raycast);
-        raycastDetector.raycast(new Ray(raycast.getPoint().add(new Vector2(radian).multiply(1.5)),
-                radian + Math.PI), 1.5, hexagon, transform, raycast);
+        raycastDetector.raycast(new Ray(new Vector2(x, y).add(new Vector2(radian).multiply(2)),
+                radian + Math.PI), 4, hexagon, transform, raycast);
 
         int index = detectIndex;
         if (raycast.getPoint().getMagnitude() < Math.hypot(x, y)) {
             tier++;
-            roundPercent = Math.round((percent + (tier == 0 ? 0 : 1.0 / tier / 2)) * 1e8) / 1e8;
+            roundPercent = percent + (tier == 0 ? 0 : 1.0 / tier / 2);
             index = edge * tier
                     + (int) (roundPercent * tier)
                     + (tier - 1) * tier * 3 + Math.min(tier, 1);
@@ -144,7 +152,7 @@ public final class StarUtils {
         Position pos = positionOf(realIndex);
         int extraBlock = 0;
         if (!returnRealIndex)
-            extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
+            extraBlock = insideBlocks;
         for (int i = 0; i < n * (n + 1) * 3 + 1; i++) {
             Position posI = positionOf(i);
             int realIndexI = realIndexOf(pos.x + posI.x, pos.y + posI.y);
@@ -170,7 +178,7 @@ public final class StarUtils {
         Position pos = positionOf(realIndexOf(position.x, position.y));
         int extraBlock = 0;
         if (!returnRealIndex)
-            extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
+            extraBlock = insideBlocks;
         int nTier = (int) ((r + StarInfo.edgeLength) / StarInfo.tierDistance) + 1;
         for (int i = 0; i < nTier * (nTier + 1) * 3 + 1; i++) {
             Position posI = positionOf(i);
@@ -219,10 +227,10 @@ public final class StarUtils {
     /**
      * <p>查询 realIndex 所属区域的编号<p/>
      */
-    public static int getAreaOf(int realIndex, int tier) {
+    public static int getAreaOf(int realIndex, int areaSize) {
         Position pos = positionOf(realIndex);
         Vector2 trans = new Vector2(pos.x, pos.y);
-        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * tier * 2);
+        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * areaSize * 2);
 
         return realIndexOf(trans.x, trans.y);
     }
@@ -231,29 +239,29 @@ public final class StarUtils {
      * <p>area内块的编号<p/>
      * 返回的List中存储可以直接调用的 index , 而不是 realIndex
      */
-    public static ArrayList<Integer> getBlocksAt(int area, int tier) {
+    public static ArrayList<Integer> getBlocksAt(int area, int areaSize) {
         Position center = positionOf(area);
         Vector2 trans = new Vector2(center.x, center.y);
-        trans.rotate(Math.PI / 6).multiply(StarInfo.tierDistance * tier * 2);
+        trans.multiply(StarInfo.tierDistance * areaSize * 2).rotate(Math.PI / 6);
         ArrayList<Integer> list =
-                nTierAround(realIndexOf(trans.x, trans.y), tier - 1, false);
+                nTierAround(realIndexOf(trans.x, trans.y), areaSize - 1, false);
 
-        int extraBlock = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
-        for (int i = tier * (tier - 1) * 3 + 1; i < tier * (tier + 1) * 3 + 1; i++) {
+        Position pos = positionOf(realIndexOf(trans.x, trans.y));
+        for (int i = areaSize * (areaSize - 1) * 3 + 1; i < areaSize * (areaSize + 1) * 3 + 1; i++) {
             Position posI = positionOf(i);
-            int realIndexI = realIndexOf(trans.x + posI.x, trans.y + posI.y);
-            int thisTier = tierOf(realIndexI);
-            if (thisTier >= StarInfo.minTier && thisTier <= StarInfo.maxTier && getAreaOf(realIndexI, tier) == area)
-                list.add(realIndexI - extraBlock);
+            int realIndexI = realIndexOf(pos.x + posI.x, pos.y + posI.y);
+            int tier = tierOf(realIndexI);
+            if (tier >= StarInfo.minTier && tier <= StarInfo.maxTier && getAreaOf(realIndexI, areaSize) == area)
+                list.add(indexOf(realIndexI));
         }
 
         return list;
     }
 
-    public static ArrayList<Integer> areasAround(double x, double y, double r, int tier) {
+    public static ArrayList<Integer> areasAround(double x, double y, double r, int areaSize) {
         Vector2 trans = new Vector2(x, y);
-        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * tier * 2);
-        return nTierAround(new Position(trans.x, trans.y), r / (StarInfo.tierDistance * tier * 2) + StarInfo.edgeLength, true);
+        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * areaSize * 2);
+        return nTierAround(new Position(trans.x, trans.y), r / (StarInfo.tierDistance * areaSize * 2) + StarInfo.edgeLength, true);
     }
 
     /**
@@ -275,10 +283,19 @@ public final class StarUtils {
     public static String printBlock(int realIndex) {
         Position position = positionOf(realIndex);
 
-        double radian = (Math.atan2(position.y, position.x) + Math.PI * 2) % (Math.PI * 2);
-        double PIDiv3 = Math.PI / 3;
-        int edge = (int) (radian / PIDiv3);
-        double i = radian % PIDiv3;
+        double radian = Math.atan2(position.y, position.x);
+        if (radian < 0) radian += Math.PI * 2;
+        if (radian >= Math.PI * 2) radian -= Math.PI * 2;
+
+        double PI_DIV3 = Math.PI / 3;
+        int edge = (int) (Math.round((radian / PI_DIV3) * 1e8) / 1e8);
+        double i = radian - PI_DIV3 * edge;
+        if (i <= 1e-8) {
+            edge--;
+            i += PI_DIV3;
+        }
+        edge = (edge + 6) % 6;
+
         int tier = (int) (Math.cos(Math.abs(Math.PI / 6 - i))
                 * Math.hypot(position.x, position.y) / StarInfo.tierDistance);
         double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
@@ -294,7 +311,7 @@ public final class StarUtils {
                 [info - %d]: {\s
                 \t[realIndex]: %d, [index]: %d, [tier]: %d, [position]: (x) %f, (y) %f\s
                 \t[angle]: %f, [edge]: %d, [edgePercent]: %f, [roundPercent], %f\s
-                \t%s\s
+                \t[area]: %d, %s\s
                 }""")
                 .formatted(realIndex,
                         realIndex,
@@ -305,38 +322,13 @@ public final class StarUtils {
                         edge + 1,
                         percent,
                         roundPercent,
+                        StarUtils.getAreaOf(realIndex),
                         around.toString());
     }
 
     public static void main(String[] args) {
 
 /*
-        int testTier = 1000;
-        int error = 0;
-        for (int index = 0; index < testTier * (testTier+1) * 3 + 1; index++) {
-            Position position = posOf(index);
-            double x = position.x, y = position.y;
-
-            double radian = (Math.atan2(y, x) + Math.PI * 2) % (Math.PI * 2);
-            double PIDiv3 = Math.PI / 3;
-            int edge = (int)(radian / PIDiv3);
-            double i = radian % PIDiv3;
-            int tier = (int)(Math.cos(Math.abs(Math.PI / 6 - i))
-                    * Math.hypot(x, y) / StarInfo.tierDistance);
-            double percent = 2 / (Math.sqrt(3) / Math.tan(i) + 1);
-            percent += tier == 0 ? 0 : 1.0 / tier / 2;
-            percent = Math.round(percent * 1e6) / 1e6;
-
-            int detectIndex = edge * tier
-                    + (int)(percent * tier)
-                    + (tier - 1) * tier * 3 + Math.min(tier, 1);
-            if (detectIndex != index)
-                error++;
-            System.out.print(index + ", " + detectIndex + ", " + percent + "\n");
-        }
-        System.out.println(error);
-*/
-
         Position pos = positionOf(2);
         RaycastDetector raycastDetector = new Gjk();
         Transform transform = new Transform();
@@ -349,5 +341,13 @@ public final class StarUtils {
 
         System.out.println(raycast.getPoint());
         System.out.println(StarInfo.edgeLength * 2);
+*/
+
+        Position center = positionOf(16);
+        Vector2 trans = new Vector2(center.x, center.y);
+        trans.multiply(StarInfo.tierDistance * areaSize * 2).rotate(Math.PI / 6);
+        ArrayList<Integer> list =
+                nTierAround(realIndexOf(trans.x, trans.y), areaSize - 1, true);
+
     }
 }
