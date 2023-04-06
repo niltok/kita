@@ -38,13 +38,24 @@ public class BlockRenderer implements DrawablesRenderer {
 
         showAreas(context, drawables, 0 , 36, "rainbow");
 
+        var drawable = new Drawable.Line();
+        drawable.width = 2;
+        drawable.color = 0xff0000;
+
         Vector2 trans = StarUtils.areaToBlock(-2.6576347892342223, -2.7457436564763738, 15);
         markDown(drawables, StarUtils.indexOf(
                 StarUtils.realIndexOf(trans.x, trans.y)), "40-4");
 
+        drawable.x = trans.x * Drawable.scaling;
+        drawable.y = trans.y * Drawable.scaling;
+
         trans = StarUtils.areaToBlock(-1.266666666666666, -1.3086606101631508, 15);
         markDown(drawables, StarUtils.indexOf(
                 StarUtils.realIndexOf(trans.x, trans.y)), "40-4");
+
+        drawable.lineTo(trans.x * Drawable.scaling, trans.y * Drawable.scaling);
+
+        drawables.put("debug.line", drawable);
 
 //        markDown(drawables, 10664, "40-4");
     }

@@ -48,5 +48,9 @@ public sealed abstract class Drawable {
     public static final class Line extends Drawable {
         public double length, width;
         public int color;
+        public void lineTo(double x, double y) {
+            length = Math.hypot(x - this.x, y - this.y);
+            rotation = -Math.atan2(x - this.x, y - this.y) + Math.PI / 2;
+        }
     }
 }
