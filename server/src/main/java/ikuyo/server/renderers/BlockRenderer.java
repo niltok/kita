@@ -6,6 +6,7 @@ import ikuyo.server.api.CommonContext;
 import ikuyo.utils.Position;
 import ikuyo.utils.StarUtils;
 import io.vertx.core.buffer.Buffer;
+import org.dyn4j.geometry.Vector2;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -36,6 +37,14 @@ public class BlockRenderer implements DrawablesRenderer {
 //        update.forEach(id -> renderBlock(drawables, star, id));
 
         showAreas(context, drawables, 0 , 36, "rainbow");
+
+        Vector2 trans = StarUtils.areaToBlock(-2.6576347892342223, -2.7457436564763738, 15);
+        markDown(drawables, StarUtils.indexOf(
+                StarUtils.realIndexOf(trans.x, trans.y)), "40-4");
+
+        trans = StarUtils.areaToBlock(-1.266666666666666, -1.3086606101631508, 15);
+        markDown(drawables, StarUtils.indexOf(
+                StarUtils.realIndexOf(trans.x, trans.y)), "40-4");
 
 //        markDown(drawables, 10664, "40-4");
     }
