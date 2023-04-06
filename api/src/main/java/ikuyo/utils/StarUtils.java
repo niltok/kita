@@ -269,10 +269,9 @@ public final class StarUtils {
                 r / (StarInfo.tierDistance * areaSize * 2) + StarInfo.edgeLength, true);
         ArrayList<Integer> res = new ArrayList<>();
         for (var i: list) {
-            if (i < areaSize)
+            if (i < areaNum)
                 res.add(i);
         }
-
         return res;
     }
 
