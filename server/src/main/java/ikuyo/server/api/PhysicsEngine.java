@@ -22,7 +22,9 @@ import java.util.*;
 
 public class PhysicsEngine{
     protected World<KitasBody> world;
-    public Map<Integer, Map.Entry<User, KitasBody>> users;
+//    public Map<Integer, Map.Entry<User, KitasBody>> users;
+
+    public Map<Integer, UserEngineData> users;
     public Map<Integer, KitasBody> surfaceBlocks;
     public Map<String, Bullet> bullets;
     /**重力加速度*/
@@ -79,10 +81,13 @@ public class PhysicsEngine{
                 removeBullet(id);*/
 
             for (var bullet: bullets.values())
-                checkOutOfBound(bullet.body, starR * 2);
+                checkOutOfBound(bullet.getBody(), starR * 2);
 
-            for (var user: users.values())
-                checkOutOfBound(user.getValue(), starR * 2);
+            for (var user: users.values()) {
+                checkOutOfBound(user.getBody(), starR * 2);
+//                todo: camera pos
+                user.setCameraPosition(user.getBody().getWorldCenter().x, user.getBody().getWorldCenter().y);
+            }
 
             world.step(1);
         }
@@ -110,7 +115,10 @@ public class PhysicsEngine{
 
     public void addUser(User user, UserInfo userInfo) {
         if (!users.containsKey(user.id())) {
-            KitasBody body = new KitasBody();
+            UserEngineData userData = new UserEngineData();
+            userData.user = user;
+
+            KitasBody body = userData.getBody();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
             fixture.setFriction(0.1);
             fixture.setFilter(USER);
@@ -128,6 +136,9 @@ public class PhysicsEngine{
             body.setMass(new Mass(new Vector2(), 50,
                     (double) 50 * 50 / 12));
 
+//            todo: think
+            userData.setCameraPosition(userInfo.x, userInfo.y);
+
             if (user.isAdmin()) {
                 fixture.setFilter(filter -> false);
 //                fixture.setFilter(USER);
@@ -137,14 +148,14 @@ public class PhysicsEngine{
             }
 
             body.setAtRest(true);
-            users.put(user.id(), Map.entry(user, body));
+            users.put(user.id(), userData);
             world.addBody(body);
         }
     }
 
     public void removeUser(int id) {
         if (users.containsKey(id)) {
-            KitasBody body = users.get(id).getValue();
+            KitasBody body = users.get(id).getBody();
             world.removeBody(body);
             users.remove(id);
         }
@@ -152,12 +163,12 @@ public class PhysicsEngine{
 
     public void addBullet(Bullet bullet) {
         bullets.put(UUID.randomUUID().toString(), bullet);
-        world.addBody(bullet.body);
+        world.addBody(bullet.getBody());
     }
 
     public void removeBullet(String id) {
         if (bullets.get(id) != null)
-            world.removeBody(bullets.get(id).body);
+            world.removeBody(bullets.get(id).getBody());
         bullets.put(id, null);
     }
 

@@ -1,6 +1,7 @@
 package ikuyo.server.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.cargo.CargoStatic;
 import ikuyo.api.datatypes.Damage;
 import ikuyo.api.datatypes.UserInput;
 import ikuyo.api.equipments.Weapon;
@@ -37,9 +38,8 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         Position point = input.pointAt;
         Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
                 context.star().starInfo().starUsers.get(id).y);
-        double radius = context.engine().users.get(id).getValue().getRotationDiscRadius();
+        double radius = context.engine().users.get(id).getBody().getRotationDiscRadius();
         Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
-
 
         info.set(
                 weapon.getInfo().collisionRange,
@@ -47,6 +47,9 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
                 direction.copy().multiply(weapon.getInfo().velocity),
                 weapon.getDamage()
         );
+
+        if (weapon.type.equals(CargoStatic.r400.type()))
+            info.gravityScale = 0.01;
 
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
         info.bulletCheck(userPos, direction, radius, context);
@@ -61,6 +64,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         public Vector2 pos;
         public Vector2 velocity;
         public Damage damage;
+        public double gravityScale = 1.0;
 
         public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, Damage damage) {
             this.r = bulletR;

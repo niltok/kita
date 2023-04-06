@@ -26,7 +26,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             var userInfo = context.getInfo(id);
             if (state == null || userInfo == null || !userInfo.online) return;
             var input = state.input;
-            var body = context.engine().users.get(id).getValue();
+            var body = context.engine().users.get(id).getBody();
 
             if (userInfo.controlType.equals("fly")) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =

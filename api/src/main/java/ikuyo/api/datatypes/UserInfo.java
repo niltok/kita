@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 )
 public class UserInfo {
     public double x, y = StarInfo.maxTier;
+    public double cameraX, cameraY = StarInfo.maxTier;
 
     public double rotation;
     public boolean online;

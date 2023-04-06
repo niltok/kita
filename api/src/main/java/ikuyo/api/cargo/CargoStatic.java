@@ -26,7 +26,9 @@ public class CargoStatic {
             defaultWeapon = WeaponItemBuilder.create("默认武器", "",
                     new Damage(50).setRange(5)).withCollisionRange(0.3).build(),
             r400 = WeaponItemBuilder.create("R400", "",
-                    new Damage(1).setRange(0.1).setIfBreakBlock(false)).withFireTime(6).build()
+                    new Damage(1).setRange(0.1).setIfBreakBlock(false)).withFireTime(6).build(),
+            chargeRifle = WeaponItemBuilder.create("ChargeRifle", "",
+                    new Damage(50).setRange(0.1).setIfBreakBlock(false)).withFireTime(30).withAmmoMax(2).build()
     ;
 
     public static <W, T> ImmutableList<T> filterType(List<W> list, Class<T> clazz) {

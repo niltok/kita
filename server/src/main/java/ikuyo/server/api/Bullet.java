@@ -26,5 +26,9 @@ public class Bullet {
         body.setMass(MassType.NORMAL);
         body.setLinearDamping(0.01);
         body.setUserData(info.userId);
+        body.setGravityScale(info.gravityScale);
+    }
+    public KitasBody getBody() {
+        return body;
     }
 }
