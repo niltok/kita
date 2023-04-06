@@ -265,7 +265,15 @@ public final class StarUtils {
 
     public static ArrayList<Integer> areasAround(double x, double y, double r, int areaSize) {
         Vector2 trans = blockToArea(x, y, areaSize);
-        return nTierAround(new Position(trans.x, trans.y), r / (StarInfo.tierDistance * areaSize * 2) + StarInfo.edgeLength, true);
+        ArrayList<Integer> list = nTierAround(new Position(trans.x, trans.y),
+                r / (StarInfo.tierDistance * areaSize * 2) + StarInfo.edgeLength, true);
+        ArrayList<Integer> res = new ArrayList<>();
+        for (var i: list) {
+            if (i < areaSize)
+                res.add(i);
+        }
+
+        return res;
     }
 
     /**
