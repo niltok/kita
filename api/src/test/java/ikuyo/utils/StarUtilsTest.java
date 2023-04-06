@@ -46,7 +46,7 @@ public class StarUtilsTest {
 //        list = StarUtils.getBlocksAt(16);
 //        System.out.println(StarUtils.getAreaOf(StarUtils.realIndexOf(292.2, -506.2)));
 
-        StarUtils.getAreaOf(8496);
+        StarUtils.getAreaOf(13873);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class StarUtilsTest {
             }
             for (int i = 0; i < 6; i++) {
                 var v = new Vector2(pos.x, pos.y)
-                        .add(new Vector2(StarInfo.edgeLength * 0.99, 0)
+                        .add(new Vector2(StarInfo.edgeLength * 0.999, 0)
                                 .rotate(Math.PI / 3 * i + Math.PI / 6));
                 Assertions.assertEquals(StarUtils.realIndexOf(v.x, v.y), index);
             }

@@ -48,6 +48,28 @@ public sealed abstract class Drawable {
     public static final class Line extends Drawable {
         public double length, width;
         public int color;
+
+        public Line setStartPoint(double x, double y) {
+            this.x = x;
+            this.y = y;
+            return this;
+        }
+
+        public Line setEndPoint(double x, double y) {
+            this.lineTo(x, y);
+            return this;
+        }
+
+        public Line setWidth(double width) {
+            this.width = width;
+            return this;
+        }
+
+        public Line setColor(int color) {
+            this.color = color;
+            return this;
+        }
+
         public void lineTo(double x, double y) {
             length = Math.hypot(x - this.x, y - this.y);
             rotation = -Math.atan2(x - this.x, y - this.y) + Math.PI / 2;

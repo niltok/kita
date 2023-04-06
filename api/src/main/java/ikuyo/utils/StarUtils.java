@@ -41,6 +41,11 @@ public final class StarUtils {
         return pos;
     }
 
+    public static Vector2 vPositionOf(int realIndex) {
+        Position position = positionOf(realIndex);
+        return new Vector2(position.x, position.y);
+    }
+
     public static double heightOf(int realIndex) {
         Position pos = positionOf(realIndex);
         return Math.hypot(pos.x, pos.y);
@@ -88,7 +93,7 @@ public final class StarUtils {
     private static Vector2[] getVertices() {
         Vector2[] vertices = new Vector2[6];
         for (int i = 0; i < 6; i++) {
-            vertices[i] = new Vector2(StarInfo.edgeLength, 0)
+            vertices[i] = new Vector2(StarInfo.edgeLength + 1e-6, 0)
                     .rotate(Math.PI / 3 * i + Math.PI / 6);
         }
         return vertices;
@@ -132,6 +137,7 @@ public final class StarUtils {
         double roundPercent = percent
                 + (Math.tan(i - Math.PI / 6) * (height - tier * StarInfo.tierDistance) / tier)
                 + (tier == 0 ? 0 : 1.0 / tier / 2);
+        roundPercent  = Math.ceil(roundPercent * 1e8) / 1e8;
         int index = edge * tier
                 + (int)(roundPercent * tier)
                 + (tier - 1) * tier * 3

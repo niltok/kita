@@ -211,7 +211,7 @@ public class PhysicsEngine{
     private static Vector2[] getVertices() {
         Vector2[] vertices = new Vector2[6];
         for (int i = 0; i < 6; i++) {
-            vertices[i] = new Vector2(StarInfo.edgeLength * 1.001, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
+            vertices[i] = new Vector2(StarInfo.edgeLength + 1e-9, 0).rotate(Math.PI / 3 * i + Math.PI / 6);
         }
         return vertices;
     }
