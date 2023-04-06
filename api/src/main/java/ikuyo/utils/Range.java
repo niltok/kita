@@ -1,5 +1,7 @@
 package ikuyo.utils;
 
+import ikuyo.api.datatypes.StarInfo;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -32,14 +34,15 @@ public class Range {
             range = It.next();
             random = It.next();
         }
-        double round = 0.02;
-        if (Math.abs(range -percent) < round) {
+        double roundLength = 0.02;
+        double atanLength = StarInfo.maxTier * 0.006;
+        if (Math.abs(range - percent) < roundLength) {
             test = true;
-            if ( !It.hasNext() ) It = list.iterator();
+            if (!It.hasNext()) It = list.iterator();
             It.next();
             double nextRandom = It.next();
             random = random + (nextRandom - random)
-                    * (0.5 - Math.atan((range - percent) * 6 / round - 3) / Math.PI);
+                    * (0.5 - Math.atan((range - percent) * atanLength * 2 / roundLength - atanLength) / Math.PI);
         }
 
         return random;
