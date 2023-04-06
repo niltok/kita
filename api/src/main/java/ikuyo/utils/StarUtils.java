@@ -231,8 +231,7 @@ public final class StarUtils {
      */
     public static int getAreaOf(int realIndex, int areaSize) {
         Position pos = positionOf(realIndex);
-        Vector2 trans = new Vector2(pos.x, pos.y);
-        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * areaSize * 2);
+        Vector2 trans = blockToArea(pos.x, pos.y, areaSize);
 
         return realIndexOf(trans.x, trans.y);
     }
@@ -243,8 +242,7 @@ public final class StarUtils {
      */
     public static ArrayList<Integer> getBlocksAt(int area, int areaSize) {
         Position center = positionOf(area);
-        Vector2 trans = new Vector2(center.x, center.y);
-        trans.multiply(StarInfo.tierDistance * areaSize * 2).rotate(Math.PI / 6);
+        Vector2 trans = areaToBlock(center.x, center.y, areaSize);
         ArrayList<Integer> list =
                 nTierAround(realIndexOf(trans.x, trans.y), areaSize - 1, false);
 
@@ -260,8 +258,7 @@ public final class StarUtils {
     }
 
     public static ArrayList<Integer> areasAround(double x, double y, double r, int areaSize) {
-        Vector2 trans = new Vector2(x, y);
-        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * areaSize * 2);
+        Vector2 trans = blockToArea(x, y, areaSize);
         return nTierAround(new Position(trans.x, trans.y), r / (StarInfo.tierDistance * areaSize * 2) + StarInfo.edgeLength, true);
     }
 
@@ -279,6 +276,18 @@ public final class StarUtils {
 
     public static List<Integer> areasAround(double x, double y, double r) {
         return areasAround(x, y, r, areaSize);
+    }
+
+    public static Vector2 areaToBlock(double x ,double y, double areaSize) {
+        Vector2 trans = new Vector2(x, y);
+        trans.multiply(StarInfo.tierDistance * areaSize * 2).rotate(Math.PI / 6);
+        return trans;
+    }
+
+    public static Vector2 blockToArea(double x ,double y, double areaSize) {
+        Vector2 trans = new Vector2(x, y);
+        trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * areaSize * 2);
+        return trans;
     }
 
     public static String printBlock(int realIndex) {

@@ -11,7 +11,7 @@ import java.util.List;
 public class StarUtilsTest {
     @Test
     public void printBlock() {
-        System.out.println(StarUtils.printBlock(6211));
+        System.out.println(StarUtils.printBlock(8496));
     }
     @Test
     public void Teat_area() {
@@ -19,9 +19,7 @@ public class StarUtilsTest {
         int testArea = StarUtils.areaNum;
         for (int i = 0; i < testArea; i++) {
             Position center = StarUtils.positionOf(i);
-            Vector2 trans = new Vector2(center.x, center.y);
-            trans.multiply(StarInfo.tierDistance * StarUtils.areaSize * 2)
-                    .rotate(Math.PI / 6);
+            Vector2 trans = StarUtils.areaToBlock(center.x, center.y, StarUtils.areaSize);
             List<Integer> list = StarUtils.getBlocksAt(i);
             for (var index: list) {
                 num++;
@@ -44,10 +42,11 @@ public class StarUtilsTest {
 
     @Test
     public void Teat_singleArea() {
-        List<Integer> list = StarUtils.areasAround(292.2, -506.2, 20);
-        list = StarUtils.getBlocksAt(16);
-        System.out.println(StarUtils.getAreaOf(StarUtils.realIndexOf(292.2, -506.2)));
+//        List<Integer> list = StarUtils.areasAround(292.2, -506.2, 20);
+//        list = StarUtils.getBlocksAt(16);
+//        System.out.println(StarUtils.getAreaOf(StarUtils.realIndexOf(292.2, -506.2)));
 
+        StarUtils.getAreaOf(8496);
     }
 
     @Test
@@ -61,7 +60,7 @@ public class StarUtilsTest {
                         .add(new Vector2(0.49, 0).rotate(i * Math.PI / 3));
                 if (index != StarUtils.realIndexOf(v.x, v.y)) {
                     error++;
-                    int tier = StarUtils.tierOf(index);
+//                    int tier = StarUtils.tierOf(index);
 //                    int t = StarUtils.tierOf(StarUtils.realIndexOf(pos.x, pos.y));
 //                    System.out.println(tier + ", " + t);
 //                    System.out.printf("[index]: %d, [cul]: %d, [tier]: %d, [percent]: %f%n",
