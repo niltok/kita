@@ -143,6 +143,14 @@ function renderDrawable(drawable: Drawable, cache?: pixi.DisplayObject) {
             else display.gotoAndStop(animated.initialFrame)
             setCommonProp(display)
             return display
+        },
+        Line(line) {
+            const display = cache as pixi.Graphics || new pixi.Graphics()
+            display.clear()
+            display.lineStyle(line.width, line.color)
+            display.lineTo(line.length, 0)
+            setCommonProp(display)
+            return display
         }
     })
 }

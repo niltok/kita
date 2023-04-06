@@ -11,14 +11,14 @@ import ikuyo.utils.RawDeserializer;
         @JsonSubTypes.Type(value = Drawable.Sprite.class, name = "Sprite"),
         @JsonSubTypes.Type(value = Drawable.Text.class, name = "Text"),
         @JsonSubTypes.Type(value = Drawable.Container.class, name = "Container"),
-        @JsonSubTypes.Type(value = Drawable.AnimatedSprite.class, name = "AnimatedSprite")
+        @JsonSubTypes.Type(value = Drawable.AnimatedSprite.class, name = "AnimatedSprite"),
+        @JsonSubTypes.Type(value = Drawable.Line.class, name = "Line")
 })
 public sealed abstract class Drawable {
     public double x, y;
     /** 单位：弧度 */
     public double rotation;
     public int zIndex = 0, user = -1;
-    public boolean interaction = false;
     public static final double scaling = 20.0;
 
     public static sealed class Sprite extends Drawable {
@@ -44,5 +44,9 @@ public sealed abstract class Drawable {
         public String animation;
         public boolean playing = true;
         public int initialFrame = 0;
+    }
+    public static final class Line extends Drawable {
+        public double length, width;
+        public int color;
     }
 }
