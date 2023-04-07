@@ -22,17 +22,17 @@ public class PointerMovingBehavior implements Behavior<CommonContext> {
                     pos.y = pointerMsg.getDouble("y") / scaling;
                 }
             }
-            var camera = context.star().starInfo().starUsers.get(id);
-            switch (camera.controlType) {
+            var info = context.star().starInfo().starUsers.get(id);
+            switch (info.controlType) {
                 case "fly" -> {
                     var pointer = new Vector2(input.relativePointer.x, input.relativePointer.y);
-                    pointer.rotate(camera.rotation);
-                    input.pointAt.x = pointer.x + camera.x;
-                    input.pointAt.y = pointer.y + camera.y;
+                    pointer.rotate(info.rotation);
+                    input.pointAt.x = pointer.x + info.cameraX;
+                    input.pointAt.y = pointer.y + info.cameraY;
                 }
                 case "walk", default -> {
                     double dx = input.relativePointer.x, dy = input.relativePointer.y;
-                    double cx = camera.x, cy = camera.y, cr = Math.hypot(cx, cy);
+                    double cx = info.cameraX, cy = info.cameraY, cr = Math.hypot(cx, cy);
                     double nx = cx / cr, ny = cy / cr, nxy = nx * nx + ny * ny;
                     double x_ = (- nx * dy - ny * dx) / nxy, y_ = (nx * dx - ny * dy) / nxy;
                     input.pointAt.x = x_ + cx;
