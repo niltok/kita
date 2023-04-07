@@ -1,12 +1,10 @@
 package ikuyo.api.techtree;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.vertx.core.Handler;
 
-import java.lang.reflect.Modifier;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
 import java.util.function.Function;
 
 public non-sealed class TechItem implements TechDependency {
@@ -57,29 +55,5 @@ public non-sealed class TechItem implements TechDependency {
         } catch (IllegalAccessException | NoSuchFieldException e) {
             return null;
         }
-    }
-    /** 所有已定义的科技项列表 */
-    public static final ImmutableList<TechItem> techList;
-    /** 所有已定义的科技项按类型分类表 */
-    public static final ImmutableMap<String, ImmutableList<TechItem>> techMap;
-    /* Auto set TechItem's name */
-    static {
-        var list = new ArrayList<TechItem>();
-        var map = new HashMap<String, List<TechItem>>();
-        for (var field : TechStatic.class.getFields()) {
-            try {
-                if (Modifier.isStatic(field.getModifiers())) {
-                    var item = field.get(null);
-                    if (item instanceof TechItem tech) {
-                        list.add(tech);
-                        map.computeIfAbsent(tech.type, i -> new ArrayList<>()).add(tech);
-                        tech.name = field.getName();
-                    }
-                }
-            } catch (Exception ignore) {}
-        }
-        techList = ImmutableList.copyOf(list);
-        techMap = ImmutableMap.copyOf(map.entrySet().stream().map(e ->
-                new AbstractMap.SimpleImmutableEntry<>(e.getKey(), ImmutableList.copyOf(e.getValue()))).toList());
     }
 }

@@ -1,13 +1,13 @@
 package ikuyo.api.cargo;
 
-public final class CargoItemBuilder {
-    private String displayName;
-    private String description;
-    private double volume;
-    private double unpackVolume = Double.POSITIVE_INFINITY;
-    private Class<? extends UnpackItem> unpackClass = null;
+public class CargoItemBuilder {
+    protected String displayName;
+    protected String description;
+    protected double volume;
+    protected double unpackVolume = Double.POSITIVE_INFINITY;
+    protected Class<? extends UnpackItem> unpackClass = null;
 
-    private CargoItemBuilder() {
+    protected CargoItemBuilder() {
     }
 
     public static CargoItemBuilder create() {

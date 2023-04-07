@@ -1,26 +1,21 @@
 package ikuyo.api.equipments;
 
 import ikuyo.api.cargo.AmmoItem;
-import ikuyo.api.cargo.CargoStatic;
 import ikuyo.api.cargo.UnpackItem;
 import ikuyo.api.datatypes.Damage;
+import ikuyo.api.hooks.HookContext;
 
-public final class WeaponItemBuilder {
-    private String displayName;
-    private String description;
-    private double volume = 5;
-    private double unpackVolume = 5;
-    private Class<? extends UnpackItem> unpackClass = Weapon.class;
-    private double hpMax = 10;
-    private Damage damage;
-    private int ammoMax = 60;
-    private double velocity = 150;
-    private double collisionRange = 0.1;
-    private long fireTime = 60;
-    private long reloadingTime = 90;
-    private AmmoItem ammoType = CargoStatic.defaultAmmo;
+import java.util.function.Consumer;
+
+public class WeaponItemBuilder extends ActiveEquipmentItemBuilder {
+    protected Damage damage;
+    protected double velocity = 150;
+    protected double collisionRange = 0.1;
+    protected long fireTime = 60;
 
     private WeaponItemBuilder() {
+        super();
+        unpackClass = Weapon.class;
     }
 
     public static WeaponItemBuilder create() {
@@ -96,19 +91,31 @@ public final class WeaponItemBuilder {
         return this;
     }
 
-    public ActiveEquipmentItem build() {
+    public WeaponItemBuilder withHooker(Consumer<HookContext> hooker) {
+        this.hooker = hooker;
+        return this;
+    }
+
+    public WeaponItemBuilder withActiveHooker(Consumer<HookContext> activeHooker) {
+        this.activeHooker = activeHooker;
+        return this;
+    }
+
+    public WeaponItem build() {
         return new WeaponItem(displayName,
                 description,
                 volume,
                 unpackVolume,
                 unpackClass,
                 hpMax,
+                hooker,
                 damage,
                 ammoMax,
                 velocity,
                 collisionRange,
                 fireTime,
                 reloadingTime,
-                ammoType);
+                ammoType,
+                activeHooker);
     }
 }

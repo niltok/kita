@@ -1,8 +1,15 @@
 package ikuyo.api.techtree;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import ikuyo.utils.ItemUtils;
 import io.vertx.core.json.Json;
 
 import java.time.Duration;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * 科技树的静态数据定义<br>
@@ -27,5 +34,22 @@ public class TechStatic {
             longinus = new TechItem("", "朗基努斯之枪", "生命之树的部分根须，唯一可以直接穿过A.T.Field并造成有效杀伤的武器", Duration.ofMinutes(10), clusterBomb),
             shieldBattery = new TechItem("", "", "", Duration.ofSeconds(30), start)
     ;
+    /** 所有已定义的科技项列表 */
+    @ItemUtils.ItemList
+    private static ImmutableList<TechItem> techList;
+    public static ImmutableList<TechItem> techList() {
+        return techList;
+    }
+    /** 所有已定义的科技项按类型分类表 */
+    public static final ImmutableMap<String, ImmutableList<TechItem>> techMap;
     private Json des;
+
+    /* Auto set TechItem's name */
+    static {
+        ItemUtils.setFieldName(TechStatic.class, TechItem.class, "name");
+        var map = new HashMap<String, List<TechItem>>();
+        techList.forEach(tech -> map.computeIfAbsent(tech.type, i -> new ArrayList<>()).add(tech));
+        techMap = ImmutableMap.copyOf(map.entrySet().stream().map(e ->
+                new AbstractMap.SimpleImmutableEntry<>(e.getKey(), ImmutableList.copyOf(e.getValue()))).toList());
+    }
 }

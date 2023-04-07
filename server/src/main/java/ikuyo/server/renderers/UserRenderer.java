@@ -80,8 +80,7 @@ public class UserRenderer implements DrawablesRenderer {
         var line = new Drawable.Line();
         line.width = 2;
         line.color = 0xff0000;
-        line.rotation = -Math.atan2(pos.x, pos.y) + Math.PI / 2;
-        line.length = Math.hypot(pos.x, pos.y) * Drawable.scaling;
+        line.lineTo(pos.x * Drawable.scaling, pos.y * Drawable.scaling);
         line.zIndex = 2;
         line.user = id;
         drawables.put("user#%d.line".formatted(id), line);

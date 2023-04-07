@@ -3,11 +3,10 @@ package ikuyo.api.datatypes;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import ikuyo.api.cargo.CargoStatic;
+import ikuyo.api.equipments.Equipment;
 import ikuyo.api.equipments.Weapon;
 import ikuyo.api.hooks.UserHook;
 import ikuyo.api.spaceships.Spaceship;
-
-import javax.annotation.Nullable;
 
 @JsonAutoDetect(
         fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -20,17 +19,19 @@ public class UserInfo {
 
     public double rotation;
     public boolean online;
-    public UserHook hooks = new UserHook();
+    @JsonManagedReference
+    public UserHook hooks = new UserHook(this);
     public double san = 100;
     @JsonManagedReference
-    @Nullable
     public Spaceship spaceship;
     public String controlType = "walk";
 
     public UserInfo() {
-        new Spaceship(CargoStatic.shuttle.type()).deploy(this);
+        var ship = new Spaceship(CargoStatic.shuttle.type());
+        ship.deploy(this);
         new Weapon(CargoStatic.defaultWeapon.type()).equip(spaceship).tryEnable();
         new Weapon(CargoStatic.r400.type()).equip(spaceship).tryEnable();
+        new Equipment(CargoStatic.shieldExtender.type()).equip(spaceship).tryEnable();
         spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 500);
     }
 

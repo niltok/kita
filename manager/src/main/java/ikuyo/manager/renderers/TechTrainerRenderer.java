@@ -2,8 +2,8 @@ package ikuyo.manager.renderers;
 
 import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.renderers.UIRenderer;
-import ikuyo.api.techtree.TechItem;
 import ikuyo.api.techtree.TechLevel;
+import ikuyo.api.techtree.TechStatic;
 import ikuyo.api.techtree.TechTree;
 import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
@@ -37,7 +37,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
 
     public UIElement techList(CommonContext context, int id) {
         var tree = context.userState().get(id).user.techTree();
-        return new UIElement("div", TechItem.techList.stream().filter(tech -> tech.enable).map(tech -> {
+        return new UIElement("div", TechStatic.techList().stream().filter(tech -> tech.enable).map(tech -> {
             var data = tree.treeInfo.computeIfAbsent(tech.name(), i -> new TechTree.Data());
             var stateStr = new StringBuilder(30);
             if (data.level < tech.maxLevel) {
