@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ItemUtils {
+public interface ItemUtils {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public @interface ItemIgnore {}
@@ -77,5 +77,15 @@ public class ItemUtils {
         return ImmutableList.copyOf(list.stream()
                 .map(i -> clazz.isInstance(i) ? (T)i : null)
                 .filter(Objects::nonNull).toList());
+    }
+
+    static <T> T getField(Object target, String fieldName) {
+        try {
+            var field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return (T) field.get(target);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return null;
+        }
     }
 }

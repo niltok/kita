@@ -77,6 +77,18 @@ public class UIElement {
         return labelItem(new UIElement.Text(left), new UIElement.Text(right));
     }
 
+    public static UIElement normalLabel(String left, String right) {
+        return labelItem(new UIElement.Text(left), new UIElement.Text(right)).appendClass("normal-label");
+    }
+
+    public static UIElement normalLabel(UIElement left, String right) {
+        return labelItem(left, new UIElement.Text(right)).appendClass("normal-label");
+    }
+
+    public static UIElement hoverLabel(String left, String right) {
+        return labelItem(new UIElement.Text(left), new UIElement.Text(right)).appendClass("hover-label");
+    }
+
     public static class Callback extends UIElement {
         public JsonObject callback;
         public Callback(String type, JsonObject callback) {

@@ -7,6 +7,7 @@ import ikuyo.api.spaceships.Spaceship;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.PhysicsEngine;
 import ikuyo.server.api.UserState;
+import ikuyo.utils.CPUMonitor;
 import ikuyo.utils.StarUtils;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
@@ -78,6 +79,9 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         var pointer = state.input.pointAt;
         int realIndex = StarUtils.realIndexOf(pointer.x, pointer.y);
         var area = StarUtils.getAreaOf(realIndex);
+        var cpuLoad = CPUMonitor.instance.getProcessCpu() * 100.;
+        var runtime = Runtime.getRuntime();
+        var memLoad = (runtime.totalMemory() - runtime.freeMemory()) / 1024. / 1024.;
         return new UIElement("div",
                 UIElement.labelItem("Pointer", "(%.1f, %.1f)".formatted(pointer.x, pointer.y))
                         .appendClass("normal-label"),
@@ -85,8 +89,10 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                         .appendClass("normal-label"),
                 UIElement.labelItem("Area", "%d".formatted(area))
                         .appendClass("normal-label"),
-                UIElement.labelItem("Time(Update | Delta)", "%.1f | %.1f".formatted(
+                UIElement.labelItem("Time(Upd | Δ)", "%.1f | %.1f".formatted(
                         context.update.getMean(), context.delta.getMean()))
+                        .appendClass("normal-label"),
+                UIElement.labelItem("CPU | Mem", "%.1f%% | %.1fM".formatted(cpuLoad, memLoad))
                         .appendClass("normal-label")
         ).withClass("right-top", "pointer-pass-all", "background");
     }

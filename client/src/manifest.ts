@@ -14,6 +14,10 @@ export const manifest: ResolverManifest = {
                     srcs: "../ui/SourceHanSansCN-VF.ttf.woff2"
                 },
                 {
+                    name: "Sourcecodevf Upright.ttf",
+                    srcs: "../ui/SourceCodeVF-Upright.ttf.woff2"
+                },
+                {
                     name: "greenCircle",
                     srcs: "../ui/greenCircle.png"
                 },

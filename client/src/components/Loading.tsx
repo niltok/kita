@@ -20,7 +20,8 @@ export default function Loading() {
             renderer.postMessage({ type: 'init' })
             await Promise.all([
                 new FontFace('Sourcehanserifcn Vf.ttf', 'url(./ui/SourceHanSerifCN-VF.ttf.woff2)'),
-                new FontFace('Sourcehansanscn Vf.ttf', 'url(./ui/SourceHanSansCN-VF.ttf.woff2)')
+                new FontFace('Sourcehansanscn Vf.ttf', 'url(./ui/SourceHanSansCN-VF.ttf.woff2)'),
+                new FontFace('Sourcecodevf Upright.ttf', 'url(./ui/SourceCodeVF-Upright.ttf.woff2)')
             ].map(f => f.load().then(v => document.fonts.add(v))))
             await promise
             await delay(2000)

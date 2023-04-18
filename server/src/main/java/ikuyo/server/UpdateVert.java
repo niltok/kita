@@ -2,7 +2,6 @@ package ikuyo.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.datatypes.StarInfo;
 import ikuyo.api.datatypes.UserInfo;
@@ -41,7 +40,7 @@ public class UpdateVert extends AsyncVerticle {
     long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
     String msgVertId;
     PgPool pool;
-    Behavior<CommonContext> mainBehavior = new CompositeBehavior<>(
+    CompositeBehavior<CommonContext> mainBehavior = new CompositeBehavior<>(
             new KeyInputBehavior(),
             new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
@@ -63,7 +62,8 @@ public class UpdateVert extends AsyncVerticle {
             new CameraRenderer().withName("camera"),
             new UIRenderer.Composite<>(
                     new UserStateRenderer(),
-                    new CargoRenderer()
+                    new CargoRenderer(),
+                    new AdminPanelRenderer()
             ).withName("ui")
     ).withName("star");
     CommonContext commonContext;
@@ -212,6 +212,7 @@ public class UpdateVert extends AsyncVerticle {
             prevTime = startTime;
             if (!healthCheck()) return;
             mainBehavior.update(commonContext);
+            mainBehavior.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
             var seq = commonSeqRenderer.render(commonContext);
             var com = commonRenderer.render(commonContext);
             var spe = specialRenderer.render(commonContext);

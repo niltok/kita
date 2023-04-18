@@ -1,8 +1,10 @@
 :root {
-    font-family: 'Sourcehanserifcn Vf.ttf', sans-serif;
+    font-family: 'Sourcecodevf Upright.ttf', 'Sourcehansanscn Vf.ttf', sans-serif;
     font-size: 16px;
     line-height: 1.5em;
     font-weight: 400;
+
+    font-variant-numeric: slashed-zero tabular-nums;
 
     color-scheme: light dark;
     color: rgba(255, 255, 255, 0.87);
@@ -13,6 +15,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
+}
+
+.serif {
+    font-family: 'Sourcehanserifcn Vf.ttf', serif;
 }
 
 a {

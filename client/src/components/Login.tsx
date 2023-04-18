@@ -29,7 +29,7 @@ export default function Login() {
     const [msg, setMsg] = useState('')
     const dispatch = useAppDispatch()
     return (<>
-        <span style={{fontSize: '2rem', lineHeight: '3rem'}}>Kita! Kita!</span>
+        <span style={{fontSize: '2rem', lineHeight: '3rem'}} className={"serif"}>Kita! Kita!</span>
         <input type='text' autoComplete='url' value={server}
                   onChange={e => setServer(e.target.value)} placeholder={`服务器(${defaultServer})`}/>
         <input type='text' autoComplete='username' value={name}

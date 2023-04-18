@@ -22,6 +22,7 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             await Promise.all(manifest.bundles.map(async bundle => {
                 assets[bundle.name] = await pixi.Assets.loadBundle(bundle.name)
             }))
+            console.log(assets.ui)
             postMessage({
                 type: 'init.end'
             })
@@ -97,6 +98,10 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
     }
 }
 
+const fontMapper = {
+    "sans": ["Sourcecodevf Upright.ttf", "Sourcehansanscn Vf.ttf"]
+}
+
 function renderDrawable(drawable: Drawable, cache?: pixi.DisplayObject) {
     const setCommonProp = (display: pixi.DisplayObject) => {
         display.x = drawable.x
@@ -117,7 +122,7 @@ function renderDrawable(drawable: Drawable, cache?: pixi.DisplayObject) {
             const display = cache as pixi.Text || new pixi.Text()
             display.text = text.text
             display.style = {
-                fontFamily: ["Sourcehanserifcn Vf.ttf"],
+                fontFamily: fontMapper["sans"],
                 ...text.style
             }
             setCommonProp(display)

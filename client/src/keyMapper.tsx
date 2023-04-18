@@ -1,5 +1,10 @@
 export type KeyType = string | { action: string, value: number } | { type: string, [key: string]: any };
 
+/// 前缀（注意顺序）：$(Ctrl), #(Meta), @(Alt), ^(Shift)
+//
+// 后缀：!(keyup)
+//
+// 举例：$^Digit1! 表示Ctrl+Shift+1这个组合键抬起
 export const keyMapper: { [key: string]: KeyType } = {
     "KeyW": {action: "up", value: 2},
     "KeyW!": "up",
@@ -12,6 +17,7 @@ export const keyMapper: { [key: string]: KeyType } = {
     "KeyM": {type: "page.toggle", page: "starMap"},
     "KeyK": {type: "page.toggle", page: "techTrainer"},
     "KeyE": {type: "page.toggle", page: "cargoHold"},
+    "$KeyP": {type: "page.toggle", page: "adminPanel"},
     "Space": {action: "jumpOrFly", value: 3},
     "Space!": "jumpOrFly",
     "MouseLeft": {action: "shot", value: 3},
