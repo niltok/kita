@@ -57,4 +57,12 @@ public class KitasBody extends Body{
                 this.getTransform().getRotationAngle() - this.lastAngle + this.angle);
         this.lastAngle = this.angle;
     }
+
+    public void preprocess() {
+        this.setBearTheGravity(!this.getBearTheGravity()
+                        || !(this.getWorldCenter().distance(0, 0) >= PhysicsEngine.starR));
+                this.applyGravity();
+                this.updateRotation();
+    }
 }
+

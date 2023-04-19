@@ -5,13 +5,9 @@ import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.api.spaceships.Spaceship;
 import ikuyo.server.api.CommonContext;
-import ikuyo.server.api.PhysicsEngine;
 import ikuyo.server.api.UserState;
 import ikuyo.utils.CPUMonitor;
 import ikuyo.utils.StarUtils;
-import org.dyn4j.geometry.Ray;
-import org.dyn4j.geometry.Vector2;
-import org.dyn4j.world.result.RaycastResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +22,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             var ship = info.spaceship;
             if ("fly".equals(info.controlType)) {
-                ui.add(getHeightInfo(context, info));
+                ui.add(getHeightInfo(context, info, id));
             }
             ui.add(getShipInfo(ship));
             if (!ship.weapons.isEmpty()) ui.add(getWeaponInfo(ship));
@@ -61,16 +57,11 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                 .appendClass("right-bottom", "pointer-pass-all", "background");
     }
 
-    private static UIElement getHeightInfo(CommonContext context, UserInfo info) {
-        var minHit = context.engine().rayCast(
-                        new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
-                        Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))
-                .stream().min(RaycastResult::compareTo);
-        var height = minHit.map(res -> res.getRaycast().getDistance()).orElse(Double.NaN);
+    private static UIElement getHeightInfo(CommonContext context, UserInfo info, int id) {
         return new UIElement("div",
                 UIElement.labelItem("Level", "%.1f".formatted(Math.hypot(info.x, info.y)))
                         .appendClass("normal-label"),
-                UIElement.labelItem("Height", "%.1f".formatted(height))
+                UIElement.labelItem("Height", "%.1f".formatted(context.engine().users.get(id).groundClearance))
                         .appendClass("normal-label")
         ).appendClass("center-top", "pointer-pass-all", "background");
     }

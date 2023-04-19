@@ -7,10 +7,8 @@ import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.AABB;
-import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
 import org.dyn4j.world.result.DetectResult;
-import org.dyn4j.world.result.RaycastResult;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -85,15 +83,11 @@ public class UserRenderer implements DrawablesRenderer {
             return;
         }
 
-        var minHit = ctx.engine().rayCast(
-                        new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
-                        Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))
-                .stream().min(RaycastResult::compareTo);
-        if (minHit.isEmpty()) {
+        var height = ctx.engine().users.get(id).groundClearance;
+        if (Double.isNaN(height)) {
             drawables.put("user#%d.gravityArrow".formatted(id), null);
             return;
         }
-        var height = minHit.get().copy().getRaycast().getDistance();
 
         var pos = new Vector2(info.x, info.y);
         pos.multiply(pos.normalize() - Math.min(1 + height / 200, 2) * 5);
