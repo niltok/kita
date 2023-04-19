@@ -13,19 +13,22 @@ public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
         if (context.updated().init())
             PE.Initialize(context.star());
 
+        for (var userdata: context.engine().users.values())
+            userdata.preprocess(context.engine());
+
         PE.EngineStep(1);
 
         for (var user: context.star().starInfo().starUsers.entrySet()) {
             if (user.getValue().online) {
-                UserEngineData userData = PE.users.get(user.getKey());
-                if (!userData.getBody().getChangeInPosition().equals(0, 0) || context.updated().init()) {
+                UserEngineData userdata = PE.users.get(user.getKey());
+                if (!userdata.getBody().getChangeInPosition().equals(0, 0) || context.updated().init()) {
                     var userInfo = context.star().starInfo().starUsers.get(user.getKey());
-                    userInfo.x = userData.getBody().getWorldCenter().x;
-                    userInfo.y = userData.getBody().getWorldCenter().y;
-                    userInfo.rotation = userData.getBody().getTransform().getRotationAngle() + Math.PI / 2;
+                    userInfo.x = userdata.getBody().getWorldCenter().x;
+                    userInfo.y = userdata.getBody().getWorldCenter().y;
+                    userInfo.rotation = userdata.getBody().getTransform().getRotationAngle() + Math.PI / 2;
 //                        System.out.println("{EngineBehavior} [x]: %f, [y]: %f".formatted(body.getWorldCenter().x, body.getWorldCenter().y));
-                    userInfo.cameraX = userData.getCamera().getWorldCenter().x;
-                    userInfo.cameraY = userData.getCamera().getWorldCenter().y;
+                    userInfo.cameraX = userdata.getCamera().getWorldCenter().x;
+                    userInfo.cameraY = userdata.getCamera().getWorldCenter().y;
                     context.updated().users().add(user.getKey());
                 }
             }

@@ -32,6 +32,7 @@ public class PhysicsEngine{
     private static final Polygon hexagon = Geometry.createPolygon(getVertices());
     public static final Filter BULLET = filter -> true;
     public static final Filter BLOCK = filter -> true;
+    public static final double starR = StarInfo.maxTier + 1;
     public static final Filter USER = new Filter() {
         @Override
         public boolean isAllowed(Filter filter) {
@@ -63,31 +64,14 @@ public class PhysicsEngine{
 
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
-            for (var body: world.getBodies()) {
-                body.setBearTheGravity(!body.getBearTheGravity()
-                        || !(body.getWorldCenter().distance(0, 0) >= starR));
-                body.applyGravity();
-                body.updateRotation();
-            }
-
-/*            List<String> removeList = new ArrayList<>();
-            for (var entry: bullets.entrySet()) {
-                if (entry.getValue() == null)
-                    continue;
-                if (entry.getValue().body.getWorldCenter().distance(0, 0) >= starR * 2)
-                    removeList.add(entry.getKey());
-            }
-            for (var id: removeList)
-                removeBullet(id);*/
+            for (var body: world.getBodies())
+                body.preprocess();
 
             for (var bullet: bullets.values())
                 checkOutOfBound(bullet.getBody(), starR * 2);
 
-            for (var user: users.values()) {
+            for (var user: users.values())
                 checkOutOfBound(user.getBody(), starR * 2);
-//                todo: camera pos
-                user.setCameraPosition(user.getBody().getWorldCenter().x, user.getBody().getWorldCenter().y);
-            }
 
             world.step(1);
         }
@@ -101,22 +85,13 @@ public class PhysicsEngine{
         }
     }
 
-    private static final double starR = StarInfo.maxTier + 1;
-    private void applyGravity(KitasBody body) {
-        Vector2 pos = body.getWorldCenter();
-        if (pos.distance(0, 0) <= starR)
-            body.applyForce(new Vector2(-GravitationalAcc * body.getMass().getMass(), 0)
-                    .rotate(Math.atan2(pos.y, pos.x)));
-    }
-
     public void removeBody(KitasBody body) {
         world.removeBody(body);
     }
 
     public void addUser(User user, UserInfo userInfo) {
         if (!users.containsKey(user.id())) {
-            UserEngineData userData = new UserEngineData();
-            userData.user = user;
+            UserEngineData userData = new UserEngineData(user);
 
             KitasBody body = userData.getBody();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
