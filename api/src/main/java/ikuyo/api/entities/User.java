@@ -22,6 +22,10 @@ public record User(
     static final String getByIdSql = """
             select * from "user" where id = $1;
             """;
+
+    static public User createShadow(int id, int uni, int star) {
+        return new User(id, "Shadow", "", true, "", uni, star, new TechTree());
+    }
     static public User getUserById(SqlClient client, int id) {
         try {
             var rows = await(client.preparedQuery(getByIdSql).execute(Tuple.of(id)));

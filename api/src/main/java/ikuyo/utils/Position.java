@@ -1,6 +1,7 @@
 package ikuyo.utils;
 
 import com.google.common.base.Objects;
+import org.dyn4j.geometry.Vector2;
 
 public class Position {
     public double x;
@@ -14,6 +15,14 @@ public class Position {
 
     public double distance(Position pos) {
         return Math.hypot(pos.x - x, pos.y - y);
+    }
+
+    public Vector2 toVector() {
+        return new Vector2(x, y);
+    }
+
+    public static Position from(Vector2 vector) {
+        return new Position(vector.x, vector.y);
     }
 
     @Override

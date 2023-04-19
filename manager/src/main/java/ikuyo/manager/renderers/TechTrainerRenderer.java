@@ -21,7 +21,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
             if (state == null || !"techTrainer".equals(state.page) || state.pageEdge < 2) continue;
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             ui.add(new UIElement("div", displayPoint(context, id), techList(context, id))
-                    .withClass("popout-container", "flex-box-container", "background"));
+                    .appendClass("popout-container", "flex-box-container", "background"));
         }
     }
 
@@ -32,7 +32,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
         return new UIElement("div",
                 new UIElement("span"),
                 new UIElement("span", new UIElement.Text(rightText.toString()))
-        ).withClass("label-item", "tech-trainer-header");
+        ).appendClass("label-item", "tech-trainer-header");
     }
 
     public UIElement techList(CommonContext context, int id) {
@@ -64,7 +64,7 @@ public class TechTrainerRenderer implements UIRenderer<CommonContext> {
                     callback
             ).appendClass("hover-label").withTitle(tech.description);
         }).toArray(UIElement[]::new))
-                .withClass("tech-tree", "column2", "auto-expand", "auto-flow-container");
+                .appendClass("tech-tree", "column2", "auto-expand", "auto-flow-container");
     }
 
     public static String displayDuration(Duration duration) {

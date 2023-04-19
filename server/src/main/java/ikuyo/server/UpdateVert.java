@@ -3,10 +3,12 @@ package ikuyo.server;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.behaviors.CompositeBehavior;
+import ikuyo.api.cargo.CargoStatic;
 import ikuyo.api.datatypes.StarInfo;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.entities.Star;
 import ikuyo.api.entities.User;
+import ikuyo.api.equipments.Weapon;
 import ikuyo.api.renderers.CompositeRenderer;
 import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;
@@ -16,6 +18,7 @@ import ikuyo.server.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import ikuyo.utils.DataStatic;
 import ikuyo.utils.NoCopyBox;
+import ikuyo.utils.Position;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -37,7 +40,8 @@ public class UpdateVert extends AsyncVerticle {
     Star star;
     boolean loaded = false;
     MessageConsumer<JsonObject> vertEvents;
-    long writeBackId, mainLoopId, updateTime, prevTime, deltaTime, startTime, updateCount = 0, updateTotalTime = 0;
+    long writeBackId, mainLoopId,
+            updateTime, prevTime, deltaTime, startTime, msgHandleTime = 0;
     String msgVertId;
     PgPool pool;
     CompositeBehavior<CommonContext> mainBehavior = new CompositeBehavior<>(
@@ -48,23 +52,26 @@ public class UpdateVert extends AsyncVerticle {
             new WeaponBehavior(),
             new UserAttackBehavior(),
             new BulletBehavior(),
-            new PageBehavior()
+            new PageBehavior(),
+            new AreaBehavior()
+    );
+    DrawablesRenderer.Composite drawableRenderer = new DrawablesRenderer.Composite(
+            new BlockRenderer(),
+            new UserRenderer(),
+            new BulletRenderer()
     );
     Renderer<CommonContext> commonSeqRenderer = new CompositeRenderer<>(false,
-            new DrawablesRenderer.Composite(
-                    new BlockRenderer(),
-                    new UserRenderer(),
-                    new BulletRenderer()
-            )
+            drawableRenderer
     );
     Renderer<CommonContext> commonRenderer = new CompositeRenderer<>(true);
+    UIRenderer.Composite<CommonContext> uiRenderer = new UIRenderer.Composite<>(
+            new UserStateRenderer(),
+            new CargoRenderer(),
+            new AdminPanelRenderer()
+    );
     Renderer<CommonContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer().withName("camera"),
-            new UIRenderer.Composite<>(
-                    new UserStateRenderer(),
-                    new CargoRenderer(),
-                    new AdminPanelRenderer()
-            ).withName("ui")
+            uiRenderer.withName("ui")
     ).withName("star");
     CommonContext commonContext;
 
@@ -85,10 +92,7 @@ public class UpdateVert extends AsyncVerticle {
         logger.info(JsonObject.of(
                 "type", "updater.undeploy",
                 "starId", star.index(),
-                "starName", star.name(),
-                "updateCount", updateCount,
-                "averageDeltaTime", (System.nanoTime() - startTime) / 1000_000.0 / updateCount,
-                "averageUpdateTime", updateTotalTime / 1000_000.0 / updateCount));
+                "starName", star.name()));
     }
 
     private void stopPool() {
@@ -113,15 +117,19 @@ public class UpdateVert extends AsyncVerticle {
         }
         logger.info(JsonObject.of("type", "star.ownership.lock", "starId", id));
         vertEvents = eventBus.localConsumer(deploymentID(), v -> {
+            var startTime = System.nanoTime();
             try {
                 vertEventsHandler(v);
             } catch (Exception e) {
                 logger.warn(v.body());
                 logger.error(e.getLocalizedMessage());
                 e.printStackTrace();
+            } finally {
+                msgHandleTime += System.nanoTime() - startTime;
             }
         });
         msgVertId = await(vertx.deployVerticle(MessageVert.class, new DeploymentOptions()
+                .setWorker(true)
                 .setConfig(JsonObject.of("updaterId", deploymentID(), "starId", id))));
         try {
             star = Star.get(pool, id);
@@ -166,7 +174,8 @@ public class UpdateVert extends AsyncVerticle {
             case "user.add" -> {
                 var id = json.getInteger("id");
                 var infoJson = json.getJsonObject("userInfo");
-                var user = User.getUserById(pool, id);
+                var user = json.containsKey("shadow") ? User.createShadow(id, star.universe(), star.index())
+                        : User.getUserById(pool, id);
                 var info = star.starInfo().starUsers.computeIfAbsent(id, i ->
                         infoJson == null ? new UserInfo() : infoJson.mapTo(UserInfo.class));
                 info.online = true;
@@ -174,6 +183,13 @@ public class UpdateVert extends AsyncVerticle {
                 info.y = StarInfo.maxTier;
                 assert user != null;
                 commonContext.add(user);
+                var state = commonContext.getState(id);
+                if (json.containsKey("shadow")) {
+                    state.isShadow = true;
+                    state.input.relativePointer = new Position(0, 1);
+                    info.spaceship.weapons.forEach(Weapon::unequip);
+                    new Weapon(CargoStatic.r400.type()).equip(info.spaceship).tryEnable();
+                }
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.disconnect" -> {
@@ -210,28 +226,31 @@ public class UpdateVert extends AsyncVerticle {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
+            commonContext.msgHandle.put(Math.max(0, msgHandleTime) / 1000_000.0);
+            msgHandleTime = 0;
             if (!healthCheck()) return;
             mainBehavior.update(commonContext);
             mainBehavior.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
             var seq = commonSeqRenderer.render(commonContext);
+            drawableRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
             var com = commonRenderer.render(commonContext);
             var spe = specialRenderer.render(commonContext);
+            uiRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
             eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                     "type", "star.updated",
                     "commonSeq", seq,
                     "common", com,
                     "special", spe)), new DeliveryOptions().setLocalOnly(true));
             commonContext.frame();
-            updateCount++;
             updateTime = System.nanoTime() - startTime;
             commonContext.delta.put(deltaTime / 1000_000.0);
             commonContext.update.put(updateTime / 1000_000.0);
             if (updateTime > 1000_000_000 / MaxFps * 2) logger.warn(JsonObject.of(
                     "type", "update.largeFrame",
                     "updateTime", updateTime / 1000_000.0));
-            updateTotalTime += updateTime;
-            mainLoopId = vertx.setTimer(Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000),
-                    v -> mainLoop());
+            var suspendTime = Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000);
+            commonContext.suspend.put(suspendTime);
+            mainLoopId = vertx.setTimer(suspendTime, v -> mainLoop());
         } catch (Exception e) { // stop buggy logic
             logger.error(JsonObject.of(
                     "star.id", star.index(),

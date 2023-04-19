@@ -65,7 +65,6 @@ public class UserRenderer implements DrawablesRenderer {
         var info = ctx.star().starInfo().starUsers.get(id);
         if (info == null || !info.online) {
             drawables.put("user#%d.cursor".formatted(id), null);
-            drawables.put("user#%d.line".formatted(id), null);
             return;
         }
         var pos = ctx.getState(id).input.pointAt;
@@ -77,13 +76,6 @@ public class UserRenderer implements DrawablesRenderer {
         cursor.zIndex = 2;
         cursor.user = id;
         drawables.put("user#%d.cursor".formatted(id), cursor);
-        var line = new Drawable.Line();
-        line.width = 2;
-        line.color = 0xff0000;
-        line.lineTo(pos.x * Drawable.scaling, pos.y * Drawable.scaling);
-        line.zIndex = 2;
-        line.user = id;
-        drawables.put("user#%d.line".formatted(id), line);
     }
 
     private static void drawGravityArrow(CommonContext ctx, Map<String, Drawable> drawables, Integer id) {

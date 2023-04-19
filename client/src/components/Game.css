@@ -103,6 +103,11 @@
     padding: 1em;
 }
 
+.input-group {
+    display: flex;
+    margin: .2em;
+}
+
 .placeholder {
     display: none;
 }

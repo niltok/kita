@@ -47,7 +47,8 @@ public class HttpVert extends AsyncVerticle {
             new TransferBehavior(),
             new CargoBehavior(),
             new StarMapBehavior(),
-            new TechTrainerBehavior()
+            new TechTrainerBehavior(),
+            new UserManageBehavior()
     );
     Renderer<CommonContext> uiRenderer = new CompositeRenderer<>(true,
             new UIRenderer.Composite<>(

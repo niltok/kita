@@ -18,7 +18,7 @@ public class TransferRenderer implements UIRenderer<CommonContext> {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             if (state == null || !"transfer".equals(state.page) || state.pageEdge < 2) continue;
             ui.add(new UIElement("div", transferAnimation(), new UIElement.Text("Transferring..."))
-                    .withClass("flex-center", "fullscreen", "transfer-background"));
+                    .appendClass("flex-center", "fullscreen", "transfer-background"));
         }
     }
 
@@ -29,7 +29,7 @@ public class TransferRenderer implements UIRenderer<CommonContext> {
         for (var i = 0; i < lineCount; i++) {
             var time = rand.nextDouble(1, 3);
             var flyBlock = new UIElement("div")
-                    .withClass("transfer-line")
+                    .appendClass("transfer-line")
                     .withStyle(JsonObject.of(
                             "animationDelay", "%fs".formatted(rand.nextDouble(3)),
                             "animationDuration", "%fs".formatted(time),
@@ -39,11 +39,11 @@ public class TransferRenderer implements UIRenderer<CommonContext> {
                     "rotateZ(%fdeg) rotateY(-45deg) translateX(10px)".formatted(
                             rand.nextDouble(360)));
             res.add(new UIElement("div", flyBlock)
-                    .withClass("transfer-box")
+                    .appendClass("transfer-box")
                     .withStyle(style));
         }
         return new UIElement("div", res.toArray(UIElement[]::new))
-                .withClass("fullscreen", "transfer-background", "no-overflow", "absolute")
+                .appendClass("fullscreen", "transfer-background", "no-overflow", "absolute")
                 .withStyle(JsonObject.of("perspective", "100px"));
     }
 }

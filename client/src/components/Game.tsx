@@ -1,6 +1,6 @@
 import Socket from "./Socket"
 import {Stage} from "./Stage"
-import {renderUI} from "./RenderUI"
+import {RenderUI} from "./RenderUI"
 import {useAppSelector} from "../storeHook"
 import {useEffect} from "react"
 import {useDiffGame} from "../stores/gameState"
@@ -15,8 +15,8 @@ export function Game() {
     }, [])
     return (<Socket>
         <div className={"absolute fullscreen pointer-pass"}>
-            {ui?.children?.map(e => renderUI(e))}
-            {starUI?.children?.map(e => renderUI(e))}
+            {ui?.children?.map(e => <RenderUI elem={e}/>)}
+            {starUI?.children?.map(e => <RenderUI elem={e}/>)}
         </div>
         <Stage/>
     </Socket>)

@@ -20,8 +20,8 @@ public class CargoRenderer implements UIRenderer<CommonContext> {
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             ui.add(new UIElement("div",
                     info.spaceship.cargoHold.renderUI()
-                            .withClass("column2", "auto-expand", "auto-flow-container")
-            ).withClass("popout-container", "flex-box-container", "background"));
+                            .appendClass("column2", "auto-expand", "auto-flow-container")
+            ).appendClass("popout-container", "flex-box-container", "background"));
         });
     }
 }

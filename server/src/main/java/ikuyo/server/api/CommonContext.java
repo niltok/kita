@@ -9,14 +9,17 @@ import io.vertx.core.Vertx;
 
 import java.util.*;
 
+import static ikuyo.api.behaviors.Behavior.windowSize;
+
 public final class CommonContext {
-    static int windowSize = 60;
     public final Vertx vertx;
     public final Star star;
     private final Map<Integer, UserState> userStates = new HashMap<>();
     public final List<AreaState> areaStates = new ArrayList<>();
-    public final WindowSum delta = new WindowSum(windowSize);
-    public final WindowSum update = new WindowSum(windowSize);
+    public final WindowSum delta = new WindowSum(windowSize),
+            update = new WindowSum(windowSize),
+            msgHandle = new WindowSum(20),
+            suspend = new WindowSum(20);
     public final Map<String, Double> profiles = new HashMap<>();
     private final UpdatedContext updated = new UpdatedContext();
     private final PhysicsEngine engine = new PhysicsEngine();
@@ -51,6 +54,10 @@ public final class CommonContext {
         });
         userStates.forEach((id, state) -> {
             if (state.frame()) updated().users().add(id);
+            if (state.isShadow) {
+                var weapon = getInfo(id).spaceship.getCurrentWeapon();
+                weapon.ammoAmount = weapon.getAmmoMax();
+            }
         });
     }
 

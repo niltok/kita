@@ -43,7 +43,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                 UIElement.labelItem("HP", "%.0f".formatted(ship.hp),
                                 ship.hp / ship.getMaxHp())
                         .appendClass("normal-label")
-        ).withClass("left-bottom", "pointer-pass-all", "background");
+        ).appendClass("left-bottom", "pointer-pass-all", "background");
     }
 
     private static UIElement getWeaponInfo(Spaceship ship) {
@@ -58,7 +58,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                     .appendClass(current == weapon ? "focus-label" : "normal-label"));
         });
         return new UIElement("div", ui.toArray(UIElement[]::new))
-                .withClass("right-bottom", "pointer-pass-all", "background");
+                .appendClass("right-bottom", "pointer-pass-all", "background");
     }
 
     private static UIElement getHeightInfo(CommonContext context, UserInfo info) {
@@ -72,7 +72,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                         .appendClass("normal-label"),
                 UIElement.labelItem("Height", "%.1f".formatted(height))
                         .appendClass("normal-label")
-        ).withClass("center-top", "pointer-pass-all", "background");
+        ).appendClass("center-top", "pointer-pass-all", "background");
     }
 
     private static UIElement getAdminInfo(CommonContext context, UserState state) {
@@ -94,7 +94,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
                         .appendClass("normal-label"),
                 UIElement.labelItem("CPU | Mem", "%.1f%% | %.1fM".formatted(cpuLoad, memLoad))
                         .appendClass("normal-label")
-        ).withClass("right-top", "pointer-pass-all", "background");
+        ).appendClass("right-top", "pointer-pass-all", "background");
     }
 }
 

@@ -18,6 +18,9 @@ public class UserState {
         this.socket = socket;
         this.user = user;
     }
+    public String starAddress() {
+        return "star." + user.star();
+    }
     public boolean frame() {
         var update = false;
         events = new HashMap<>();

@@ -1,9 +1,7 @@
 package ikuyo.server;
 
 import ikuyo.utils.AsyncVerticle;
-import ikuyo.utils.NoCopyBox;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 
@@ -18,6 +16,7 @@ public class AppVert extends AsyncVerticle {
                 case "star.load" -> {
                     var config = JsonObject.of("id", json.getInteger("id"));
                     await(vertx.deployVerticle(UpdateVert.class, new DeploymentOptions()
+                            .setWorker(true)
                             .setConfig(config)));
                     msg.reply(JsonObject.of("type", "star.load.success"));
                 }

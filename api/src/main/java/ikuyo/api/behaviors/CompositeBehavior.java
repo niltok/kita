@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CompositeBehavior<T> implements Behavior<T> {
-    static final int windowSize = 60;
     Behavior<T>[] behaviors;
     public Map<String, WindowSum> profilers = new HashMap<>();
     @SafeVarargs

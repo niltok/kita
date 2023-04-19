@@ -50,7 +50,6 @@ public record CommonContext(
         });
     }
 
-
     static final int timeout = 10000;
     public void registerUser(User user, String socket, JsonObject info, int retry) {
         try {

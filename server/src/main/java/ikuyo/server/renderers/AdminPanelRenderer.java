@@ -3,8 +3,10 @@ package ikuyo.server.renderers;
 import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.server.api.CommonContext;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,33 +23,54 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
             }
             var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
             ui.add(new UIElement("div",
+                    userAdd(),
                     getPerformanceInfo(context),
                     getStarUserInfo(context)
-            ).withClass("popout-container", "flex-box-container", "background", "auto-flow-container"));
+            ).appendClass("popout-container", "flex-box-container", "background", "auto-flow-container"));
         });
+    }
+
+    UIElement userAdd() {
+        var uis = new ArrayList<UIElement>();
+        uis.add(UIElement.div(
+                new UIElement.Stateful("input.number", "shadow-add-num", "1")
+                        .appendClass("auto-expand"),
+                UIElement.callbackText("Add Shadow User", JsonObject.of("type", "user.add.shadow"),
+                        "shadow-add-num")
+        ).appendClass("label-item"));
+        return new UIElement("div",
+                UIElement.normalLabel(UIElement.divText("User Manager").appendClass("serif"),""),
+                new UIElement("div", uis.toArray(UIElement[]::new)).appendClass());
     }
 
     UIElement getPerformanceInfo(CommonContext context) {
         var uis = new ArrayList<UIElement>();
-        context.profiles.forEach((name, time) -> {
-            uis.add(UIElement.hoverLabel(name, "%.3f".formatted(time / 1000_000)));
-        });
+        var sum = 0D;
+        Comparator<Map.Entry<String, Double>> comparator = Map.Entry.comparingByValue();
+        var perf = context.profiles.entrySet().stream().sorted(comparator.reversed()).limit(10).toList();
+        for (Map.Entry<String, Double> e : perf) {
+            sum += e.getValue() / 1000_000;
+            uis.add(UIElement.hoverLabel(e.getKey(), "%.3f".formatted(e.getValue() / 1000_000)));
+        }
         return new UIElement("div",
-                UIElement.normalLabel(new UIElement.Text("Star Performance").withClass("serif"),
-                        "%.3f | %.3f".formatted(context.update.getMean(), context.delta.getMean())),
-                new UIElement("div", uis.toArray(UIElement[]::new)).withClass("column2"));
+                UIElement.normalLabel(UIElement.divText("Star Performance").appendClass("serif"),
+                        "Bodies: %d | Update: %.3f | Sum: %.3f | Delta %.3f".formatted(
+                                context.engine().bodyCount(), context.update.getMean(), sum, context.delta.getMean())),
+                new UIElement("div", uis.toArray(UIElement[]::new)).appendClass("column2"));
     }
 
     UIElement getStarUserInfo(CommonContext context) {
         var uis = new ArrayList<UIElement>();
-        context.star().starInfo().starUsers.forEach((id, info) -> {
+        var infos = context.getInfos();
+        infos.forEach((id, info) -> {
             var state = context.getState(id);
             if (!info.online || state == null) return;
             uis.add(UIElement.hoverLabel(state.user.name(),
                     "id: %d%s".formatted(id, state.user.isAdmin() ? " | Admin" : "")));
         });
         return new UIElement("div",
-                UIElement.normalLabel(new UIElement.Text("Star User").withClass("serif"),""),
-                new UIElement("div", uis.toArray(UIElement[]::new)).withClass("column2"));
+                UIElement.normalLabel(UIElement.divText("Star User").appendClass("serif"),
+                        "%d".formatted(infos.size())),
+                new UIElement("div", uis.toArray(UIElement[]::new)).appendClass("column2"));
     }
 }

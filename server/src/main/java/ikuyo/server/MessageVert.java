@@ -77,7 +77,7 @@ public class MessageVert extends AsyncVerticle {
                 var id = json.getInteger("id");
                 var userState = userStates.get(id);
                 var res = await(eventBus.request(updaterId, json)).body();
-                eventBus.send(userState.socket, JsonObject.of(
+                if (userState.socket != null) eventBus.send(userState.socket, JsonObject.of(
                         "type", "state.dispatch",
                         "action", "gameState/diffGame",
                         "payload", JsonObject.of("star",
@@ -85,7 +85,7 @@ public class MessageVert extends AsyncVerticle {
                 ).toBuffer());
                 lock(barrier);
                 try {
-                    eventBus.send(userState.socket, JsonObject.of(
+                    if (userState.socket != null) eventBus.send(userState.socket, JsonObject.of(
                             "type", "seq.operate",
                             "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
                 } finally {
@@ -191,7 +191,7 @@ public class MessageVert extends AsyncVerticle {
         }
         if (!msg.isEmpty()) {
 //            if (enableMsgLog) logger.info(msg);
-            eventBus.send(userState.socket, msg.toBuffer());
+            if (userState.socket != null) eventBus.send(userState.socket, msg.toBuffer());
         }
     }
 }

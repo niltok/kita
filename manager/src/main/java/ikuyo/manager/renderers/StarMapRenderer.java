@@ -35,7 +35,7 @@ public class StarMapRenderer implements UIRenderer<CommonContext> {
             result.get(id).add(new UIElement("div", Arrays.stream(res.stars())
                     .map(star -> renderStar(res.base(), star, res.user()))
                     .toArray(UIElement[]::new))
-                    .withClass("popout-container", "background"));
+                    .appendClass("popout-container", "background"));
         });
     }
 
@@ -61,7 +61,7 @@ public class StarMapRenderer implements UIRenderer<CommonContext> {
         if (isBase && !isUser) callback = JsonObject.of("type", "user.move.star", "target", star.index());
         if (!isBase) callback = JsonObject.of("type", "starMap.focus", "target", star.index());
         return new UIElement.Callback("div", callback,
-                new UIElement("div").withClass("starmap-dot").withStyle(dotStyle),
-                new UIElement.Text(text)).withClass("hover-label", "absolute").withStyle(boxStyle);
+                new UIElement("div").appendClass("starmap-dot").withStyle(dotStyle),
+                new UIElement.Text(text)).appendClass("hover-label", "absolute").withStyle(boxStyle);
     }
 }

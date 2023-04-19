@@ -52,6 +52,10 @@ public class PhysicsEngine{
         bullets = new HashMap<>();
     }
 
+    public int bodyCount() {
+        return users.size() + bullets.size();
+    }
+
     public void Initialize(Star star) {
 //        表面块 body 创建
         for (int i = 0; i < star.starInfo().blocks.length; i++) {
