@@ -29,10 +29,8 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Objects;
 
 public class UpdateVert extends AsyncVerticle {
@@ -310,30 +308,11 @@ public class UpdateVert extends AsyncVerticle {
         commonContext.areaStates.forEach(state -> {
             state.cached.forEach((id, cached) -> blocks[id] = cached);
         });
-        var output = genStarInfo(users, blocks);
+        var output = StarInfo.genStarInfo(users, blocks);
         return await(pool.preparedQuery(
                 "update star set star_info = $1 where index = $2 and vert_id = $3;"
         ).execute(Tuple.of(DataStatic.gzipEncode(output), star.index(), context.deploymentID())))
                 .rowCount() == 1;
     }
 
-    public static byte[] genStarInfo(String users, String[] blocks) throws IOException {
-        var output = new ByteArrayOutputStream();
-        var mapper = new ObjectMapper();
-        var gen = mapper.createGenerator(output);
-        gen.writeStartObject();
-        gen.writeArrayFieldStart("blocks");
-        var missing = new HashSet<Integer>();
-        for (int i = 0; i < blocks.length; i++) {
-            String block = blocks[i];
-            if (block == null) missing.add(StarUtils.getAreaOf(StarUtils.realIndexOf(i)));
-            else gen.writeRaw(block);
-        }
-        missing.forEach(i -> System.err.println("Missing Blocks in Area #" + i));
-        gen.writeEndArray();
-        gen.writeFieldName("starUsers");
-        gen.writeRaw(users);
-        gen.writeEndObject();
-        return output.toByteArray();
-    }
 }

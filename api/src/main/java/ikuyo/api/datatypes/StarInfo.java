@@ -6,6 +6,7 @@ import ikuyo.utils.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,24 @@ public class StarInfo {
     protected double star_r;
     public Block[] blocks;
     public Map<Integer, UserInfo> starUsers;
+
+    public static byte[] genStarInfo(String users, String[] blocks) throws IOException {
+        try (var output = new ByteArrayOutputStream()) {
+            var mapper = new ObjectMapper();
+            try (var gen = mapper.createGenerator(output)) {
+                gen.writeStartObject();
+                gen.writeArrayFieldStart("blocks");
+                for (String block : blocks) {
+                    gen.writeRawValue(block);
+                }
+                gen.writeEndArray();
+                gen.writeFieldName("starUsers");
+                gen.writeRawValue(users);
+                gen.writeEndObject();
+            }
+            return output.toByteArray();
+        }
+    }
 
     @Override
     public String toString() {

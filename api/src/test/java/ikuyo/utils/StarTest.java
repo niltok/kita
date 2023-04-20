@@ -3,6 +3,8 @@ package ikuyo.utils;
 import ikuyo.api.datatypes.StarInfo;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+
 public class StarTest {
     @Test
     public void starGenTest() {
@@ -13,5 +15,10 @@ public class StarTest {
         var runTime = System.nanoTime() - startTime;
         System.out.printf("run time(ms): %f%n", runTime / 1000_000.);
         System.out.printf("size(KB): %f(%f compressed)%n", size, sizeCompressed);
+    }
+
+    @Test
+    public void starInfoGenTest() throws IOException {
+        System.out.println(new String(StarInfo.genStarInfo("{}", new String[]{"{}", "{}"})));
     }
 }
