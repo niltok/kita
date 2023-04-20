@@ -90,6 +90,10 @@ public class PhysicsEngine{
         }
     }
 
+    public void addBody(KitasBody body) {
+        world.addBody(body);
+    }
+
     public void removeBody(KitasBody body) {
         world.removeBody(body);
     }
@@ -116,9 +120,6 @@ public class PhysicsEngine{
             body.setMass(new Mass(new Vector2(), 50,
                     (double) 50 * 50 / 12));
 
-//            todo: think
-            userData.setCameraPosition(userInfo.x, userInfo.y);
-
             if (user.isAdmin()) {
                 fixture.setFilter(filter -> false);
 //                fixture.setFilter(USER);
@@ -127,16 +128,20 @@ public class PhysicsEngine{
                 body.setRotatable(true);
             }
 
+            userData.setCameraPosition(userInfo.x, userInfo.y);
+
             body.setAtRest(true);
             users.put(user.id(), userData);
             world.addBody(body);
+            world.addBody(userData.camera);
         }
     }
 
     public void removeUser(int id) {
         if (users.containsKey(id)) {
-            KitasBody body = users.get(id).getBody();
-            world.removeBody(body);
+            UserEngineData data = users.get(id);
+            world.removeBody(data.getBody());
+            world.removeBody(data.getCamera());
             users.remove(id);
         }
     }

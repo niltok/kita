@@ -112,17 +112,17 @@ public class UIElement {
         public List<String> states = new ArrayList<>();
         public Callback(String type, JsonObject callback, String... states) {
             super(type);
-            this.callback = callback.toString();
+            if (callback != null) this.callback = callback.toString();
             this.states = Arrays.stream(states).toList();
         }
         public Callback(String type, JsonObject callback, UIElement... children) {
             super(type, children);
-            this.callback = callback.toString();
+            if (callback != null) this.callback = callback.toString();
         }
 
         public Callback(String type, JsonObject callback, List<String> states, UIElement... children) {
             super(type, children);
-            this.callback = callback.toString();
+            if (callback != null) this.callback = callback.toString();
             this.states = states;
         }
     }
