@@ -89,6 +89,10 @@ public class PhysicsEngine{
         }
     }
 
+    public void addBody(KitasBody body) {
+        world.addBody(body);
+    }
+
     public void removeBody(KitasBody body) {
         world.removeBody(body);
     }
