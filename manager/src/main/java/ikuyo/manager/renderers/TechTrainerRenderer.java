@@ -9,17 +9,16 @@ import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class TechTrainerRenderer implements UIRenderer<CommonContext> {
     @Override
-    public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
+    public void renderUI(CommonContext context, Map<Integer, Queue<UIElement>> result) {
         for (Integer id : context.updated().users()) {
             var state = context.getState(id);
             if (state == null || !"techTrainer".equals(state.page) || state.pageEdge < 2) continue;
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
+            var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             ui.add(new UIElement("div", displayPoint(context, id), techList(context, id))
                     .appendClass("popout-container", "flex-box-container", "background"));
         }

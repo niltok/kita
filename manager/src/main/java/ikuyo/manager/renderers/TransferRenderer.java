@@ -6,16 +6,16 @@ import ikuyo.manager.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 
 public class TransferRenderer implements UIRenderer<CommonContext> {
     @Override
-    public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
+    public void renderUI(CommonContext context, Map<Integer, Queue<UIElement>> result) {
         for (Integer id : context.updated().users()) {
             var state = context.getState(id);
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
+            var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             if (state == null || !"transfer".equals(state.page) || state.pageEdge < 2) continue;
             ui.add(new UIElement("div", transferAnimation(), new UIElement.Text("Transferring..."))
                     .appendClass("flex-center", "fullscreen", "transfer-background"));

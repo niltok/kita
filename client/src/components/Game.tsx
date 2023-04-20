@@ -2,13 +2,16 @@ import Socket from "./Socket"
 import {Stage} from "./Stage"
 import {RenderUI} from "./RenderUI"
 import {useAppSelector} from "../storeHook"
-import {useEffect} from "react"
+import {useEffect, useMemo} from "react"
 import {useDiffGame} from "../stores/gameState"
 import './Game.css'
+import {UIElement} from "../types/UIElement";
 
 export function Game() {
-    const ui = useAppSelector(state => state.gameState.ui)
-    const starUI = useAppSelector(state => state.gameState.star.ui)
+    const uis = useAppSelector(state => state.gameState.ui)
+    const ui = useMemo(() => uis ? JSON.parse(uis) as UIElement : undefined, [uis])
+    const starUIs = useAppSelector(state => state.gameState.star.ui)
+    const starUI = useMemo(() => starUIs ? JSON.parse(starUIs) as UIElement : undefined, [starUIs])
     const differ = useDiffGame()
     useEffect(() => {
         differ({ ui: undefined })

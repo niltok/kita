@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AreaState {
-    public boolean loaded = false;
+    public static final boolean workSet = false;
+    public volatile boolean loaded = false, enabled = false;
     public Map<Integer, String> cached = new HashMap<>();
 }

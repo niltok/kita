@@ -62,6 +62,7 @@ public class PhysicsEngine{
         for (int i = 0; i < star.starInfo().blocks.length; i++) {
             if (star.starInfo().blocks[i].isSurface && star.starInfo().blocks[i].isCollisible) {
                 addBlock(i);
+                if (AreaState.workSet) surfaceBlocks.get(i).setEnabled(false);
             }
         }
     }

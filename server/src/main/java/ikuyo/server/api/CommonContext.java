@@ -1,5 +1,6 @@
 package ikuyo.server.api;
 
+import ikuyo.api.datatypes.BaseContext;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.entities.Star;
 import ikuyo.api.entities.User;
@@ -8,27 +9,29 @@ import ikuyo.utils.WindowSum;
 import io.vertx.core.Vertx;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ikuyo.api.behaviors.Behavior.windowSize;
 
-public final class CommonContext {
-    public final Vertx vertx;
+public final class CommonContext extends BaseContext {
     public final Star star;
     private final Map<Integer, UserState> userStates = new HashMap<>();
     public final List<AreaState> areaStates = new ArrayList<>();
     public final WindowSum delta = new WindowSum(windowSize),
             update = new WindowSum(windowSize),
             message = new WindowSum(windowSize),
-            msgHandle = new WindowSum(20);
+            frameTime = new WindowSum(windowSize);
     public final Map<String, Double> profiles = new HashMap<>();
     private final UpdatedContext updated = new UpdatedContext();
     private final PhysicsEngine engine = new PhysicsEngine();
     public final Set<Integer> admin = new HashSet<>();
+    public volatile Set<Integer> enabledAreas = new ConcurrentSkipListSet<>();
+    public int areaDelta;
     public AtomicBoolean writeBackLock = new AtomicBoolean(false);
 
     public CommonContext(Vertx vertx, Star star) {
-        this.vertx = vertx;
+        super(vertx);
         this.star = star;
         for (int i = 0; i < StarUtils.areaNum; i++) areaStates.add(new AreaState());
     }
@@ -49,6 +52,7 @@ public final class CommonContext {
     }
 
     public void frame() {
+        var startTime = System.nanoTime();
         updated().clear();
         updated().users().addAll(admin);
         getInfos().forEach((id, info) -> {
@@ -61,6 +65,7 @@ public final class CommonContext {
                 weapon.ammoAmount = weapon.getAmmoMax();
             }
         });
+        frameTime.put((System.nanoTime() - startTime) / 1000_000.);
     }
 
     public UserInfo getInfo(int id) {

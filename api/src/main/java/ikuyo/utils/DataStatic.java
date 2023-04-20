@@ -1,5 +1,6 @@
 package ikuyo.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.buffer.Buffer;
 
 import java.io.ByteArrayInputStream;
@@ -30,4 +31,6 @@ public interface DataStatic {
             throw new RuntimeException(e);
         }
     }
+
+    ObjectMapper mapper = new ObjectMapper();
 }

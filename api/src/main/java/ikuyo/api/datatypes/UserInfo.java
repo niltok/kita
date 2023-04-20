@@ -43,6 +43,7 @@ public class UserInfo {
     }
 
     public boolean frame() {
+        if (!online) return false;
         boolean update = false;
         if (spaceship != null) update |= spaceship.frame();
         return update;

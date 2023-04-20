@@ -1,7 +1,6 @@
 package ikuyo.server;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.cargo.CargoStatic;
 import ikuyo.api.datatypes.StarInfo;
@@ -151,7 +150,7 @@ public class UpdateVert extends AsyncVerticle {
         startTime = System.nanoTime();
         prevTime = startTime;
         mainLoopId = vertx.setTimer(1, v -> mainLoop());
-        writeBackId = vertx.setPeriodic(1 * 60 * 1000, ignore -> writeBack());
+        writeBackId = vertx.setPeriodic(5 * 60 * 1000, ignore -> writeBack());
         logger.info(JsonObject.of("type", "star.loaded", "id", id, "name", star.name()));
         loaded = true;
     }
@@ -225,21 +224,34 @@ public class UpdateVert extends AsyncVerticle {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
-            commonContext.msgHandle.put(Math.max(0, msgHandleTime) / 1000_000.0);
             msgHandleTime = 0;
             if (!healthCheck()) return;
-            mainBehavior.update(commonContext);
-            mainBehavior.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
-            var seq = commonSeqRenderer.render(commonContext);
-            drawableRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
-            var com = commonRenderer.render(commonContext);
-            var spe = specialRenderer.render(commonContext);
-            uiRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
-            eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
-                    "type", "star.updated",
-                    "commonSeq", seq,
-                    "common", com,
-                    "special", spe)), new DeliveryOptions().setLocalOnly(true));
+            try {
+                mainBehavior.update(commonContext);
+                mainBehavior.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
+            } catch (Throwable e) {
+                logger.error(JsonObject.of(
+                        "star.id", star.index(),
+                        "msg", e.getLocalizedMessage()));
+                e.printStackTrace();
+            }
+            try {
+                var seq = runBlocking(() -> commonSeqRenderer.render(commonContext), false);
+                var spe = runBlocking(() -> specialRenderer.render(commonContext), false);
+                var com = commonRenderer.render(commonContext);
+                eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
+                        "type", "star.updated",
+                        "commonSeq", await(seq),
+                        "common", com,
+                        "special", await(spe))), new DeliveryOptions().setLocalOnly(true));
+                uiRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
+                drawableRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
+            } catch (Throwable e) {
+                logger.error(JsonObject.of(
+                        "star.id", star.index(),
+                        "msg", e.getLocalizedMessage()));
+                e.printStackTrace();
+            }
             commonContext.frame();
             updateTime = System.nanoTime() - startTime;
             commonContext.delta.put(deltaTime / 1000_000.0);
@@ -248,9 +260,10 @@ public class UpdateVert extends AsyncVerticle {
                     "type", "update.largeFrame",
                     "updateTime", updateTime / 1000_000.0));
             var suspendTime = ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000;
-            if (suspendTime < 1) async(this::mainLoop);
-            else mainLoopId = vertx.setTimer(suspendTime, v -> mainLoop());
-        } catch (Exception e) { // stop buggy logic
+//            if (suspendTime < 1) async(this::mainLoop);
+//            else
+            mainLoopId = vertx.setTimer(Math.max(1, suspendTime), v -> mainLoop());
+        } catch (Throwable e) { // stop buggy logic
             logger.error(JsonObject.of(
                     "star.id", star.index(),
                     "msg", e.getLocalizedMessage()));
@@ -292,7 +305,7 @@ public class UpdateVert extends AsyncVerticle {
     private Future<Boolean> tryWriteBack() {
         if (!commonContext.writeBackLock.compareAndExchange(false, true)) {
             try {
-                var users = new ObjectMapper().writeValueAsString(star.starInfo().starUsers);
+                var users = DataStatic.mapper.writeValueAsString(star.starInfo().starUsers);
                 return runBlocking(() -> writeBackSync(users), false);
             } catch (JsonProcessingException e) {
                 return Future.failedFuture(e);

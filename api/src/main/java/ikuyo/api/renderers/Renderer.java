@@ -3,7 +3,7 @@ package ikuyo.api.renderers;
 import io.vertx.core.json.JsonObject;
 
 public interface Renderer<T> {
-    JsonObject render(T context);
+    JsonObject render(T context) throws Throwable;
     default NamedRenderer<T> withName(String name) {
         return new NamedRenderer<>(name, true, this);
     }

@@ -1,5 +1,6 @@
 package ikuyo.api.datatypes;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
@@ -9,7 +10,8 @@ import java.util.List;
 public class UIElement {
     public String type, title;
     public UIElement[] children;
-    public JsonObject style = JsonObject.of();
+    @JsonRawValue
+    public String style = "{}";
     public List<String> classes = new ArrayList<>();
     public UIElement(String type) {
         this.type = type;
@@ -20,7 +22,7 @@ public class UIElement {
         this.children = children;
     }
     public UIElement withStyle(JsonObject style) {
-        this.style.mergeIn(style, true);
+        this.style = new JsonObject(this.style).mergeIn(style, true).toString();
         return this;
     }
 
@@ -105,21 +107,22 @@ public class UIElement {
     }
 
     public static class Callback extends UIElement {
-        public JsonObject callback;
+        @JsonRawValue
+        public String callback = "{}";
         public List<String> states = new ArrayList<>();
         public Callback(String type, JsonObject callback, String... states) {
             super(type);
-            this.callback = callback;
+            this.callback = callback.toString();
             this.states = Arrays.stream(states).toList();
         }
         public Callback(String type, JsonObject callback, UIElement... children) {
             super(type, children);
-            this.callback = callback;
+            this.callback = callback.toString();
         }
 
         public Callback(String type, JsonObject callback, List<String> states, UIElement... children) {
             super(type, children);
-            this.callback = callback;
+            this.callback = callback.toString();
             this.states = states;
         }
     }

@@ -1,8 +1,10 @@
 package ikuyo.manager.api;
 
+import ikuyo.api.datatypes.BaseContext;
 import ikuyo.api.entities.Star;
 import ikuyo.api.entities.User;
 import ikuyo.utils.AsyncHelper;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.impl.logging.Logger;
@@ -16,18 +18,7 @@ import java.util.Map;
 
 import static ikuyo.utils.AsyncStatic.delay;
 
-public record CommonContext(
-        SqlClient sql,
-        EventBus eventBus,
-        Logger logger,
-        UpdatedContext updated,
-        Map<Integer, UserState> userState,
-        Map<String, User> socketCache
-) implements AsyncHelper {
-    public CommonContext(SqlClient sql, EventBus eventBus, Logger logger) {
-        this(sql, eventBus, logger, new UpdatedContext(), new HashMap<>(), new HashMap<>());
-    }
-
+public final class CommonContext extends BaseContext implements AsyncHelper {
     public void addUser(String socket, User user) {
         socketCache().put(socket, user);
         var state = userState().computeIfAbsent(user.id(), i -> new UserState(socket, user));
@@ -51,6 +42,28 @@ public record CommonContext(
     }
 
     static final int timeout = 10000;
+    private final SqlClient sql;
+    private final EventBus eventBus;
+    private final Logger logger;
+    private final UpdatedContext updated;
+    private final Map<Integer, UserState> userState;
+    private final Map<String, User> socketCache;
+
+    public CommonContext(
+            Vertx vertx,
+            SqlClient sql,
+            EventBus eventBus,
+            Logger logger
+    ) {
+        super(vertx);
+        this.sql = sql;
+        this.eventBus = eventBus;
+        this.logger = logger;
+        this.updated = new UpdatedContext();
+        this.userState = new HashMap<>();
+        this.socketCache = new HashMap<>();
+    }
+
     public void registerUser(User user, String socket, JsonObject info, int retry) {
         try {
             var summery = Star.getSummery(sql(), user.star());
@@ -81,9 +94,31 @@ public record CommonContext(
                 await(delay(Duration.ofSeconds(3)));
                 logger.info(JsonObject.of("type", "user.register.retry", "remain", retry));
                 registerUser(user, socket, info, retry - 1);
-            }
-            else throw new RuntimeException("server busy");
+            } else throw new RuntimeException("server busy");
         }
     }
 
+    public SqlClient sql() {
+        return sql;
+    }
+
+    public EventBus eventBus() {
+        return eventBus;
+    }
+
+    public Logger logger() {
+        return logger;
+    }
+
+    public UpdatedContext updated() {
+        return updated;
+    }
+
+    public Map<Integer, UserState> userState() {
+        return userState;
+    }
+
+    public Map<String, User> socketCache() {
+        return socketCache;
+    }
 }

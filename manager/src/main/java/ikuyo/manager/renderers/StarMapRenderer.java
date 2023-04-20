@@ -8,18 +8,21 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
 
 public class StarMapRenderer implements UIRenderer<CommonContext> {
     static final double displayScale = 20;
     record StarResult(Star base, Star user, Star[] stars) {}
     @Override
-    public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
+    public void renderUI(CommonContext context, Map<Integer, Queue<UIElement>> result) {
         var fs = new HashMap<Integer, Future<StarResult>>();
         for (Integer id : context.updated().users()) {
             var state = context.getState(id);
             if (state == null || !"starMap".equals(state.page) || state.pageEdge < 2) continue;
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
+            var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             fs.put(id, async(() -> {
                 var user = async(() -> Star.getSummery(context.sql(), state.user.star()));
                 var summery = Star.getSummery(context.sql(), state.starFocus);

@@ -19,7 +19,7 @@ public class CompositeRenderer<T> implements Renderer<T> {
                 (json, renderer) -> {
                     try {
                         return json.mergeIn(renderer.render(ctx), deep);
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         System.err.println(e.getLocalizedMessage());
                         e.printStackTrace();
                         return json;

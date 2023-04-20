@@ -2,7 +2,7 @@ package ikuyo.api.techtree;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ikuyo.utils.DataStatic;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -93,7 +93,7 @@ public class TechTree {
     }
 
     public static TechTree fromJson(String json) {
-        var mapper = new ObjectMapper();
+        var mapper = DataStatic.mapper;
         try {
             return mapper.readValue(json, TechTree.class);
         } catch (JsonProcessingException e) {
@@ -102,7 +102,7 @@ public class TechTree {
     }
 
     public String toString() {
-        var mapper = new ObjectMapper();
+        var mapper = DataStatic.mapper;
         try {
             return mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {

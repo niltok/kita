@@ -10,16 +10,16 @@ import ikuyo.utils.CPUMonitor;
 import ikuyo.utils.StarUtils;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class UserStateRenderer implements UIRenderer<CommonContext> {
     @Override
-    public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
+    public void renderUI(CommonContext context, Map<Integer, Queue<UIElement>> result) {
         context.updated().users().forEach((id) -> {
             var info = context.getInfo(id);
             if (info == null || !info.online) return;
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
+            var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             var ship = info.spaceship;
             if ("fly".equals(info.controlType)) {
                 ui.add(getHeightInfo(context, info, id));

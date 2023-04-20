@@ -1,7 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit"
 import {useAppDispatch} from "../storeHook"
-import {UIElement} from "../types/UIElement";
-import {applyReduxDiff} from "../utils/react";
+import {applyReduxDiff} from "../utils/react"
 
 export interface GameState {
     server: {
@@ -14,9 +13,9 @@ export interface GameState {
     windowSize: { height: number, width: number },
     star: {
         camera: { x: number, y: number, rotation: number },
-        ui?: UIElement
+        ui?: string
     }
-    ui?: UIElement
+    ui?: string
     uiState: { [key: string]: any }
 }
 

@@ -1,7 +1,6 @@
 package ikuyo.api.datatypes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ikuyo.utils.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
@@ -31,7 +30,7 @@ public class StarInfo {
 
     public static byte[] genStarInfo(String users, String[] blocks) throws IOException {
         try (var output = new ByteArrayOutputStream()) {
-            var mapper = new ObjectMapper();
+            var mapper = DataStatic.mapper;
             try (var gen = mapper.createGenerator(output)) {
                 gen.writeStartObject();
                 gen.writeArrayFieldStart("blocks");
@@ -50,7 +49,7 @@ public class StarInfo {
     @Override
     public String toString() {
         try {
-            return new ObjectMapper().writeValueAsString(this);
+            return DataStatic.mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -58,7 +57,7 @@ public class StarInfo {
 
     public Buffer toBuffer() {
         try {
-            return DataStatic.gzipEncode(new ObjectMapper().writeValueAsBytes(this));
+            return DataStatic.gzipEncode(DataStatic.mapper.writeValueAsBytes(this));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -186,7 +185,7 @@ public class StarInfo {
 
     public static StarInfo fromJson(Buffer buffer) {
         try {
-            return new ObjectMapper().readValue(DataStatic.gzipDecode(buffer), StarInfo.class);
+            return DataStatic.mapper.readValue(DataStatic.gzipDecode(buffer), StarInfo.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

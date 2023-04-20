@@ -63,7 +63,7 @@ public class HttpVert extends AsyncVerticle {
         pool = PgPool.pool(vertx, new PoolOptions());
         server = vertx.createHttpServer(new HttpServerOptions()
                 .setLogActivity(true).setCompressionSupported(true));
-        commonContext = new CommonContext(pool, eventBus, logger);
+        commonContext = new CommonContext(vertx, pool, eventBus, logger);
         router = Router.router(vertx);
         router.allowForward(AllowForwardHeaders.ALL);
         // sockjs handler 前面不能加任何 async handler 所以别改这段代码
@@ -179,21 +179,25 @@ public class HttpVert extends AsyncVerticle {
 
     private void mainLoop() {
         mainBehavior.update(commonContext);
-        uiRenderer.render(commonContext).forEach(e -> {
-            var id = Integer.parseInt(e.getKey());
-            var json = (JsonObject) e.getValue();
-            var state = commonContext.getState(id);
-            if (state == null) return;
-            var diff = jsonDiff(state.cache, json);
-            if (!diff.isEmpty()) {
-                state.cache = json;
-                eventBus.send(state.socket, JsonObject.of(
-                        "type", "state.dispatch",
-                        "action", "gameState/diffGame",
-                        "payload", diff
-                ).toBuffer());
-            }
-        });
+        try {
+            uiRenderer.render(commonContext).forEach(e -> {
+                var id = Integer.parseInt(e.getKey());
+                var json = (JsonObject) e.getValue();
+                var state = commonContext.getState(id);
+                if (state == null) return;
+                var diff = jsonDiff(state.cache, json);
+                if (!diff.isEmpty()) {
+                    state.cache = json;
+                    eventBus.send(state.socket, JsonObject.of(
+                            "type", "state.dispatch",
+                            "action", "gameState/diffGame",
+                            "payload", diff
+                    ).toBuffer());
+                }
+            });
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
         commonContext.frame();
     }
 

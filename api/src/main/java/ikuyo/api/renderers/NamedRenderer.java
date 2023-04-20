@@ -12,7 +12,7 @@ public class NamedRenderer<T> implements Renderer<T> {
         this.renderer = renderer;
     }
     @Override
-    public JsonObject render(T ctx) {
+    public JsonObject render(T ctx) throws Throwable {
         if (!special) return JsonObject.of(name, renderer.render(ctx));
         var res = renderer.render(ctx);
         var map = res.getMap();

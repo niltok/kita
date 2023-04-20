@@ -2,18 +2,19 @@ package ikuyo.server.renderers;
 
 import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.renderers.UIRenderer;
+import ikuyo.server.api.AreaState;
 import ikuyo.server.api.CommonContext;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 public class AdminPanelRenderer implements UIRenderer<CommonContext> {
     static boolean adminOnly = false;
     @Override
-    public void renderUI(CommonContext context, Map<Integer, List<UIElement>> result) {
+    public void renderUI(CommonContext context, Map<Integer, Queue<UIElement>> result) {
         context.updated().users().forEach((id) -> {
             var info = context.getInfo(id);
             var state = context.getState(id);
@@ -21,7 +22,7 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
                     || !"adminPanel".equals(state.page)) {
                 return;
             }
-            var ui = result.computeIfAbsent(id, i -> new ArrayList<>());
+            var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             ui.add(new UIElement("div",
                     userAdd(),
                     getPerformanceInfo(context),
@@ -57,7 +58,12 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
         detail.add(UIElement.hoverLabel("Sum", "%.3f".formatted(sum)));
         detail.add(UIElement.hoverLabel("Delta", "%.3f".formatted(context.delta.getMean())));
         detail.add(UIElement.hoverLabel("Message", "%.3f".formatted(context.message.getMean())));
+        detail.add(UIElement.hoverLabel("Frame", "%.3f".formatted(context.frameTime.getMean())));
         detail.add(UIElement.hoverLabel("Bodies", "%d".formatted(context.engine().bodyCount())));
+        if (AreaState.workSet) {
+            detail.add(UIElement.hoverLabel("DeltaAreas", "%d".formatted(context.areaDelta)));
+            detail.add(UIElement.hoverLabel("EnabledAreas", "%d".formatted(context.enabledAreas.size())));
+        }
         return new UIElement("div",
                 UIElement.normalLabel(UIElement.divText("Star Performance").appendClass("serif"), ""),
                 new UIElement("div", detail.toArray(UIElement[]::new)).appendClass("column2"),
