@@ -44,19 +44,24 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
     }
 
     UIElement getPerformanceInfo(CommonContext context) {
-        var uis = new ArrayList<UIElement>();
+        var topComp = new ArrayList<UIElement>();
+        var detail = new ArrayList<UIElement>();
         var sum = 0D;
         Comparator<Map.Entry<String, Double>> comparator = Map.Entry.comparingByValue();
         var perf = context.profiles.entrySet().stream().sorted(comparator.reversed()).limit(10).toList();
         for (Map.Entry<String, Double> e : perf) {
             sum += e.getValue() / 1000_000;
-            uis.add(UIElement.hoverLabel(e.getKey(), "%.3f".formatted(e.getValue() / 1000_000)));
+            topComp.add(UIElement.hoverLabel(e.getKey(), "%.3f".formatted(e.getValue() / 1000_000)));
         }
+        detail.add(UIElement.hoverLabel("Update", "%.3f".formatted(context.update.getMean())));
+        detail.add(UIElement.hoverLabel("Sum", "%.3f".formatted(sum)));
+        detail.add(UIElement.hoverLabel("Delta", "%.3f".formatted(context.delta.getMean())));
+        detail.add(UIElement.hoverLabel("Message", "%.3f".formatted(context.message.getMean())));
+        detail.add(UIElement.hoverLabel("Bodies", "%d".formatted(context.engine().bodyCount())));
         return new UIElement("div",
-                UIElement.normalLabel(UIElement.divText("Star Performance").appendClass("serif"),
-                        "Bodies: %d | Update: %.3f | Sum: %.3f | Delta %.3f".formatted(
-                                context.engine().bodyCount(), context.update.getMean(), sum, context.delta.getMean())),
-                new UIElement("div", uis.toArray(UIElement[]::new)).appendClass("column2"));
+                UIElement.normalLabel(UIElement.divText("Star Performance").appendClass("serif"), ""),
+                new UIElement("div", detail.toArray(UIElement[]::new)).appendClass("column2"),
+                new UIElement("div", topComp.toArray(UIElement[]::new)).appendClass("column2"));
     }
 
     UIElement getStarUserInfo(CommonContext context) {

@@ -1,29 +1,29 @@
 package ikuyo.utils;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.ThreadMXBean;
 
 public class CPUMonitor {
     public static final CPUMonitor instance = new CPUMonitor();
 
-    private final OperatingSystemMXBean osMxBean;
     private final ThreadMXBean threadBean;
     private long preTime = System.nanoTime();
     private long preUsedTime = 0;
 
-    private static final int windowSize = 180;
+    private static final int windowSize = 30;
     private static final WindowSum used = new WindowSum(windowSize), passed = new WindowSum(windowSize);
 
     private CPUMonitor() {
-        osMxBean = ManagementFactory.getOperatingSystemMXBean();
         threadBean = ManagementFactory.getThreadMXBean();
     }
 
     public double getProcessCpu() {
+        if (System.nanoTime() - preTime <= 100 * 1000_000)
+            return (used.getSum() / passed.getSum());
         long totalTime = 0;
         for (long id : threadBean.getAllThreadIds()) {
-            totalTime += threadBean.getThreadCpuTime(id);
+            var cpuTime = threadBean.getThreadCpuTime(id);
+            if (cpuTime >= 0) totalTime += cpuTime;
         }
         long curtime = System.nanoTime();
         long usedTime = totalTime - preUsedTime;

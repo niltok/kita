@@ -6,7 +6,9 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHelper {
     public static boolean enableMsgLog = false;
@@ -54,18 +56,26 @@ public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHel
         return AsyncStatic.runBlocking(vertx, task, ordered);
     }
 
-    public final Future<Void> runBlocking(Runnable task, boolean ordered) {
+    public final Future<Void> runBlocking(AsyncStatic.Task task, boolean ordered) {
         return runBlocking(() -> {
             task.run();
             return null;
         }, ordered);
     }
 
+    public final <A, B> List<B> parallelMap(Stream<A> stream, AsyncStatic.Mapper<A, B> mapper) {
+        return AsyncStatic.parallelMap(vertx, stream, mapper);
+    }
+
+    public final <A> void parallelFor(Stream<A> stream, AsyncStatic.Consumer<A> consumer) {
+        AsyncStatic.parallelFor(vertx, stream, consumer);
+    }
+
     public final <T> Future<T> runBlocking(AsyncStatic.Supplier<T> task) {
         return runBlocking(task, true);
     }
 
-    public final Future<Void> runBlocking(Runnable task) {
+    public final Future<Void> runBlocking(AsyncStatic.Task task) {
         return runBlocking(task, true);
     }
 }

@@ -29,7 +29,7 @@ public class UserState {
             if (rand.nextBoolean()) input.down = 1;
             if (rand.nextBoolean()) input.left = 1;
             if (rand.nextBoolean()) input.right = 1;
-            if (rand.nextBoolean()) input.shot = 1;
+//            if (rand.nextBoolean()) input.shot = 1;
             update = true;
         }
         return update;
