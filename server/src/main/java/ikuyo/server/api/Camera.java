@@ -11,6 +11,7 @@ public class Camera extends KitasBody {
         this.setBearTheGravity(false);
         this.setGravityScale(0);
         this.setAngularDamping(0);
+        this.setLinearDamping(10);
         this.setMass(MassType.NORMAL);
         BodyFixture fixture = this.addFixture(Geometry.createCircle(0.01));
         fixture.setFilter(filter -> false);
@@ -20,7 +21,8 @@ public class Camera extends KitasBody {
         return followBody;
     }
 
-    public void setIfFollowBody(boolean state) {
+    public Camera setIfFollowBody(boolean state) {
         followBody = state;
+        return this;
     }
 }

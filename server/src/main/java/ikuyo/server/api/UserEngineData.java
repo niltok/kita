@@ -43,7 +43,9 @@ public class UserEngineData {
         if (camera.getIfFollowBody() && pointer.getMagnitude() < 0.001)
             camera.setLinearVelocity(body.getLinearVelocity());
 //        todo: camera pos
-//        else camera.setLinearVelocity(pointer.getNormalized().multiply(Math.pow(pointer.getMagnitude(), 10)));
-        else this.setCameraPosition(body.getWorldCenter().x, body.getWorldCenter().y);
+         else camera.setLinearVelocity(pointer.getNormalized().multiply(Math.pow(pointer.getMagnitude(), 3)));
+//        else camera.setLinearVelocity(camera.getLinearVelocity()
+//                .add(pointer.getNormalized().multiply(Math.pow(pointer.getMagnitude(), 2))));
+//        else this.camera.applyForce(pointer.getNormalized().multiply(Math.pow(pointer.getMagnitude() * 100, 5)));
     }
 }
