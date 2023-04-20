@@ -8,6 +8,8 @@ import io.vertx.core.Vertx;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Stream;
 
 public interface AsyncStatic {
     boolean UseEventLoopThread = false;
@@ -15,6 +17,21 @@ public interface AsyncStatic {
     @FunctionalInterface
     interface Supplier<T> {
         T get() throws Throwable;
+    }
+
+    @FunctionalInterface
+    interface Consumer<T> {
+        void consume(T value) throws Throwable;
+    }
+
+    @FunctionalInterface
+    interface Mapper<A, B> {
+        B map(A value) throws Throwable;
+    }
+
+    @FunctionalInterface
+    interface Task {
+        void run() throws Throwable;
     }
 
     static  <T> Future<T> async(Supplier<T> task) {
@@ -65,6 +82,16 @@ public interface AsyncStatic {
                 }), ordered);
     }
 
+    static <A, B> List<B> parallelMap(Vertx vertx, Stream<A> stream, Mapper<A, B> f) {
+        return stream.map(a -> runBlocking(vertx, () -> f.map(a), false)).map(Async::await).toList();
+    }
+
+    static  <A> void parallelFor(Vertx vertx, Stream<A> stream, AsyncStatic.Consumer<A> consumer) {
+        parallelMap(vertx, stream, a -> {
+            consumer.consume(a);
+            return null;
+        });
+    }
     static <T> Future<T> runBlocking(Vertx vertx, Supplier<T> task) {
         return runBlocking(vertx, task, true);
     }

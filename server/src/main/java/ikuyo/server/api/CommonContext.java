@@ -19,8 +19,8 @@ public final class CommonContext {
     public final List<AreaState> areaStates = new ArrayList<>();
     public final WindowSum delta = new WindowSum(windowSize),
             update = new WindowSum(windowSize),
-            msgHandle = new WindowSum(20),
-            suspend = new WindowSum(20);
+            message = new WindowSum(windowSize),
+            msgHandle = new WindowSum(20);
     public final Map<String, Double> profiles = new HashMap<>();
     private final UpdatedContext updated = new UpdatedContext();
     private final PhysicsEngine engine = new PhysicsEngine();

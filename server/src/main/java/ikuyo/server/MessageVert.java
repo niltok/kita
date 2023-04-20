@@ -5,14 +5,16 @@ import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.NoCopyBox;
 import ikuyo.utils.Position;
 import io.vertx.core.CompositeFuture;
-import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -138,15 +140,20 @@ public class MessageVert extends AsyncVerticle {
                     msgDiffer.next(drawables);
                     var common = json.getJsonObject("common");
                     var specials = json.getJsonObject("special");
-                    var fs = new ArrayList<Future>();
-                    userStates.forEach((id, userState) -> {
-                        fs.add(runBlocking(() ->
-                                sendUserState(specials.getJsonObject(String.valueOf(id)), common, id, userState)));
-                    });
-                    await(CompositeFuture.all(fs));
+//                    parallelFor(userStates.entrySet().stream(), e ->
+//                        runBlocking(() -> sendUserState(
+//                                specials.getJsonObject(String.valueOf(e.getKey())),
+//                                common, e.getKey(), e.getValue()), false)
+//                    );
+                    userStates.entrySet().stream().parallel().forEach(e ->
+                            runBlocking(() -> sendUserState(
+                                    specials.getJsonObject(String.valueOf(e.getKey())),
+                                    common, e.getKey(), e.getValue()), false)
+                    );
                 } finally {
                     barrier.unlock();
                     var sendTime = System.nanoTime() - startTime;
+                    eventBus.send(updaterId, JsonObject.of("type", "message.frame", "time", sendTime));
                     if (sendTime > 1000_000_000 / UpdateVert.MaxFps * 2)
                         logger.info(JsonObject.of(
                                 "type", "message.largeFrame",

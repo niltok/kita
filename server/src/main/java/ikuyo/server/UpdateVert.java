@@ -58,9 +58,7 @@ public class UpdateVert extends AsyncVerticle {
             new UserRenderer(),
             new BulletRenderer()
     );
-    Renderer<CommonContext> commonSeqRenderer = new CompositeRenderer<>(false,
-            drawableRenderer
-    );
+    Renderer<CommonContext> commonSeqRenderer = drawableRenderer;
     Renderer<CommonContext> commonRenderer = new CompositeRenderer<>(true);
     UIRenderer.Composite<CommonContext> uiRenderer = new UIRenderer.Composite<>(
             new UserStateRenderer(),
@@ -169,6 +167,9 @@ public class UpdateVert extends AsyncVerticle {
             case "vert.undeploy" -> {
                 vertx.undeploy(deploymentID());
             }
+            case "message.frame" -> {
+                commonContext.message.put(json.getLong("time") / 1000_000.);
+            }
             case "user.add" -> {
                 var id = json.getInteger("id");
                 var infoJson = json.getJsonObject("userInfo");
@@ -185,7 +186,7 @@ public class UpdateVert extends AsyncVerticle {
                 if (json.containsKey("shadow")) {
                     state.isShadow = true;
                     state.input.relativePointer = new Position(0, 1);
-                    info.spaceship.weapons.forEach(Weapon::unequip);
+                    info.spaceship.weapons.stream().toList().forEach(Weapon::unequip);
                     new Weapon(CargoStatic.r400.type()).equip(info.spaceship).tryEnable();
                 }
                 msg.reply(JsonObject.of("type", "success"));
@@ -246,9 +247,9 @@ public class UpdateVert extends AsyncVerticle {
             if (updateTime > 1000_000_000 / MaxFps * 2) logger.warn(JsonObject.of(
                     "type", "update.largeFrame",
                     "updateTime", updateTime / 1000_000.0));
-            var suspendTime = Math.max(1, ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000);
-            commonContext.suspend.put(suspendTime);
-            mainLoopId = vertx.setTimer(suspendTime, v -> mainLoop());
+            var suspendTime = ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000;
+            if (suspendTime < 1) async(this::mainLoop);
+            else mainLoopId = vertx.setTimer(suspendTime, v -> mainLoop());
         } catch (Exception e) { // stop buggy logic
             logger.error(JsonObject.of(
                     "star.id", star.index(),
