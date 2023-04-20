@@ -82,6 +82,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
                 }
                 starInfo.blocks[b] = new Block.Normal();
                 context.updated().blocks().add(b);
+                context.updated().areas.add(StarUtils.getAreaOf(StarUtils.realIndexOf(b)));
             }
         }
 
@@ -91,10 +92,13 @@ public class BulletBehavior implements Behavior<CommonContext> {
                 (int) ((damage.range + StarInfo.edgeLength) / StarInfo.tierDistance) + 2,
                 starInfo)) {
 
-            starInfo.blocks[i].isSurface = true;
-            starInfo.blocks[i].isCollisible = true;
-            context.engine().addBlock(i);
-            context.updated().blocks().add(i);
+            if (!starInfo.blocks[i].isSurface) {
+                starInfo.blocks[i].isSurface = true;
+                starInfo.blocks[i].isCollisible = true;
+                context.engine().addBlock(i);
+                context.updated().blocks().add(i);
+            }
+            context.updated().areas.add(StarUtils.getAreaOf(StarUtils.realIndexOf(i)));
         }
     }
 }

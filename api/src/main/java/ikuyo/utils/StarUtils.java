@@ -191,10 +191,10 @@ public final class StarUtils {
         for (int i = 0; i < nTier * (nTier + 1) * 3 + 1; i++) {
             Position posI = positionOf(i);
             int realIndex = realIndexOf(pos.x + posI.x, pos.y + posI.y);
-            if (returnRealIndex)
+            if (returnRealIndex) {
                 if (position.distance(positionOf(realIndex)) <= r)
                     res.add(realIndex - extraBlock);
-            else {
+            } else {
                 int tier = tierOf(realIndex);
                 if (tier >= StarInfo.minTier
                         && tier <= StarInfo.maxTier
@@ -284,6 +284,11 @@ public final class StarUtils {
     }
 
     public static int getAreaOf(int realIndex) {
+        return getAreaOf(realIndex, areaSize);
+    }
+
+    public static int getAreaAt(double x, double y) {
+        int realIndex = realIndexOf(x, y);
         return getAreaOf(realIndex, areaSize);
     }
 

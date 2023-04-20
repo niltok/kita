@@ -23,9 +23,9 @@ public class CargoStatic {
     public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01, 600);
     public static final WeaponItem
             defaultWeapon = WeaponItemBuilder.create("默认武器", "",
-                    new Damage(50).setRange(5)).withCollisionRange(0.3).withAmmoType(defaultAmmo).build(),
+                    new Damage(50).setRange(5).setIfBreakBlock(true)).withCollisionRange(0.3).withAmmoType(defaultAmmo).build(),
             r400 = WeaponItemBuilder.create("R400", "",
-                    new Damage(1).setRange(0.1).setIfBreakBlock(false)).withFireTime(6)
+                    new Damage(1).setRange(0.1)).withFireTime(6)
                     .withAmmoType(defaultAmmo).build(),
             chargeRifle = WeaponItemBuilder.create("ChargeRifle", "",
                     new Damage(50).setRange(0.1).setIfBreakBlock(false)).withFireTime(30)
