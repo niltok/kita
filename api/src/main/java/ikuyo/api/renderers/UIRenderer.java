@@ -1,10 +1,8 @@
 package ikuyo.api.renderers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import ikuyo.api.datatypes.BaseContext;
 import ikuyo.api.datatypes.UIElement;
 import ikuyo.utils.AsyncHelper;
-import ikuyo.utils.DataStatic;
 import ikuyo.utils.WindowSum;
 import io.vertx.core.json.JsonObject;
 
@@ -48,14 +46,10 @@ public interface UIRenderer<T> extends AsyncHelper {
             });
             JsonObject res = new JsonObject(new ConcurrentHashMap<>());
             map.entrySet().stream().parallel().forEach(entry -> {
-                try {
-                    res.put(String.valueOf(entry.getKey()), DataStatic.mapper.writeValueAsString(
-                                    new UIElement("div", entry.getValue().toArray(UIElement[]::new))
-                                            .appendClass("absolute", "fullscreen", "pointer-pass")
-                            ));
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
+                res.put(String.valueOf(entry.getKey()), JsonObject.mapFrom(
+                                new UIElement("div", entry.getValue().toArray(UIElement[]::new))
+                                        .appendClass("absolute", "fullscreen", "pointer-pass")
+                        ));
             });
             return res;
         }
