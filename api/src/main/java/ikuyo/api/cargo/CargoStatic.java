@@ -11,6 +11,7 @@ import ikuyo.api.spaceships.Spaceship;
 import ikuyo.api.spaceships.SpaceshipItem;
 import ikuyo.utils.ItemUtils;
 
+@ItemUtils.ItemTarget(CargoItem.class)
 public class CargoStatic {
     public static final CargoItem
             soil = new CargoItem("泥土", "岩石碎裂之后的产物", 10),
@@ -19,7 +20,7 @@ public class CargoStatic {
             shuttle = new SpaceshipItem("穿梭机", "速度快但是货舱小", 500,
             5000, Spaceship.class, 100, 100, 10,
             2, 5, 5);
-    public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01);
+    public static final AmmoItem defaultAmmo = new AmmoItem("默认弹药", "", 0.01, 600);
     public static final WeaponItem
             defaultWeapon = WeaponItemBuilder.create("默认武器", "",
                     new Damage(50).setRange(5)).withCollisionRange(0.3).withAmmoType(defaultAmmo).build(),
@@ -48,7 +49,7 @@ public class CargoStatic {
     public static final ImmutableList<WeaponItem> weaponList;
     /* Auto set CargoItem's type */
     static {
-        ItemUtils.setFieldName(CargoStatic.class, CargoItem.class,  "type");
+        ItemUtils.setFieldName(CargoStatic.class);
         spaceshipList = ItemUtils.filterType(itemList, SpaceshipItem.class);
         equipmentList = ItemUtils.filterType(itemList, EquipmentItem.class);
         weaponList = ItemUtils.filterType(itemList, WeaponItem.class);

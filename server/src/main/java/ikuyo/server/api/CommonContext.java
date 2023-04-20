@@ -8,6 +8,7 @@ import ikuyo.utils.WindowSum;
 import io.vertx.core.Vertx;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ikuyo.api.behaviors.Behavior.windowSize;
 
@@ -24,6 +25,7 @@ public final class CommonContext {
     private final UpdatedContext updated = new UpdatedContext();
     private final PhysicsEngine engine = new PhysicsEngine();
     public final Set<Integer> admin = new HashSet<>();
+    public AtomicBoolean writeBackLock = new AtomicBoolean(false);
 
     public CommonContext(Vertx vertx, Star star) {
         this.vertx = vertx;

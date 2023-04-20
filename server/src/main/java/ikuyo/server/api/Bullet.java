@@ -11,6 +11,7 @@ public class Bullet {
     public KitasBody body = new KitasBody();
     public String type;
     public Damage damage;
+    public long restLiveTime;
 
     public void set(UserAttackBehavior.BulletInfo info) {
         this.type = info.type;

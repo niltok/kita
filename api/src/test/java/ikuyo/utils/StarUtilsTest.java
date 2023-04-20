@@ -11,7 +11,14 @@ import java.util.List;
 public class StarUtilsTest {
     @Test
     public void printBlock() {
-        System.out.println(StarUtils.printBlock(8496));
+        System.out.println(StarUtils.tierOf(StarUtils.areaNum - 1));
+        System.out.print("Tiers: ");
+        for (Integer id : StarUtils.getBlocksAt(StarUtils.areaNum - 1)) {
+            System.out.print(StarUtils.tierOf(StarUtils.realIndexOf(id)) + " ");
+        }
+        System.out.println();
+        System.out.println(StarUtils.tierOf(StarUtils.getAreaOf(StarUtils.blockRealNum - 1)));
+        System.out.println(StarUtils.printBlock(StarUtils.realIndexOf(StarUtils.blockNum - 1)));
     }
     @Test
     public void Teat_area() {

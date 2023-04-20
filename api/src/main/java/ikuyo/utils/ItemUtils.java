@@ -15,21 +15,40 @@ import java.util.Objects;
 public interface ItemUtils {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface ItemIgnore {}
+    @interface ItemIgnore {}
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface ItemList {}
+    @interface ItemList {}
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.TYPE})
-    public @interface ItemInject {
+    @interface ItemInject {
         Class<?>[] value();
     }
 
-    public static <T> List<T> setFieldName(String prefix, Class<?> entry, Class<T> target, String nameField) {
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    @interface ItemTarget {
+        Class<?> value();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @interface ItemName {}
+
+    static <T> List<T> setFieldName(String prefix, Class<?> entry, Class<T> target, String nameField) {
         var res = new ArrayList<T>();
         Field itemList = null;
+        var targetAnno = entry.getAnnotation(ItemTarget.class);
+        if (targetAnno != null)
+            target = (Class<T>) targetAnno.value();
+        for (var field : target.getDeclaredFields()) {
+            if (field.isAnnotationPresent(ItemName.class)) {
+                nameField = field.getName();
+                break;
+            }
+        }
         for (var field : entry.getDeclaredFields()) {
             try {
                 if (!Modifier.isStatic(field.getModifiers())
@@ -69,11 +88,15 @@ public interface ItemUtils {
         return res;
     }
 
-    public static <T> List<T> setFieldName(Class<?> entry, Class<T> target, String nameField) {
+    static <T> List<T> setFieldName(Class<?> entry, Class<T> target, String nameField) {
         return setFieldName("", entry, target, nameField);
     }
 
-    public static <W, T> ImmutableList<T> filterType(List<W> list, Class<T> clazz) {
+    static <T> List<T> setFieldName(Class<?> entry) {
+        return setFieldName(entry, null, null);
+    }
+
+    static <W, T> ImmutableList<T> filterType(List<W> list, Class<T> clazz) {
         return ImmutableList.copyOf(list.stream()
                 .map(i -> clazz.isInstance(i) ? (T)i : null)
                 .filter(Objects::nonNull).toList());

@@ -5,10 +5,9 @@ import io.vertx.core.Future;
 
 import java.time.Duration;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
 
 public interface AsyncHelper {
-    default <T> Future<T> async(Supplier<T> task) {
+    default <T> Future<T> async(AsyncStatic.Supplier<T> task) {
         return AsyncStatic.async(task);
     }
 

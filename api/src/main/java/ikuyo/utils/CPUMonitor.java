@@ -12,6 +12,9 @@ public class CPUMonitor {
     private long preTime = System.nanoTime();
     private long preUsedTime = 0;
 
+    private static final int windowSize = 180;
+    private static final WindowSum used = new WindowSum(windowSize), passed = new WindowSum(windowSize);
+
     private CPUMonitor() {
         osMxBean = ManagementFactory.getOperatingSystemMXBean();
         threadBean = ManagementFactory.getThreadMXBean();
@@ -24,9 +27,11 @@ public class CPUMonitor {
         }
         long curtime = System.nanoTime();
         long usedTime = totalTime - preUsedTime;
+        preUsedTime = totalTime;
         long totalPassedTime = curtime - preTime;
         preTime = curtime;
-        preUsedTime = totalTime;
-        return (((double) usedTime) / totalPassedTime / osMxBean.getAvailableProcessors());
+        used.put(usedTime);
+        passed.put(totalPassedTime);
+        return (used.getSum() / passed.getSum());
     }
 }

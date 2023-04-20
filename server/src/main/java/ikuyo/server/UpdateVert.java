@@ -15,10 +15,7 @@ import ikuyo.api.renderers.UIRenderer;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.behaviors.*;
 import ikuyo.server.renderers.*;
-import ikuyo.utils.AsyncVerticle;
-import ikuyo.utils.DataStatic;
-import ikuyo.utils.NoCopyBox;
-import ikuyo.utils.Position;
+import ikuyo.utils.*;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
@@ -32,7 +29,10 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import io.vertx.sqlclient.Tuple;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class UpdateVert extends AsyncVerticle {
@@ -155,7 +155,7 @@ public class UpdateVert extends AsyncVerticle {
         startTime = System.nanoTime();
         prevTime = startTime;
         mainLoopId = vertx.setTimer(1, v -> mainLoop());
-        writeBackId = vertx.setPeriodic(20 * 60 * 1000, ignore -> writeBack());
+        writeBackId = vertx.setPeriodic(1 * 60 * 1000, ignore -> writeBack());
         logger.info(JsonObject.of("type", "star.loaded", "id", id, "name", star.name()));
         loaded = true;
     }
@@ -274,33 +274,66 @@ public class UpdateVert extends AsyncVerticle {
         return true;
     }
 
-    // TODO: fix write back blocking
     void writeBack() {
         logger.info(JsonObject.of("type", "star.writeBack.start"));
         var start = System.nanoTime();
         tryWriteBack().onFailure(e -> {
-            logger.error(e.getLocalizedMessage());
+            logger.info(JsonObject.of("type", "star.writeBack.failed",
+                    "totalTime", (System.nanoTime() - start) / 1000_000.0));
             e.printStackTrace();
-            vertx.undeploy(deploymentID());
         }).onSuccess(r -> {
             if (!r) vertx.undeploy(deploymentID());
-            else logger.info(JsonObject.of("type", "star.writeBack.writeEnd",
+            else logger.info(JsonObject.of("type", "star.writeBack.end",
                     "totalTime", (System.nanoTime() - start) / 1000_000.0));
         });
-        logger.info(JsonObject.of("type", "star.writeBack.blockEnd",
+        logger.info(JsonObject.of("type", "star.writeBack.forked",
                 "blockTime", (System.nanoTime() - start) / 1000_000.0));
     }
 
     private Future<Boolean> tryWriteBack() {
-        try {
-            var buf = new ObjectMapper().writeValueAsBytes(star.starInfo());
-            return runBlocking(() -> await(pool.preparedQuery(
-                    "update star set star_info = $1 where index = $2 and vert_id = $3;"
-            ).execute(Tuple.of(DataStatic.gzipEncode(buf),
-                    star.index(),
-                    context.deploymentID()))).rowCount() == 1, false);
-        } catch (JsonProcessingException e) {
-            return Future.failedFuture(e);
+        if (!commonContext.writeBackLock.compareAndExchange(false, true)) {
+            try {
+                var users = new ObjectMapper().writeValueAsString(star.starInfo().starUsers);
+                return runBlocking(() -> writeBackSync(users), false);
+            } catch (JsonProcessingException e) {
+                return Future.failedFuture(e);
+            } finally {
+                commonContext.writeBackLock.set(false);
+            }
+        } else {
+            return Future.failedFuture("write back locked");
         }
+    }
+
+    private Boolean writeBackSync(String users) throws IOException {
+        var blocks = new String[StarUtils.blockNum];
+        commonContext.areaStates.forEach(state -> {
+            state.cached.forEach((id, cached) -> blocks[id] = cached);
+        });
+        var output = genStarInfo(users, blocks);
+        return await(pool.preparedQuery(
+                "update star set star_info = $1 where index = $2 and vert_id = $3;"
+        ).execute(Tuple.of(DataStatic.gzipEncode(output), star.index(), context.deploymentID())))
+                .rowCount() == 1;
+    }
+
+    public static byte[] genStarInfo(String users, String[] blocks) throws IOException {
+        var output = new ByteArrayOutputStream();
+        var mapper = new ObjectMapper();
+        var gen = mapper.createGenerator(output);
+        gen.writeStartObject();
+        gen.writeArrayFieldStart("blocks");
+        var missing = new HashSet<Integer>();
+        for (int i = 0; i < blocks.length; i++) {
+            String block = blocks[i];
+            if (block == null) missing.add(StarUtils.getAreaOf(StarUtils.realIndexOf(i)));
+            else gen.writeRaw(block);
+        }
+        missing.forEach(i -> System.err.println("Missing Blocks in Area #" + i));
+        gen.writeEndArray();
+        gen.writeFieldName("starUsers");
+        gen.writeRaw(users);
+        gen.writeEndObject();
+        return output.toByteArray();
     }
 }

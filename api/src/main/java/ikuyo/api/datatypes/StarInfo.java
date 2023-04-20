@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.Random;
 
 public class StarInfo {
+    public static final double sqrt3 = 1.732050807568877;
     /**层级最大值*/
-    public static final int maxTier = 2 * StarUtils.areaSize * StarUtils.areaTier;
+    @SuppressWarnings("PointlessArithmeticExpression")
+    public static final int maxTier = StarUtils.areaSize * (StarUtils.areaTier / 2 * 3 + 1 + StarUtils.areaTier % 2);
     /**<p>层级最小值<p/>
      * [Warn]: Plz make sure mintier > 0*/
     public static final int minTier = 10;

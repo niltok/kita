@@ -12,10 +12,12 @@ import org.dyn4j.geometry.Vector2;
 import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
-    public static boolean surfaceOnly = false;
+    public static boolean surfaceOnly = false, areaOutline = true;
     @Override
     public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
         var star = context.star();
+        if (areaOutline && context.updated().init()) for (var i = 0; i < context.areaStates.size(); i++)
+            drawAreaOutline(drawables, i);
         context.updated().blocks().forEach(id -> renderBlock(drawables, star, id));
     }
 

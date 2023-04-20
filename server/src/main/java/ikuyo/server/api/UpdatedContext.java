@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class UpdatedContext {
     public boolean init = true;
-    public Set<Integer> blocks = new HashSet<>(), users = new HashSet<>();
+    public Set<Integer> blocks = new HashSet<>(), users = new HashSet<>(), areas = new HashSet<>();
 
     public UpdatedContext() {}
 

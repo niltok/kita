@@ -1,11 +1,14 @@
 package ikuyo.api.cargo;
 
+import ikuyo.utils.ItemUtils;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 /** 货物类型 */
 public class CargoItem {
+    @ItemUtils.ItemName
     private String type;
     public final String displayName, description;
     public final double volume, unpackVolume;

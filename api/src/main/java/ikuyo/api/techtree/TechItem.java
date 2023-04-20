@@ -1,6 +1,7 @@
 package ikuyo.api.techtree;
 
 import com.google.common.collect.ImmutableList;
+import ikuyo.utils.ItemUtils;
 import io.vertx.core.Handler;
 
 import java.time.Duration;
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 public non-sealed class TechItem implements TechDependency {
     public record CallbackContext() {}
+    @ItemUtils.ItemName
     private String name;
     public final boolean enable;
     public final String displayName, description, type;

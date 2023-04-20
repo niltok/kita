@@ -5,15 +5,17 @@ import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.executeblocking.ExecuteBlocking;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 public interface AsyncStatic {
     boolean UseEventLoopThread = false;
+
+    @FunctionalInterface
+    interface Supplier<T> {
+        T get() throws Throwable;
+    }
 
     static  <T> Future<T> async(Supplier<T> task) {
         Promise<T> promise = Promise.promise();
@@ -54,7 +56,13 @@ public interface AsyncStatic {
 
     static <T> Future<T> runBlocking(Vertx vertx, Supplier<T> task, boolean ordered) {
         return vertx.executeBlocking(promise -> new Async(vertx, UseEventLoopThread)
-                .run(v -> promise.complete(task.get())), ordered);
+                .run(v -> {
+                    try {
+                        promise.complete(task.get());
+                    } catch (Throwable e) {
+                        promise.fail(e);
+                    }
+                }), ordered);
     }
 
     static <T> Future<T> runBlocking(Vertx vertx, Supplier<T> task) {

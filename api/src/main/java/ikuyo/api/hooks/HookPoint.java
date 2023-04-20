@@ -2,6 +2,7 @@ package ikuyo.api.hooks;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import ikuyo.utils.ItemUtils;
 
 import java.util.Map;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
         isGetterVisibility = JsonAutoDetect.Visibility.NONE
 )
 public sealed abstract class HookPoint {
+    @ItemUtils.ItemName
     private String name;
     protected HookPoint() {}
     public String name() {

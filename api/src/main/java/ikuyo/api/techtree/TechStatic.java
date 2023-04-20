@@ -17,6 +17,7 @@ import java.util.List;
  * TechItem.name 将会在系统初始化的时候被自动指定为其在 TechItem 中的字段名<br>
  * 无需手动设置 TechItem
  * */
+@ItemUtils.ItemTarget(TechItem.class)
 public class TechStatic {
     public static final TechItem
             start = new TechItem("", "开始", "一切的起点", Duration.ZERO),
@@ -46,7 +47,7 @@ public class TechStatic {
 
     /* Auto set TechItem's name */
     static {
-        ItemUtils.setFieldName(TechStatic.class, TechItem.class, "name");
+        ItemUtils.setFieldName(TechStatic.class);
         var map = new HashMap<String, List<TechItem>>();
         techList.forEach(tech -> map.computeIfAbsent(tech.type, i -> new ArrayList<>()).add(tech));
         techMap = ImmutableMap.copyOf(map.entrySet().stream().map(e ->

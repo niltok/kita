@@ -76,9 +76,9 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         return new UIElement("div",
                 UIElement.labelItem("Pointer", "(%.1f, %.1f)".formatted(pointer.x, pointer.y))
                         .appendClass("normal-label"),
-                UIElement.labelItem("Index[Real]", "%d[%d]".formatted(StarUtils.indexOf(realIndex), realIndex))
+                UIElement.labelItem("Index[Real]", "%d[%d] | %d".formatted(StarUtils.indexOf(realIndex), realIndex, StarUtils.tierOf(realIndex)))
                         .appendClass("normal-label"),
-                UIElement.labelItem("Area", "%d".formatted(area))
+                UIElement.labelItem("Area | Tier", "%d | %d".formatted(area, StarUtils.tierOf(area)))
                         .appendClass("normal-label"),
                 UIElement.labelItem("Time(Upd | Δ)", "%.1f | %.1f".formatted(
                         context.update.getMean(), context.delta.getMean()))

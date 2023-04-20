@@ -7,7 +7,6 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHelper {
     public static boolean enableMsgLog = false;
@@ -51,7 +50,7 @@ public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHel
         });
     }
 
-    public final <T> Future<T> runBlocking(Supplier<T> task, boolean ordered) {
+    public final <T> Future<T> runBlocking(AsyncStatic.Supplier<T> task, boolean ordered) {
         return AsyncStatic.runBlocking(vertx, task, ordered);
     }
 
@@ -62,7 +61,7 @@ public abstract class AsyncVerticle extends AbstractVerticle implements AsyncHel
         }, ordered);
     }
 
-    public final <T> Future<T> runBlocking(Supplier<T> task) {
+    public final <T> Future<T> runBlocking(AsyncStatic.Supplier<T> task) {
         return runBlocking(task, true);
     }
 

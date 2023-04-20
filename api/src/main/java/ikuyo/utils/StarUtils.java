@@ -12,7 +12,7 @@ import java.util.List;
 public final class StarUtils {
     public static final int areaTier = 30;
     public static final int areaNum = areaTier * (areaTier + 1) * 3 + 1;
-    public static final int areaSize = 15;
+    public static final int areaSize = 20;
     public static final int insideBlocks = StarInfo.minTier * (StarInfo.minTier - 1) * 3 + 1;
     public static final int blockRealNum = StarInfo.maxTier * (StarInfo.maxTier + 1) * 3 + 1;
     public static final int blockNum = blockRealNum - insideBlocks;
