@@ -12,7 +12,7 @@ import org.dyn4j.geometry.Vector2;
 import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
-    public static boolean surfaceOnly = false, areaOutline = true;
+    public static boolean surfaceOnly = false, areaOutline = false;
     @Override
     public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
         var star = context.star();
@@ -29,7 +29,7 @@ public class BlockRenderer implements DrawablesRenderer {
             Vector2 vertex = new Vector2(StarInfo.edgeLength, 0)
                     .rotate(Math.PI / 3 * i + Math.PI / 6)
                     .add(center);
-            vertices[i] = StarUtils.areaToBlock(vertex.x, vertex.y, 15);
+            vertices[i] = StarUtils.areaToBlock(vertex.x, vertex.y);
         }
         for (int i = 0; i < 6; i++) {
             line = new Drawable.Line().setWidth(5).setColor(0xff0000)

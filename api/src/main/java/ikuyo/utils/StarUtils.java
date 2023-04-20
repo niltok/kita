@@ -297,6 +297,10 @@ public final class StarUtils {
         return trans;
     }
 
+    public static Vector2 areaToBlock(double x, double y) {
+        return areaToBlock(x, y, areaSize);
+    }
+
     public static Vector2 blockToArea(double x ,double y, double areaSize) {
         Vector2 trans = new Vector2(x, y);
         trans.inverseRotate(Math.PI / 6).divide(StarInfo.tierDistance * areaSize * 2);
