@@ -1,25 +1,15 @@
 import {UIElement} from "../types/UIElement";
 import {sendSocket$} from "../dbus";
 import {store} from "../store";
-import {useDiffGame} from "../stores/gameState";
-import React, {useEffect} from "react";
-import {useAppSelector} from "../storeHook";
+import {diffGame} from "../stores/gameState";
+import React from "react";
 
-export function RenderUI(prop: {elem: UIElement | undefined}) {
-    const elem = prop.elem
-    const uiState = useAppSelector(state => state.gameState.uiState)
-    const diffGame = useDiffGame()
-    useEffect(() => {
-        if (elem && elem.stateName && typeof uiState[elem.stateName] === 'undefined') {
-            console.log('reset', elem.stateName, elem.value)
-            diffGame({uiState: {[elem.stateName]: elem.value ?? ''}})
-        }
-    }, [elem?.value])
+export function renderUI(elem: UIElement | undefined, uiState: {[key: string]: any}) {
     if (!elem) return <></>
     const commonProp = elem && {
         style: elem.style,
         className: elem.classes.join(' '),
-        children: elem.children.length == 0 ? undefined : elem.children.filter(e => e).map(e => <RenderUI elem={e}/>),
+        children: elem.children.length == 0 ? undefined : elem.children.filter(e => e).map(e => renderUI(e, uiState)),
         title: elem.title ?? undefined
     }
     const clickCallback = elem && elem.callback && JSON.stringify(elem.callback) != "{}" ? {
@@ -32,12 +22,13 @@ export function RenderUI(prop: {elem: UIElement | undefined}) {
             })
         }
     } : {}
+    const changeHandler = elem && elem.stateName ? (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(elem.stateName, e.target.value)
+        if (elem.stateName) store.dispatch(diffGame({uiState: {[elem.stateName]: e.target.value}}))
+    } : () => {}
     const inputProp = elem && elem.stateName ? {
-        value: uiState[elem.stateName],
-        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-            console.log(elem.stateName, e.target.value)
-            if (elem.stateName) diffGame({uiState: {[elem.stateName]: e.target.value}})
-        }
+        // value: uiState[elem.stateName],
+        onChange: changeHandler
     } : {}
     switch (elem.type) {
         case "div":
@@ -47,9 +38,9 @@ export function RenderUI(prop: {elem: UIElement | undefined}) {
         case "button":
             return (<button {...commonProp} {...clickCallback} />)
         case "input.text":
-            return (<input type={"text"} {...commonProp} {...inputProp} />)
+            return (<input type={"text"} {...commonProp} onChange={e => changeHandler(e)} />)
         case "input.number":
-            return (<input type={"number"} {...commonProp} {...inputProp} />)
+            return (<input type={"number"} {...commonProp} onChange={e => changeHandler(e)} />)
         case "text":
             return <>{elem.text}</>
         case "br":
