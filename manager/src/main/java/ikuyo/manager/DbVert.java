@@ -8,10 +8,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 
-import java.time.Duration;
-
-import static ikuyo.utils.AsyncStatic.delay;
-
 
 public class DbVert extends AsyncVerticle {
     final boolean SingleStar = false;
@@ -26,13 +22,13 @@ public class DbVert extends AsyncVerticle {
             """;
 
     @Override
-    public void start() {
+    public void start() throws Exception {
         pool = PgPool.pool(vertx, new PoolOptions());
         resetDB();
     }
 
-    private void resetDB() {
-        await(delay(Duration.ofSeconds(10)));
+    private void resetDB() throws Exception {
+        Thread.sleep(3 * 1000);
         var resetMode = System.getenv("DB_RESET");
         switch (resetMode) {
             case "empty" -> {
