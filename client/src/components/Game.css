@@ -14,7 +14,7 @@
 }
 
 .pointer-pass > * {
-    pointer-events: auto;
+    pointer-events: initial;
 }
 
 .pointer-pass {
@@ -79,6 +79,7 @@
 
 .auto-expand {
     flex: 1 1 0;
+    max-width: initial !important;
 }
 
 .column2 {

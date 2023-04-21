@@ -66,7 +66,7 @@ input[type='text']:focus, input[type='password']:focus, input[type='number']:foc
 input[type='text']:focus-visible, input[type='password']:focus-visible, input[type='number']:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
 }
-input[type='text'], input[type='password'] {
+input[type='text'], input[type='password'], input[type='number'] {
     width: 90%;
     max-width: 300px;
     cursor: text;

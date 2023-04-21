@@ -43,15 +43,18 @@ export function useKeyboard(target: HTMLElement | null) {
     useEffect(() => {
         if (!target) return
         function handleKeyEvent(e: KeyboardEvent) {
+            if (document.activeElement != document.body) return;
             e.preventDefault()
             if (e.repeat) return
             keyEvents$.next(e)
         }
-        document.body.addEventListener('keydown', handleKeyEvent)
-        document.body.addEventListener('keyup', handleKeyEvent)
+
+        const elem = document.body;
+        elem.addEventListener('keydown', handleKeyEvent)
+        elem.addEventListener('keyup', handleKeyEvent)
         return () => {
-            document.body.removeEventListener('keydown', handleKeyEvent)
-            document.body.removeEventListener('keyup', handleKeyEvent)
+            elem.removeEventListener('keydown', handleKeyEvent)
+            elem.removeEventListener('keyup', handleKeyEvent)
         }
     }, [target])
 }
@@ -67,17 +70,19 @@ export function useMouse(target: HTMLElement | null) {
             e.preventDefault()
             handlePassive(e)
         }
-        document.body.addEventListener('pointerdown', handlePointer)
-        document.body.addEventListener('pointerup', handlePointer)
-        document.body.addEventListener('pointercancel', handlePointer)
-        document.body.addEventListener('pointermove', handlePassive, {
+
+        const elem = target;
+        elem.addEventListener('pointerdown', handlePointer)
+        elem.addEventListener('pointerup', handlePointer)
+        elem.addEventListener('pointercancel', handlePointer)
+        elem.addEventListener('pointermove', handlePassive, {
             passive: true
         })
         return () => {
-            document.body.removeEventListener('pointerdown', handlePointer)
-            document.body.removeEventListener('pointerup', handlePointer)
-            document.body.removeEventListener('pointercancel', handlePointer)
-            document.body.removeEventListener('pointermove', handlePassive)
+            elem.removeEventListener('pointerdown', handlePointer)
+            elem.removeEventListener('pointerup', handlePointer)
+            elem.removeEventListener('pointercancel', handlePointer)
+            elem.removeEventListener('pointermove', handlePassive)
         }
     }, [target])
 }

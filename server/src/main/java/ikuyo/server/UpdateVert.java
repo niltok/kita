@@ -260,9 +260,8 @@ public class UpdateVert extends AsyncVerticle {
                     "type", "update.largeFrame",
                     "updateTime", updateTime / 1000_000.0));
             var suspendTime = ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000;
-//            if (suspendTime < 1) async(this::mainLoop);
-//            else
-            mainLoopId = vertx.setTimer(Math.max(1, suspendTime), v -> mainLoop());
+            if (suspendTime < 1) async(this::mainLoop);
+            else mainLoopId = vertx.setTimer(Math.max(1, suspendTime), v -> mainLoop());
         } catch (Throwable e) { // stop buggy logic
             logger.error(JsonObject.of(
                     "star.id", star.index(),
