@@ -53,8 +53,12 @@ public class PhysicsEngine{
         bullets = new HashMap<>();
     }
 
-    public int bodyCount() {
+    public int dynBodyCount() {
         return users.size() + bullets.size();
+    }
+
+    public int bodyCount() {
+        return world.getBodyCount();
     }
 
     public void Initialize(Star star) {
@@ -62,21 +66,28 @@ public class PhysicsEngine{
         for (int i = 0; i < star.starInfo().blocks.length; i++) {
             if (star.starInfo().blocks[i].isSurface && star.starInfo().blocks[i].isCollisible) {
                 addBlock(i);
-                if (AreaState.workSet) surfaceBlocks.get(i).setEnabled(false);
+                if (AreaState.workSet) {
+                    var block = surfaceBlocks.get(i);
+                    removeBody(block);
+                }
             }
         }
     }
 
     public void EngineStep(int step) {
         for (int i = 0; i < step; i++) {
-            for (var body: world.getBodies())
-                body.preprocess();
+//            for (var body: world.getBodies())
+//                body.preprocess();
 
-            for (var bullet: bullets.values())
+            for (var bullet: bullets.values()) {
+                bullet.body.preprocess();
                 checkOutOfBound(bullet.getBody(), starR * 2);
+            }
 
-            for (var user: users.values())
+            for (var user: users.values()) {
+                user.body.preprocess();
                 checkOutOfBound(user.getBody(), starR * 2);
+            }
 
             world.step(1);
         }

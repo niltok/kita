@@ -46,7 +46,9 @@ public class AreaBehavior implements Behavior<CommonContext> {
             updated.blocks().addAll(blocks);
         });
         if (AreaState.workSet) {
-            context.engine().bullets.values().stream().parallel().forEach(bullet -> {
+            var engine = context.engine();
+            engine.bullets.values().stream().parallel().forEach(bullet -> {
+                if (bullet == null) return;
                 var pos = bullet.getBody().getWorldCenter();
                 StarUtils.areasAround(pos.x, pos.y, StarUtils.areaSize * 2 + 1).forEach(area -> {
                     enableList.add(area);
@@ -57,8 +59,10 @@ public class AreaBehavior implements Behavior<CommonContext> {
                 if (context.enabledAreas.contains(area)) return;
                 delta.incrementAndGet();
                 StarUtils.getBlocksAt(area).forEach(id -> {
-                    if (context.star().starInfo().blocks[id].isSurface)
-                        context.engine().surfaceBlocks.get(id).setEnabled(true);
+                    var block = context.star().starInfo().blocks[id];
+                    if (block.isSurface && block.isCollisible) {
+                        engine.addBody(engine.surfaceBlocks.get(id));
+                    }
                 });
                 var state = context.areaStates.get(area);
                 state.enabled = true;
@@ -67,8 +71,9 @@ public class AreaBehavior implements Behavior<CommonContext> {
                 if (enableList.contains(area)) return;
                 delta.incrementAndGet();
                 StarUtils.getBlocksAt(area).forEach(id -> {
-                    if (context.star().starInfo().blocks[id].isSurface)
-                        context.engine().surfaceBlocks.get(id).setEnabled(false);
+                    var block = context.star().starInfo().blocks[id];
+                    if (block.isSurface && block.isCollisible)
+                        engine.removeBody(engine.surfaceBlocks.get(id));
                 });
                 var state = context.areaStates.get(area);
                 state.enabled = false;
