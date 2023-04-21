@@ -15,7 +15,7 @@ public class UserManageBehavior implements Behavior<CommonContext> {
             if (state == null) return;
             var addShadowMsgs = state.events.get("user.add.shadow");
             if (addShadowMsgs != null) addShadowMsgs.forEach(msg -> {
-                var num = Integer.parseInt(msg.getJsonObject("states").getString("shadow-add-num"));
+                var num = 1;// Integer.parseInt(msg.getJsonObject("states").getString("shadow-add-num"));
                 for (var i = 0; i < num; i++) context.eventBus().send(state.starAddress(), JsonObject.of(
                         "type", "user.add",
                         "id", rand.nextInt(Integer.MIN_VALUE, 0),

@@ -236,14 +236,14 @@ public class UpdateVert extends AsyncVerticle {
                 e.printStackTrace();
             }
             try {
-                var seq = runBlocking(() -> commonSeqRenderer.render(commonContext), false);
-                var spe = runBlocking(() -> specialRenderer.render(commonContext), false);
+                var seq = commonSeqRenderer.render(commonContext);
+                var spe = specialRenderer.render(commonContext);
                 var com = commonRenderer.render(commonContext);
                 eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                         "type", "star.updated",
-                        "commonSeq", await(seq),
+                        "commonSeq", seq,
                         "common", com,
-                        "special", await(spe))), new DeliveryOptions().setLocalOnly(true));
+                        "special", spe)), new DeliveryOptions().setLocalOnly(true));
                 uiRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
                 drawableRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
             } catch (Throwable e) {

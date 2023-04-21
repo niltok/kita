@@ -9,10 +9,13 @@ import io.vertx.core.Vertx;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ThreadFactory;
 import java.util.stream.Stream;
 
 public interface AsyncStatic {
     boolean UseEventLoopThread = false;
+    ThreadFactory threadFactory =
+            Thread.ofVirtual().name("kita-worker-", 0).factory();
 
     @FunctionalInterface
     interface Supplier<T> {

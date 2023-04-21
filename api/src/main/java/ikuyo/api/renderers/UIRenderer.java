@@ -32,7 +32,7 @@ public interface UIRenderer<T> extends AsyncHelper {
         @Override
         public JsonObject render(T context) {
             Map<Integer, Queue<UIElement>> map = new ConcurrentHashMap<>();
-            context.parallelFor(Arrays.stream(renderers), renderer -> {
+            Arrays.stream(renderers).forEach(renderer -> {
                 double startTime = System.nanoTime();
                 try {
                     renderer.renderUI(context, map);
