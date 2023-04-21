@@ -225,7 +225,6 @@ public class UpdateVert extends AsyncVerticle {
             deltaTime = startTime - prevTime;
             prevTime = startTime;
             msgHandleTime = 0;
-            if (!healthCheck()) return;
             try {
                 mainBehavior.update(commonContext);
                 mainBehavior.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
@@ -256,9 +255,6 @@ public class UpdateVert extends AsyncVerticle {
             updateTime = System.nanoTime() - startTime;
             commonContext.delta.put(deltaTime / 1000_000.0);
             commonContext.update.put(updateTime / 1000_000.0);
-            if (updateTime > 1000_000_000 / MaxFps * 2) logger.warn(JsonObject.of(
-                    "type", "update.largeFrame",
-                    "updateTime", updateTime / 1000_000.0));
             var suspendTime = ((long)(1000_000_000 / MaxFps) - updateTime) / 1000_000;
             if (suspendTime < 1) async(this::mainLoop);
             else mainLoopId = vertx.setTimer(Math.max(1, suspendTime), v -> mainLoop());

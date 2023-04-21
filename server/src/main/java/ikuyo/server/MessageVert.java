@@ -128,7 +128,6 @@ public class MessageVert extends AsyncVerticle {
         var json = msg.body().value;
         switch (json.getString("type")) {
             case "star.updated" -> {
-                lock(barrier);
                 var startTime = System.nanoTime();
                 try {
                     var drawables = json.getJsonObject("commonSeq");
@@ -140,24 +139,14 @@ public class MessageVert extends AsyncVerticle {
                     msgDiffer.next(drawables);
                     var common = json.getJsonObject("common");
                     var specials = json.getJsonObject("special");
-//                    parallelFor(userStates.entrySet().stream(), e ->
-//                        runBlocking(() -> sendUserState(
-//                                specials.getJsonObject(String.valueOf(e.getKey())),
-//                                common, e.getKey(), e.getValue()), false)
-//                    );
                     userStates.entrySet().stream().parallel().forEach(e ->
                             runBlocking(() -> sendUserState(
                                     specials.getJsonObject(String.valueOf(e.getKey())),
                                     common, e.getKey(), e.getValue()), false)
                     );
                 } finally {
-                    barrier.unlock();
                     var sendTime = System.nanoTime() - startTime;
                     eventBus.send(updaterId, JsonObject.of("type", "message.frame", "time", sendTime));
-                    if (sendTime > 1000_000_000 / UpdateVert.MaxFps * 2)
-                        logger.info(JsonObject.of(
-                                "type", "message.largeFrame",
-                                "sendTime", sendTime / 1000_000.));
                 }
             }
         }

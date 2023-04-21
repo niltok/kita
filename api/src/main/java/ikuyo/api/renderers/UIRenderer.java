@@ -33,7 +33,7 @@ public interface UIRenderer<T> extends AsyncHelper {
         public JsonObject render(T context) {
             Map<Integer, Queue<UIElement>> map = new ConcurrentHashMap<>();
             Arrays.stream(renderers).forEach(renderer -> {
-                double startTime = System.nanoTime();
+                long startTime = System.nanoTime();
                 try {
                     renderer.renderUI(context, map);
                 } catch (Exception e) {
@@ -44,6 +44,7 @@ public interface UIRenderer<T> extends AsyncHelper {
                             .put(System.nanoTime() - startTime);
                 }
             });
+            long startTime = System.nanoTime();
             JsonObject res = new JsonObject(new ConcurrentHashMap<>());
             map.entrySet().stream().parallel().forEach(entry -> {
                 res.put(String.valueOf(entry.getKey()), JsonObject.mapFrom(
@@ -51,6 +52,8 @@ public interface UIRenderer<T> extends AsyncHelper {
                                         .appendClass("absolute", "fullscreen", "pointer-pass")
                         ));
             });
+            profilers.computeIfAbsent("UIRenderer.Compose", i -> new WindowSum(windowSize))
+                    .put(System.nanoTime() - startTime);
             return res;
         }
     }
