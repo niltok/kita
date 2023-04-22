@@ -28,7 +28,7 @@ public class StarInfo {
     public Block[] blocks;
     public Map<Integer, UserInfo> starUsers;
 
-    public static byte[] genStarInfo(String users, String[] blocks) throws IOException {
+    public static ByteArrayOutputStream genStarInfo(String users, String[] blocks) throws IOException {
         try (var output = new ByteArrayOutputStream()) {
             var mapper = DataStatic.mapper;
             try (var gen = mapper.createGenerator(output)) {
@@ -42,7 +42,7 @@ public class StarInfo {
                 gen.writeRawValue(users);
                 gen.writeEndObject();
             }
-            return output.toByteArray();
+            return output;
         }
     }
 

@@ -19,6 +19,6 @@ public class StarTest {
 
     @Test
     public void starInfoGenTest() throws IOException {
-        System.out.println(new String(StarInfo.genStarInfo("{}", new String[]{"{}", "{}"})));
+        System.out.println(StarInfo.genStarInfo("{}", new String[]{"{}", "{}"}).toString());
     }
 }

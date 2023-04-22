@@ -32,7 +32,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class UpdateVert extends AsyncVerticle {
     public static final double MaxFps = 80;
@@ -70,16 +72,22 @@ public class UpdateVert extends AsyncVerticle {
             uiRenderer.withName("ui")
     ).withName("star");
     CommonContext commonContext;
-    Lock barrier = new ReentrantLock(true);
+    /** read safe point */
+    ReadWriteLock readBarrier = new ReentrantReadWriteLock(true);
+    /** write safe point */
+    Lock writeBarrier = new ReentrantLock(true);
 
     @Override
     public void start() {
         pool = PgPool.pool(vertx, new PoolOptions());
-        lock(barrier);
+        lock(writeBarrier);
+        var lock = readBarrier.writeLock();
+        lock(lock);
         try {
             loadStar(config().getInteger("id"));
         } finally {
-            barrier.unlock();
+            lock.unlock();
+            writeBarrier.unlock();
         }
     }
 
@@ -98,8 +106,8 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     private void stopPool() {
-        await(tryWriteBack());
         try {
+            await(tryWriteBack());
             await(pool.preparedQuery("update star set vert_id = null where vert_id = $1;")
                     .execute(Tuple.of(deploymentID())));
         } catch (Exception ignored) {}
@@ -120,7 +128,9 @@ public class UpdateVert extends AsyncVerticle {
         logger.info(JsonObject.of("type", "star.ownership.lock", "starId", id));
         vertEvents = eventBus.localConsumer(deploymentID(), v -> {
             var startTime = System.nanoTime();
-            lock(barrier);
+            lock(writeBarrier);
+            var lock = readBarrier.writeLock();
+            lock(lock);
             try {
                 vertEventsHandler(v);
             } catch (Exception e) {
@@ -128,7 +138,8 @@ public class UpdateVert extends AsyncVerticle {
                 logger.error(e.getLocalizedMessage());
                 e.printStackTrace();
             } finally {
-                barrier.unlock();
+                lock.unlock();
+                writeBarrier.unlock();
                 msgHandleTime += System.nanoTime() - startTime;
             }
         });
@@ -224,12 +235,15 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     void mainLoop() {
-        lock(barrier);
+        lock(writeBarrier);
+        var writeLock = readBarrier.writeLock();
+        var readLock = readBarrier.readLock();
         try {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
             prevTime = startTime;
             msgHandleTime = 0;
+            lock(writeLock);
             try {
                 mainBehavior.update(commonContext);
                 mainBehavior.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
@@ -238,7 +252,10 @@ public class UpdateVert extends AsyncVerticle {
                         "star.id", star.index(),
                         "msg", e.getLocalizedMessage()));
                 e.printStackTrace();
+            } finally {
+                writeLock.unlock();
             }
+            lock(readLock);
             try {
                 var seq = runBlocking(() -> commonSeqRenderer.render(commonContext), false);
                 var spe = runBlocking(() -> specialRenderer.render(commonContext), false);
@@ -255,8 +272,15 @@ public class UpdateVert extends AsyncVerticle {
                         "star.id", star.index(),
                         "msg", e.getLocalizedMessage()));
                 e.printStackTrace();
+            } finally {
+                readLock.unlock();
             }
-            commonContext.frame();
+            lock(writeLock);
+            try {
+                commonContext.frame();
+            } finally {
+                writeLock.unlock();
+            }
             updateTime = System.nanoTime() - startTime;
             commonContext.delta.put(deltaTime / 1000_000.0);
             commonContext.update.put(updateTime / 1000_000.0);
@@ -270,7 +294,7 @@ public class UpdateVert extends AsyncVerticle {
             e.printStackTrace();
             vertx.undeploy(deploymentID());
         } finally {
-            barrier.unlock();
+            writeBarrier.unlock();
         }
     }
 
@@ -306,13 +330,18 @@ public class UpdateVert extends AsyncVerticle {
 
     private Future<Boolean> tryWriteBack() {
         if (!commonContext.writeBackLock.compareAndExchange(false, true)) {
+            var lock = readBarrier.readLock();
+            lock(lock);
             try {
                 var users = DataStatic.mapper.writeValueAsString(star.starInfo().starUsers);
-                return runBlocking(() -> writeBackSync(users), false);
+                return runBlocking(() -> {
+                    var res = writeBackSync(users);
+                    return res;
+                }, false);
             } catch (JsonProcessingException e) {
                 return Future.failedFuture(e);
             } finally {
-                commonContext.writeBackLock.set(false);
+                lock.unlock();
             }
         } else {
             return Future.failedFuture("write back locked");
@@ -325,9 +354,10 @@ public class UpdateVert extends AsyncVerticle {
             state.cached.forEach((id, cached) -> blocks[id] = cached);
         });
         var output = StarInfo.genStarInfo(users, blocks);
+        commonContext.writeBackLock.set(false);
         return await(pool.preparedQuery(
                 "update star set star_info = $1 where index = $2 and vert_id = $3;"
-        ).execute(Tuple.of(DataStatic.gzipEncode(output), star.index(), context.deploymentID())))
+        ).execute(Tuple.of(DataStatic.gzipEncode(output.toByteArray()), star.index(), context.deploymentID())))
                 .rowCount() == 1;
     }
 
