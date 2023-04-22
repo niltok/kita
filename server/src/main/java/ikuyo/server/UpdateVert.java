@@ -31,11 +31,12 @@ import io.vertx.sqlclient.Tuple;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class UpdateVert extends AsyncVerticle {
     public static final double MaxFps = 80;
     Star star;
-    boolean loaded = false;
     MessageConsumer<JsonObject> vertEvents;
     long writeBackId, mainLoopId,
             updateTime, prevTime, deltaTime, startTime, msgHandleTime = 0;
@@ -69,11 +70,17 @@ public class UpdateVert extends AsyncVerticle {
             uiRenderer.withName("ui")
     ).withName("star");
     CommonContext commonContext;
+    Lock barrier = new ReentrantLock(true);
 
     @Override
     public void start() {
         pool = PgPool.pool(vertx, new PoolOptions());
-        loadStar(config().getInteger("id"));
+        lock(barrier);
+        try {
+            loadStar(config().getInteger("id"));
+        } finally {
+            barrier.unlock();
+        }
     }
 
     @Override
@@ -113,6 +120,7 @@ public class UpdateVert extends AsyncVerticle {
         logger.info(JsonObject.of("type", "star.ownership.lock", "starId", id));
         vertEvents = eventBus.localConsumer(deploymentID(), v -> {
             var startTime = System.nanoTime();
+            lock(barrier);
             try {
                 vertEventsHandler(v);
             } catch (Exception e) {
@@ -120,6 +128,7 @@ public class UpdateVert extends AsyncVerticle {
                 logger.error(e.getLocalizedMessage());
                 e.printStackTrace();
             } finally {
+                barrier.unlock();
                 msgHandleTime += System.nanoTime() - startTime;
             }
         });
@@ -152,14 +161,9 @@ public class UpdateVert extends AsyncVerticle {
         mainLoopId = vertx.setTimer(1, v -> mainLoop());
         writeBackId = vertx.setPeriodic(5 * 60 * 1000, ignore -> writeBack());
         logger.info(JsonObject.of("type", "star.loaded", "id", id, "name", star.name()));
-        loaded = true;
     }
 
     private void vertEventsHandler(Message<JsonObject> msg) {
-        while (!loaded) {
-            if (!healthCheck()) return;
-            doEvents();
-        }
         var json = msg.body();
         if (enableMsgLog) logger.info(json);
         switch (json.getString("type")) {
@@ -220,6 +224,7 @@ public class UpdateVert extends AsyncVerticle {
     }
 
     void mainLoop() {
+        lock(barrier);
         try {
             var startTime = System.nanoTime();
             deltaTime = startTime - prevTime;
@@ -235,14 +240,14 @@ public class UpdateVert extends AsyncVerticle {
                 e.printStackTrace();
             }
             try {
-                var seq = commonSeqRenderer.render(commonContext);
-                var spe = specialRenderer.render(commonContext);
+                var seq = runBlocking(() -> commonSeqRenderer.render(commonContext), false);
+                var spe = runBlocking(() -> specialRenderer.render(commonContext), false);
                 var com = commonRenderer.render(commonContext);
                 eventBus.send(msgVertId, NoCopyBox.of(JsonObject.of(
                         "type", "star.updated",
-                        "commonSeq", seq,
+                        "commonSeq", await(seq),
                         "common", com,
-                        "special", spe)), new DeliveryOptions().setLocalOnly(true));
+                        "special", await(spe))), new DeliveryOptions().setLocalOnly(true));
                 uiRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
                 drawableRenderer.profilers.forEach((name, window) -> commonContext.profiles.put(name, window.getMean()));
             } catch (Throwable e) {
@@ -264,6 +269,8 @@ public class UpdateVert extends AsyncVerticle {
                     "msg", e.getLocalizedMessage()));
             e.printStackTrace();
             vertx.undeploy(deploymentID());
+        } finally {
+            barrier.unlock();
         }
     }
 

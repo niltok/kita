@@ -85,14 +85,9 @@ public class MessageVert extends AsyncVerticle {
                         "payload", JsonObject.of("star",
                                 MsgDiffer.jsonDiff(userState.specialCache, JsonObject.of()))
                 ).toBuffer());
-                lock(barrier);
-                try {
-                    if (userState.socket != null) eventBus.send(userState.socket, JsonObject.of(
-                            "type", "seq.operate",
-                            "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
-                } finally {
-                    barrier.unlock();
-                }
+                if (userState.socket != null) eventBus.send(userState.socket, JsonObject.of(
+                        "type", "seq.operate",
+                        "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
                 userStates.remove(id);
                 msg.reply(res);
                 if (userStates.isEmpty()) {
