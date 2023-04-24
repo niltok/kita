@@ -21,8 +21,11 @@ subprojects {
         plugin 'com.github.johnrengelman.shadow'
     }
 
-    sourceCompatibility = JavaVersion.VERSION_19
-    targetCompatibility = JavaVersion.VERSION_19
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(19))
+        }
+    }
 
     repositories {
         mavenCentral()
