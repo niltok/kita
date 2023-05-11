@@ -21,13 +21,13 @@ import java.util.Iterator;
 public class BulletBehavior implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
-        context.dynamicEngine().bullets.forEach((id, bullet) -> {
+        context.engine().bullets.forEach((id, bullet) -> {
             if (bullet != null) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
-                        context.dynamicEngine().broadPhaseDetect(bullet.body, null);
-                if (iterator.hasNext() && context.dynamicEngine().ManifoldDetect(bullet.body, iterator)) {
+                        context.engine().broadPhaseDetect(bullet.body, null);
+                if (iterator.hasNext() && context.engine().ManifoldDetect(bullet.body, iterator)) {
                     bulletHandler(bullet, context);
-                    context.dynamicEngine().removeBullet(id);
+                    context.engine().removeBullet(id);
                 }
             }
         });
@@ -42,7 +42,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
 
     public void userHandler(Vector2 position, Damage damage, CommonContext context) {
         Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
-                context.dynamicEngine().broadPhaseDetect(new AABB(position, damage.range),
+                context.engine().broadPhaseDetect(new AABB(position, damage.range),
                         filter -> filter.equals(PhysicsEngine.USER));
         while (userIterator.hasNext()) {
             var body = userIterator.next().getBody();
@@ -77,8 +77,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
         for (var b : blocklist) {
             if (starInfo.blocks[b].isDestructible) {
                 if (starInfo.blocks[b].isSurface) {
-                    context.dynamicEngine().removeBody(context.dynamicEngine().surfaceBlocks.get(b));
-                    context.dynamicEngine().surfaceBlocks.remove(b);
+                    context.engine().removeBody(context.engine().surfaceBlocks.get(b));
+                    context.engine().surfaceBlocks.remove(b);
                 }
                 starInfo.blocks[b] = new Block.Normal();
                 context.updated().blocks().add(b);
@@ -95,7 +95,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
             if (!starInfo.blocks[i].isSurface) {
                 starInfo.blocks[i].isSurface = true;
                 starInfo.blocks[i].isCollisible = true;
-                context.dynamicEngine().addBlock(i);
+                context.engine().addBlock(i);
                 context.updated().blocks().add(i);
             }
             context.updated().areas.add(StarUtils.getAreaOf(StarUtils.realIndexOf(i)));

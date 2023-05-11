@@ -19,9 +19,11 @@ import org.dyn4j.world.result.DetectResult;
 import org.dyn4j.world.result.RaycastResult;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class PhysicsEngine{
-    protected World<KitasBody> world;
+    protected World<KitasBody> dynamicWorld;
+    protected World<KitasBody> staticWorld;
 //    public Map<Integer, Map.Entry<User, KitasBody>> users;
 
     public Map<Integer, UserEngineData> users;
@@ -41,12 +43,13 @@ public class PhysicsEngine{
     };
 
     public PhysicsEngine() {
-        world = new World<>();
+        dynamicWorld = new World<>();
+        staticWorld = new World<>();
         Settings settings = new Settings();
         settings.setStepFrequency(1 / UpdateVert.MaxFps);
         settings.setMaximumTranslation(100);
-        world.setSettings(settings);
-        world.setGravity(PhysicsWorld.ZERO_GRAVITY);
+        dynamicWorld.setSettings(settings);
+        dynamicWorld.setGravity(PhysicsWorld.ZERO_GRAVITY);
 
         users = new HashMap<>();
         surfaceBlocks = new HashMap<>();
@@ -58,7 +61,7 @@ public class PhysicsEngine{
     }
 
     public int bodyCount() {
-        return world.getBodyCount();
+        return dynamicWorld.getBodyCount();
     }
 
     public void Initialize(Star star) {
@@ -89,7 +92,7 @@ public class PhysicsEngine{
                 checkOutOfBound(user.getBody(), starR * 2);
             }
 
-            world.step(1);
+            dynamicWorld.step(1);
         }
     }
 
@@ -102,11 +105,11 @@ public class PhysicsEngine{
     }
 
     public void addBody(KitasBody body) {
-        world.addBody(body);
+        dynamicWorld.addBody(body);
     }
 
     public void removeBody(KitasBody body) {
-        world.removeBody(body);
+        dynamicWorld.removeBody(body);
     }
 
     public void addUser(User user, UserInfo userInfo) {
@@ -143,34 +146,34 @@ public class PhysicsEngine{
 
             body.setAtRest(true);
             users.put(user.id(), userData);
-            world.addBody(body);
-            world.addBody(userData.camera);
+            dynamicWorld.addBody(body);
+            dynamicWorld.addBody(userData.camera);
         }
     }
 
     public void removeUser(int id) {
         if (users.containsKey(id)) {
             UserEngineData data = users.get(id);
-            world.removeBody(data.getBody());
-            world.removeBody(data.getCamera());
+            dynamicWorld.removeBody(data.getBody());
+            dynamicWorld.removeBody(data.getCamera());
             users.remove(id);
         }
     }
 
     public void addBullet(Bullet bullet) {
         bullets.put(UUID.randomUUID().toString(), bullet);
-        world.addBody(bullet.getBody());
+        dynamicWorld.addBody(bullet.getBody());
     }
 
     public void removeBullet(String id) {
         if (bullets.get(id) != null)
-            world.removeBody(bullets.get(id).getBody());
+            dynamicWorld.removeBody(bullets.get(id).getBody());
         bullets.put(id, null);
     }
 
     public void addBlock(int id) {
         if (surfaceBlocks.get(id) != null)
-            world.removeBody(surfaceBlocks.get(id));
+            dynamicWorld.removeBody(surfaceBlocks.get(id));
         KitasBody body = new KitasBody();
         BodyFixture fixture = body.addFixture(hexagon);
         fixture.setFriction(0.1);
@@ -180,25 +183,25 @@ public class PhysicsEngine{
 //        body.getTransform().setRotation(Math.atan2(pos.y, pos.x));
         body.setMass(MassType.INFINITE);
         surfaceBlocks.put(id, body);
-        world.addBody(body);
+        dynamicWorld.addBody(body);
     }
 
     public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(KitasBody body, Filter filter) {
-        return world.detectIterator(
+        return dynamicWorld.detectIterator(
                 body.getFixture(0).getShape(),
                 body.getTransform(),
                 new DetectFilter(true, true, filter));
     }
 
     public Iterator<DetectResult<KitasBody, BodyFixture>> broadPhaseDetect(AABB aabb, Filter filter) {
-        return world.detectIterator(aabb, new DetectFilter<>(true, true, filter));
+        return dynamicWorld.detectIterator(aabb, new DetectFilter<>(true, true, filter));
     }
 
     public boolean ManifoldDetect(KitasBody body, Iterator<DetectResult<KitasBody, BodyFixture>> iterator) {
         while (iterator.hasNext()) {
             DetectResult<KitasBody, BodyFixture> result = iterator.next().copy();
 
-            CollisionData<KitasBody, BodyFixture> data = world.getCollisionData(
+            CollisionData<KitasBody, BodyFixture> data = dynamicWorld.getCollisionData(
                     body,
                     body.getFixture(0),
                     result.getBody(),
@@ -209,10 +212,16 @@ public class PhysicsEngine{
         return false;
     }
 
-    public List<RaycastResult<KitasBody, BodyFixture>> rayCast(Ray ray, double length, Filter filter) {
-        return world.raycast(ray,
+    public Optional<RaycastResult<KitasBody, BodyFixture>> rayCast(Ray ray, double length, Filter filter) {
+        var result1 = dynamicWorld.raycast(ray,
                 length,
-                new DetectFilter<>(true, true, filter));
+                new DetectFilter<>(true, true, filter))
+                .stream();
+        var result2 = staticWorld.raycast(ray,
+                length,
+                new DetectFilter<>(true, true, filter))
+                .stream();
+        return Stream.concat(result1, result2).min(RaycastResult::compareTo);
     }
 
     private static Vector2[] getVertices() {
@@ -222,6 +231,16 @@ public class PhysicsEngine{
         }
         return vertices;
     }
+
+    public void enableBody(KitasBody body) {
+        staticWorld.removeBody(body);
+        dynamicWorld.addBody(body);
+    }
+    public void disableBody(KitasBody body) {
+        dynamicWorld.removeBody(body);
+        staticWorld.addBody(body);
+    }
+
 
     public static void main(String[] args) {
 //        System.out.println(new Vector2().y);

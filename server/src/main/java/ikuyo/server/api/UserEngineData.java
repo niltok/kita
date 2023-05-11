@@ -4,7 +4,6 @@ import ikuyo.api.entities.User;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
-import org.dyn4j.world.result.RaycastResult;
 
 public class UserEngineData {
     public User user;
@@ -33,11 +32,10 @@ public class UserEngineData {
 
     public void preprocess(PhysicsEngine engine) {
         Vector2 info = body.getWorldCenter();
-        var minHit = engine.rayCast(
+        this.groundClearance = engine.rayCast(
                         new Ray(new Vector2(info.x, info.y), new Vector2(-info.x, -info.y)),
                         Math.hypot(info.x, info.y), filter -> filter.equals(PhysicsEngine.BLOCK))
-                .stream().min(RaycastResult::compareTo);
-        this.groundClearance = minHit.map(res -> res.getRaycast().getDistance()).orElse(Double.NaN);
+                .map(res -> res.getRaycast().getDistance()).orElse(Double.NaN);
 
         Vector2 pointer = body.getWorldCenter().subtract(camera.getWorldCenter());
         if (camera.getIfFollowBody() && pointer.getMagnitude() < 0.001)

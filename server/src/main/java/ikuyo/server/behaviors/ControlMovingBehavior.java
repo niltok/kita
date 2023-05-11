@@ -26,12 +26,12 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             var userInfo = context.getInfo(id);
             if (state == null || userInfo == null || !userInfo.online) return;
             var input = state.input;
-            var body = context.dynamicEngine().users.get(id).getBody();
+            var body = context.engine().users.get(id).getBody();
 
             if (userInfo.controlType.equals("fly")) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
-                        context.dynamicEngine().broadPhaseDetect(body, null);
-                if (iterator.hasNext() && context.dynamicEngine().ManifoldDetect(body, iterator)) {
+                        context.engine().broadPhaseDetect(body, null);
+                if (iterator.hasNext() && context.engine().ManifoldDetect(body, iterator)) {
                     userInfo.controlType = "walk";
                     body.setGravityScale(1);
                     body.setFixRotation(true);

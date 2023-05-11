@@ -12,7 +12,7 @@ public class BulletRenderer implements DrawablesRenderer {
     public void renderDrawables(CommonContext ctx, Map<String, Drawable> drawables) {
         var removeList = new ArrayList<String>();
 
-        ctx.dynamicEngine().bullets.forEach((id, bullet) ->{
+        ctx.engine().bullets.forEach((id, bullet) ->{
             if (bullet == null) {
                 drawables.put(id, null);
                 removeList.add(id);
@@ -32,6 +32,6 @@ public class BulletRenderer implements DrawablesRenderer {
         });
 
         for (var id : removeList)
-            ctx.dynamicEngine().bullets.remove(id);
+            ctx.engine().bullets.remove(id);
     }
 }
