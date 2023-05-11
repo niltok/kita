@@ -20,4 +20,5 @@ ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE $APP_HOME/server/build/libs/$ARTIFACT_NAME ./
 
-ENTRYPOINT exec sh startJvm.sh "" "${ARTIFACT_NAME};;-cluster"
+ENTRYPOINT ["/bin/sh", "startJvm.sh"]
+CMD ["", "-cluster"]
