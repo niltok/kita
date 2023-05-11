@@ -5,6 +5,7 @@ import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.datatypes.Drawable;
 import ikuyo.server.api.AreaState;
 import ikuyo.server.api.CommonContext;
+import ikuyo.server.api.KitasBody;
 import ikuyo.utils.DataStatic;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.StarUtils;
@@ -46,8 +47,9 @@ public class AreaBehavior implements Behavior<CommonContext> {
             updated.blocks().addAll(blocks);
         });
         if (AreaState.workSet) {
-            var engine = context.dynamicEngine();
-            engine.bullets.values().stream().parallel().forEach(bullet -> {
+            var dynamicEngine = context.dynamicEngine();
+            var staticEngine = context.staticEngine();
+            dynamicEngine.bullets.values().stream().parallel().forEach(bullet -> {
                 if (bullet == null) return;
                 var pos = bullet.getBody().getWorldCenter();
                 StarUtils.areasAround(pos.x, pos.y, StarUtils.areaSize * 2 + 1).forEach(area -> {
@@ -61,7 +63,9 @@ public class AreaBehavior implements Behavior<CommonContext> {
                 StarUtils.getBlocksAt(area).forEach(id -> {
                     var block = context.star().starInfo().blocks[id];
                     if (block.isSurface && block.isCollisible) {
-                        engine.addBody(engine.surfaceBlocks.get(id));
+                        KitasBody body = dynamicEngine.surfaceBlocks.get(id);
+                        staticEngine.removeBody(body);
+                        dynamicEngine.addBody(body);
                     }
                 });
                 var state = context.areaStates.get(area);
@@ -72,8 +76,11 @@ public class AreaBehavior implements Behavior<CommonContext> {
                 delta.incrementAndGet();
                 StarUtils.getBlocksAt(area).forEach(id -> {
                     var block = context.star().starInfo().blocks[id];
-                    if (block.isSurface && block.isCollisible)
-                        engine.removeBody(engine.surfaceBlocks.get(id));
+                    if (block.isSurface && block.isCollisible) {
+                        KitasBody body = dynamicEngine.surfaceBlocks.get(id);
+                        dynamicEngine.removeBody(body);
+                        staticEngine.addBody(body);
+                    }
                 });
                 var state = context.areaStates.get(area);
                 state.enabled = false;
