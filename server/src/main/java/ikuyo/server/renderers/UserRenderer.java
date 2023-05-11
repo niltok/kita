@@ -83,7 +83,7 @@ public class UserRenderer implements DrawablesRenderer {
             return;
         }
 
-        var height = ctx.engine().users.get(id).groundClearance;
+        var height = ctx.dynamicEngine().users.get(id).groundClearance;
         if (Double.isNaN(height)) {
             drawables.put("user#%d.gravityArrow".formatted(id), null);
             return;
@@ -107,7 +107,7 @@ public class UserRenderer implements DrawablesRenderer {
         if (info == null || !info.online) return;
         var userPos = new Vector2(info.x, info.y);
         Iterator<DetectResult<KitasBody, BodyFixture>> userIterator =
-                ctx.engine().broadPhaseDetect(new AABB(userPos, 80),
+                ctx.dynamicEngine().broadPhaseDetect(new AABB(userPos, 80),
                         filter -> filter.equals(PhysicsEngine.USER));
         while (userIterator.hasNext()) {
             var user = userIterator.next().getBody();

@@ -38,7 +38,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         Position point = input.pointAt;
         Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
                 context.star().starInfo().starUsers.get(id).y);
-        double radius = context.engine().users.get(id).getBody().getRotationDiscRadius();
+        double radius = context.dynamicEngine().users.get(id).getBody().getRotationDiscRadius();
         Vector2 direction = new Vector2(point.x - userPos.x, point.y - userPos.y).getNormalized();
 
         info.set(
@@ -54,7 +54,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
         info.bulletCheck(userPos, direction, radius, context);
         bullet.set(info);
-        context.engine().addBullet(bullet);
+        context.dynamicEngine().addBullet(bullet);
     }
 
     public static class BulletInfo {
@@ -74,7 +74,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         }
 
         private void bulletCheck(Vector2 userPos, Vector2 direction, double radius, CommonContext context) {
-            var rayCast = context.engine().rayCast(new Ray(userPos, direction),
+            var rayCast = context.dynamicEngine().rayCast(new Ray(userPos, direction),
                             radius + this.r * 2, filter -> filter.equals(PhysicsEngine.BLOCK))
                     .stream().min(RaycastResult::compareTo);
             if (rayCast.isPresent()) {

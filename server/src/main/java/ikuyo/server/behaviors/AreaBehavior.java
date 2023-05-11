@@ -46,7 +46,7 @@ public class AreaBehavior implements Behavior<CommonContext> {
             updated.blocks().addAll(blocks);
         });
         if (AreaState.workSet) {
-            var engine = context.engine();
+            var engine = context.dynamicEngine();
             engine.bullets.values().stream().parallel().forEach(bullet -> {
                 if (bullet == null) return;
                 var pos = bullet.getBody().getWorldCenter();

@@ -61,7 +61,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
         return new UIElement("div",
                 UIElement.labelItem("Level", "%.1f".formatted(Math.hypot(info.x, info.y)))
                         .appendClass("normal-label"),
-                UIElement.labelItem("Height", "%.1f".formatted(context.engine().users.get(id).groundClearance))
+                UIElement.labelItem("Height", "%.1f".formatted(context.dynamicEngine().users.get(id).groundClearance))
                         .appendClass("normal-label")
         ).appendClass("center-top", "pointer-pass-all", "background");
     }

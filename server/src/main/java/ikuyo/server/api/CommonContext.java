@@ -24,7 +24,8 @@ public final class CommonContext extends BaseContext {
             frameTime = new WindowSum(windowSize);
     public final Map<String, Double> profiles = new HashMap<>();
     private final UpdatedContext updated = new UpdatedContext();
-    private final PhysicsEngine engine = new PhysicsEngine();
+    private final PhysicsEngine dynamicEngine = new PhysicsEngine();
+    private final PhysicsEngine staticEngine = new PhysicsEngine();
     public final Set<Integer> admin = new HashSet<>();
     public volatile Set<Integer> enabledAreas = new ConcurrentSkipListSet<>();
     public int areaDelta;
@@ -37,7 +38,7 @@ public final class CommonContext extends BaseContext {
     }
 
     public void remove(Integer id) {
-        engine().removeUser(id);
+        dynamicEngine().removeUser(id);
         userStates.remove(id);
         admin.remove(id);
         updated().users().add(id);
@@ -45,7 +46,7 @@ public final class CommonContext extends BaseContext {
 
     public void add(User user) {
         int id = user.id();
-        engine().addUser(user, star().starInfo().starUsers.get(id));
+        dynamicEngine().addUser(user, star().starInfo().starUsers.get(id));
         userStates.computeIfAbsent(id, i -> new UserState(user));
         if (user.isAdmin()) admin.add(id);
         updated().users().add(id);
@@ -88,7 +89,11 @@ public final class CommonContext extends BaseContext {
         return updated;
     }
 
-    public PhysicsEngine engine() {
-        return engine;
+    public PhysicsEngine dynamicEngine() {
+        return dynamicEngine;
+    }
+
+    public PhysicsEngine staticEngine() {
+        return staticEngine;
     }
 }

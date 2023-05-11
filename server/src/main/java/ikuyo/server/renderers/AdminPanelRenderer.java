@@ -59,8 +59,8 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
         detail.add(UIElement.hoverLabel("Delta", "%.3f".formatted(context.delta.getMean())));
         detail.add(UIElement.hoverLabel("Message", "%.3f".formatted(context.message.getMean())));
         detail.add(UIElement.hoverLabel("Frame", "%.3f".formatted(context.frameTime.getMean())));
-        detail.add(UIElement.hoverLabel("Bodies[Dyn]", "%d[%d]".formatted(context.engine().bodyCount(),
-                context.engine().dynBodyCount())));
+        detail.add(UIElement.hoverLabel("Bodies[Dyn]", "%d[%d]".formatted(context.dynamicEngine().bodyCount(),
+                context.dynamicEngine().dynBodyCount())));
         if (AreaState.workSet) {
             detail.add(UIElement.hoverLabel("DeltaAreas", "%d".formatted(context.areaDelta)));
             detail.add(UIElement.hoverLabel("EnabledAreas", "%d".formatted(context.enabledAreas.size())));

@@ -8,13 +8,13 @@ import ikuyo.server.api.UserEngineData;
 public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
     @Override
     public void update(CommonContext context) {
-        PhysicsEngine PE = context.engine();
+        PhysicsEngine PE = context.dynamicEngine();
 
         if (context.updated().init())
             PE.Initialize(context.star());
 
-        for (var userdata: context.engine().users.values())
-            userdata.preprocess(context.engine());
+        for (var userdata: context.dynamicEngine().users.values())
+            userdata.preprocess(context.dynamicEngine());
 
         PE.EngineStep(1);
 
