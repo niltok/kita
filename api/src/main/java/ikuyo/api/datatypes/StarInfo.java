@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 public class StarInfo {
     public static final double sqrt3 = 1.732050807568877;
@@ -66,10 +67,11 @@ public class StarInfo {
         var info = new StarInfo();
         Random random = new Random(seed);
         info.blocks = new Block[StarUtils.blockNum];
-        for (int i = 0;i < info.blocks.length; i++) {
-            info.blocks[i] = new Block.Normal();
-            info.blocks[i].variant = 0;
-        }
+        IntStream.range(0, info.blocks.length).parallel().forEach(i -> {
+            var block = new Block.Normal();
+            info.blocks[i] = block;
+            block.variant = 0;
+        });
         info.starUsers = new HashMap<>();
 
         //地面最低层数
@@ -89,8 +91,8 @@ public class StarInfo {
         int tierInside = (int)((Math.sqrt(3)*2/3-1) * rInside) + 1 + minTier;
         int roundNumInside = tierInside*(tierInside+1)*3 - minTier *(minTier -1)*3;
         if (roundNumInside > StarUtils.blockNum) roundNumInside = StarUtils.blockNum;
-        for (var i = 0; i < roundNumInside; i++) {
-            if ( StarUtils.heightOf(indexInside) < rInside ) info.blocks[i].type = 0;
+        IntStream.range(0, roundNumInside).parallel().forEach(i -> {
+            if (StarUtils.heightOf(StarUtils.realIndexOf(i)) < rInside) info.blocks[i].type = 0;
             else {
                 info.blocks[i].type = 1;
                 info.blocks[i].isVisible = true;
@@ -98,8 +100,7 @@ public class StarInfo {
                 info.blocks[i].isInteractive = true;
                 info.blocks[i].isCollisible = true;
             }
-            indexInside++;
-        }
+        });
 
 //        计算地表
         int roundStartTier = (int)(tierNum * tierDistance) - 1;
@@ -108,47 +109,52 @@ public class StarInfo {
         if (roundNumOutside < 0) roundNumOutside = 0;
 
 //        纯地面生成
-        for (var i = roundNumInside; i < roundNumOutside; i++) {
-            info.blocks[i].type = 1;
-            info.blocks[i].isVisible = true;
-            info.blocks[i].isDestructible = true;
-            info.blocks[i].isInteractive = true;
-            info.blocks[i].isCollisible = true;
-        }
+        IntStream.range(roundNumInside, roundNumOutside).parallel().forEach(i -> {
+            var block = info.blocks[i];
+            block.type = 1;
+            block.isVisible = true;
+            block.isDestructible = true;
+            block.isInteractive = true;
+            block.isCollisible = true;
+        });
 
 //        圆角修饰部分_out
-        int index_out = StarUtils.realIndexOf(roundNumOutside);
+//        int index_out = StarUtils.realIndexOf(roundNumOutside);
         info.star_r = StarUtils.heightOf(tierNum*(tierNum-1)*3+1) * tierDistance;
         double dropHeight = baseTier * StarInfo.tierDistance;
 
-        Range range = new Range(random.nextLong());
-        long noiseSeed = random.nextLong();
-        for (var i = roundNumOutside; i < groundNum; i++) {
+        Range range = new Range(random.nextLong()), tempRange = range;
+        long noiseSeed = random.nextLong(), tempSeed = noiseSeed;
+        IntStream.range(roundNumOutside, groundNum).parallel().forEach(i -> {
+            int index_out = StarUtils.realIndexOf(i);
             double percent = StarUtils.angleOf(index_out) / Math.PI / 2.0;
-            double Random = range.Random(percent);
+            double Random = tempRange.Random(percent);
             if ( (StarUtils.heightOf(index_out) - info.star_r) * 2 / dropHeight
-                    < (OpenSimplex2S.noise2(noiseSeed, percent * noiseLength, 0) + 1) * Random) {
+                    < (OpenSimplex2S.noise2(tempSeed, percent * noiseLength, 0) + 1) * Random) {
                 info.blocks[i].type = 1;
                 info.blocks[i].isVisible = true;
                 info.blocks[i].isDestructible = true;
                 info.blocks[i].isInteractive = true;
                 info.blocks[i].isCollisible = true;
             }else { info.blocks[i].type = 0; info.blocks[i].variant = 0; }
-            index_out++;
-        }
+        });
 
 //        表面
-        for (var i: StarUtils.surfaceBlocks(0, minTier, tierInside, info)) {
-            info.blocks[i].isDestructible = false;
-            info.blocks[i].isInteractive = false;
-            info.blocks[i].isSurface = true;
-        }
+        StarUtils.surfaceBlocks(0, minTier, tierInside, info).stream().parallel().forEach(i -> {
+            var block = info.blocks[i];
+            block.isDestructible = false;
+            block.isInteractive = false;
+            block.isSurface = true;
+        });
 
-        for (var i: StarUtils.surfaceBlocks(0, roundStartTier, tierNum + baseTier, info)) {
-            info.blocks[i].type = 1;
-            info.blocks[i].variant = 1;
-            info.blocks[i].isSurface = true;
-        }
+        StarUtils.surfaceBlocks(
+                0, roundStartTier, tierNum + baseTier, info
+        ).stream().parallel().forEach(i -> {
+            var block = info.blocks[i];
+            block.type = 1;
+            block.variant = 1;
+            block.isSurface = true;
+        });
 
 /*
 //        纯天空生成

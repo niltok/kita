@@ -13,6 +13,8 @@ import org.dyn4j.world.result.DetectResult;
 import java.util.Iterator;
 import java.util.Map;
 
+import static ikuyo.utils.StarUtils.areaSize;
+
 public class UserRenderer implements DrawablesRenderer {
     @Override
     public void renderDrawables(CommonContext ctx, Map<String, Drawable> drawables) {
@@ -85,8 +87,7 @@ public class UserRenderer implements DrawablesRenderer {
 
         var height = ctx.dynamicEngine().users.get(id).groundClearance;
         if (Double.isNaN(height)) {
-            drawables.put("user#%d.gravityArrow".formatted(id), null);
-            return;
+            height = areaSize * 3;
         }
 
         var pos = new Vector2(info.x, info.y);

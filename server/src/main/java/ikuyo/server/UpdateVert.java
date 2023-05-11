@@ -18,7 +18,6 @@ import ikuyo.utils.*;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
@@ -152,8 +151,7 @@ public class UpdateVert extends AsyncVerticle {
             star = Star.getSummery(pool, id);
             assert star != null;
             logger.info(JsonObject.of("type", "star.generating", "id", id, "name", star.name()));
-            Buffer starInfo = await(Vertx.currentContext().executeBlocking(p ->
-                    p.complete(StarInfo.generate(star.seed()).toBuffer()), false));
+            Buffer starInfo = StarInfo.generate(star.seed()).toBuffer();
             await(pool.preparedQuery("""
                 update star set star_info = $2 where index = $1 returning index
                 """).execute(Tuple.of(id, starInfo)));
