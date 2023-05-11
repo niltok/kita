@@ -20,4 +20,4 @@ ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE $APP_HOME/server/build/libs/$ARTIFACT_NAME ./
 
-ENTRYPOINT exec java --enable-preview -jar ${ARTIFACT_NAME} -cluster
+ENTRYPOINT exec sh startJvm.sh "" "${ARTIFACT_NAME};;-cluster"

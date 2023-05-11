@@ -24,4 +24,4 @@ WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE $APP_HOME/manager/build/libs/$ARTIFACT_NAME ./
 
 EXPOSE 8070
-ENTRYPOINT exec java --enable-preview -jar ${ARTIFACT_NAME} -cluster
+ENTRYPOINT exec sh startJvm.sh "" "${ARTIFACT_NAME};;-cluster"
