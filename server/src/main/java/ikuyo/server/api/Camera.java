@@ -13,8 +13,10 @@ public class Camera extends KitasBody {
         this.setAngularDamping(0);
         this.setLinearDamping(10);
         this.setMass(MassType.NORMAL);
+        this.setAtRestDetectionEnabled(false);
         BodyFixture fixture = this.addFixture(Geometry.createCircle(0.01));
         fixture.setFilter(filter -> false);
+        fixture.setSensor(true);
     }
 
     public boolean getIfFollowBody() {
