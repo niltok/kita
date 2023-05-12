@@ -45,8 +45,8 @@ public class UpdateVert extends AsyncVerticle {
     PgPool pool;
     CompositeBehavior<CommonContext> mainBehavior = new CompositeBehavior<>(
             new KeyInputBehavior(),
-            new ControlMovingBehavior(),
             new PhysicsEngineBehavior(),
+            new ControlMovingBehavior(),
             new PointerMovingBehavior(),
             new WeaponBehavior(),
             new UserAttackBehavior(),
