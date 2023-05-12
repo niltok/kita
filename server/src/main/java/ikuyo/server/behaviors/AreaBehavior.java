@@ -32,7 +32,9 @@ public class AreaBehavior implements Behavior<CommonContext> {
         updated.users().stream().parallel().forEach(id -> {
             var info = context.getInfo(id);
             if (info == null || !info.online) return;
-            StarUtils.areasAround(info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling * 2).forEach(area -> {
+            StarUtils.areasAround(
+                    info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling + StarUtils.areaSize * 2
+            ).forEach(area -> {
                 var state = context.areaStates.get(area);
                 if (!state.loaded) {
                     state.loaded = true;

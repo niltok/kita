@@ -11,7 +11,7 @@ import java.util.*;
 
 public class MsgDiffer {
     public static final double blockSize = Math.sqrt(Drawable.scaling * StarInfo.maxTier * 2);
-    public static final double cacheRange = 1500;
+    public static final double cacheRange = 1700;
     public static final long blockRange = (long) (cacheRange / blockSize);
     Map<String, Drawable> prev = new HashMap<>();
     PhTree<Set<String>> tree = PhTree.create(2);
