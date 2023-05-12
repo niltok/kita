@@ -1,5 +1,6 @@
 package ikuyo.server.api;
 
+import ch.ethz.globis.phtree.PhTreeF;
 import ikuyo.api.datatypes.BaseContext;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.entities.Star;
@@ -18,6 +19,7 @@ public final class CommonContext extends BaseContext {
     public final Star star;
     private final Map<Integer, UserState> userStates = new HashMap<>();
     public final List<AreaState> areaStates = new ArrayList<>();
+    public final PhTreeF<Integer> loadingArea = PhTreeF.create(2);
     public final WindowSum delta = new WindowSum(windowSize),
             update = new WindowSum(windowSize),
             message = new WindowSum(windowSize),

@@ -1,5 +1,6 @@
 package ikuyo.server.behaviors;
 
+import ch.ethz.globis.phtree.PhTreeF;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ikuyo.api.behaviors.Behavior;
 import ikuyo.api.datatypes.Drawable;
@@ -10,6 +11,7 @@ import ikuyo.utils.DataStatic;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.StarUtils;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -26,6 +28,11 @@ public class AreaBehavior implements Behavior<CommonContext> {
                 var state = states.get(i);
                 var blocks = StarUtils.getBlocksAt(i);
                 writeCache(context, state, blocks);
+            });
+            IntStream.range(0, states.size()).forEach(i -> {
+                var apos = StarUtils.positionOf(i);
+                var bpos = StarUtils.areaToBlock(apos.x, apos.y);
+                context.loadingArea.put(new double[] {bpos.x, bpos.y}, i);
             });
         }
         lazyLoad(context, updated);
@@ -85,22 +92,26 @@ public class AreaBehavior implements Behavior<CommonContext> {
     }
 
     private static void lazyLoad(CommonContext context, UpdatedContext updated) {
-        var loadList = new ConcurrentSkipListSet<Integer>();
+        var loadList = new ConcurrentSkipListSet<PhTreeF.PhEntryF<Integer>>(
+                Comparator.comparingInt(PhTreeF.PhEntryF::getValue));
         updated.users().stream().parallel().forEach(id -> {
             var info = context.getInfo(id);
             if (info == null || !info.online) return;
-            StarUtils.areasAround(
-                    info.x, info.y, MsgDiffer.cacheRange / Drawable.scaling + StarUtils.areaSize * 2
-            ).forEach(area -> {
+            var r = MsgDiffer.cacheRange / Drawable.scaling + StarUtils.areaSize * 2;
+            context.loadingArea.queryAll(
+                    new double[]{info.x - r, info.x + r}, new double[]{info.y - r, info.y + r}
+            ).forEach(entry -> {
+                var area = entry.getValue();
                 var state = context.areaStates.get(area);
                 if (!state.loaded) {
                     state.loaded = true;
-                    loadList.add(area);
+                    loadList.add(entry);
                 }
             });
         });
-        loadList.forEach(area -> {
-            var blocks = StarUtils.getBlocksAt(area);
+        loadList.forEach(entry -> {
+            context.loadingArea.remove(entry.getKey());
+            var blocks = StarUtils.getBlocksAt(entry.getValue());
             updated.blocks().addAll(blocks);
         });
     }

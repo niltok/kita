@@ -1,4 +1,3 @@
 dependencies {
-    implementation 'ch.ethz.globis.phtree:phtree:2.5.0'
     implementation 'org.dyn4j:dyn4j:5.0.1'
 }
