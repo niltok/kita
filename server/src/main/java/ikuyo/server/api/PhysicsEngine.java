@@ -71,7 +71,7 @@ public class PhysicsEngine{
                 addBlock(i);
                 if (AreaState.workSet) {
                     var block = surfaceBlocks.get(i);
-                    removeBody(block);
+                    disableBody(block);
                 }
             }
         }
