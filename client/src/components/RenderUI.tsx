@@ -17,17 +17,17 @@ export function RenderUI(prop: {elem: UIElement | undefined}) {
     }, [elem?.value])
     if (!elem) return <></>
     const commonProp = {
-        style: elem.style,
-        className: elem.classes.join(' '),
+        style: JSON.parse(elem.style) ?? {},
+        className: elem.classes.join(' ') ?? "",
         children: elem.children.length == 0 ? undefined : elem.children.filter(e => e).map(e => <RenderUI elem={e}/>),
         title: elem.title ?? undefined
     }
-    const clickCallback = elem.callback && JSON.stringify(elem.callback) != "{}" ? {
+    const clickCallback = elem.callback && elem.callback != "{}" ? {
         onClick: () => {
             let states: {[key: string]: any} = {}
             if (elem.states) elem.states.forEach(s => states[s] = store.getState().gameState.uiState[s])
             sendSocket$.next({
-                ...elem.callback,
+                ...JSON.parse(elem.callback as string),
                 states
             })
         }

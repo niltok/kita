@@ -1,6 +1,5 @@
 package ikuyo.api.datatypes;
 
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
@@ -10,7 +9,6 @@ import java.util.List;
 public class UIElement {
     public String type, title;
     public UIElement[] children;
-    @JsonRawValue
     public String style = "{}";
     public List<String> classes = new ArrayList<>();
     public UIElement(String type) {
@@ -107,7 +105,6 @@ public class UIElement {
     }
 
     public static class Callback extends UIElement {
-        @JsonRawValue
         public String callback = "{}";
         public List<String> states = new ArrayList<>();
         public Callback(String type, JsonObject callback, String... states) {

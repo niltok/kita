@@ -17,8 +17,8 @@ public class TransferRenderer implements UIRenderer<CommonContext> {
             var state = context.getState(id);
             var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             if (state == null || !"transfer".equals(state.page) || state.pageEdge < 2) continue;
-            ui.add(new UIElement("div", transferAnimation(), new UIElement.Text("Transferring..."))
-                    .appendClass("flex-center", "fullscreen", "transfer-background"));
+            ui.add(new UIElement("div", transferAnimation())
+                    .appendClass("fullscreen", "transfer-background", "absolute"));
         }
     }
 

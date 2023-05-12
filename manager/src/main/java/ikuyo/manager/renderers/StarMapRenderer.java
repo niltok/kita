@@ -53,16 +53,19 @@ public class StarMapRenderer implements UIRenderer<CommonContext> {
         var dotStyle = JsonObject.of();
         if (isUser) {
             dotStyle.put("background-color", "green");
+        } else {
+            dotStyle.put("background-color", "red");
         }
+        JsonObject callback;
         if (!(isUser && isBase)) {
             boxStyle.put("cursor", "pointer");
+            if (isBase) callback = JsonObject.of("type", "user.move.star", "target", star.index());
+            else callback = JsonObject.of("type", "starMap.focus", "target", star.index());
         } else {
             boxStyle.put("cursor", "default");
+            callback = JsonObject.of();
         }
         var text = isUser ? star.name() : "%s(%.1fly)".formatted(star.name(), Math.hypot(ux, uy));
-        JsonObject callback = null;
-        if (isBase && !isUser) callback = JsonObject.of("type", "user.move.star", "target", star.index());
-        if (!isBase) callback = JsonObject.of("type", "starMap.focus", "target", star.index());
         return new UIElement.Callback("div", callback,
                 new UIElement("div").appendClass("starmap-dot").withStyle(dotStyle),
                 new UIElement.Text(text)).appendClass("hover-label", "absolute").withStyle(boxStyle);

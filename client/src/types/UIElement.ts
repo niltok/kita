@@ -1,11 +1,9 @@
-import React from "react";
-
 export interface UIElement {
     type: string
     children: UIElement[]
-    style: React.CSSProperties
+    style: string
     classes: string[]
-    callback?: any
+    callback?: string
     states?: string[]
     stateName?: string
     value?: any
