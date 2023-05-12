@@ -80,11 +80,12 @@ public class AreaBehavior implements Behavior<CommonContext> {
             context.areaDelta = delta.getAcquire();
             context.enabledAreas = enableList;
         }
-        if (context.writeBackLock.get()) return;
+        if (context.writeBackLock.compareAndExchange(false, true)) return;
         updated.areas.stream().parallel().forEach(area -> {
             writeCache(context, context.areaStates.get(area), StarUtils.getBlocksAt(area));
         });
         updated.areas = new HashSet<>();
+        context.writeBackLock.set(false);
     }
 
     private static void writeCache(CommonContext context, AreaState state, List<Integer> blocks) {

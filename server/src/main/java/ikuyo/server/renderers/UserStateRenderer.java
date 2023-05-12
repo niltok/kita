@@ -27,7 +27,7 @@ public class UserStateRenderer implements UIRenderer<CommonContext> {
             ui.add(getShipInfo(ship));
             if (!ship.weapons.isEmpty()) ui.add(getWeaponInfo(ship));
             var state = context.getState(id);
-            if (state != null && state.user.isAdmin()) ui.add(getAdminInfo(context, state));
+            if (state != null /*&& state.user.isAdmin()*/) ui.add(getAdminInfo(context, state));
         });
     }
 

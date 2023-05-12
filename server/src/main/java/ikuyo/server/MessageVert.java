@@ -172,7 +172,7 @@ public class MessageVert extends AsyncVerticle {
                     "y", userState.camera.y);
         }
         var pos = new Position(camera_.getInteger("x"), camera_.getInteger("y"));
-        var diff = msgDiffer.query(id, userState.camera, pos, userState.drawableCache);
+        var diff = msgDiffer.query(id, pos, userState.camera, userState.drawableCache);
         userState.camera = pos;
         if (diff != null) {
             msg.add(JsonObject.of(
