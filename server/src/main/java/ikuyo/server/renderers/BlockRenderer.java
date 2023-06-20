@@ -12,7 +12,7 @@ import org.dyn4j.geometry.Vector2;
 import java.util.Map;
 
 public class BlockRenderer implements DrawablesRenderer {
-    public static boolean surfaceOnly = false, areaOutline = false;
+    public static boolean surfaceOnly = true, areaOutline = false;
     @Override
     public void renderDrawables(CommonContext context, Map<String, Drawable> drawables) {
         var star = context.star();
