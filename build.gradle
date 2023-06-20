@@ -60,8 +60,6 @@ subprojects {
         implementation 'io.vertx:vertx-core:4.3.7'
         implementation 'io.vertx:vertx-pg-client:4.3.7'
         implementation 'io.vertx:vertx-hazelcast:4.3.7'
-        implementation 'io.vertx:vertx-async-await-incubator:1.0.0-SNAPSHOT'
-        implementation 'io.vertx:vertx-execute-blocking-incubator:1.0.0-SNAPSHOT'
         implementation 'com.ongres.scram:client:2.1'
         implementation 'com.google.inject:guice:5.1.0'
         implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
