@@ -79,6 +79,14 @@ public class UIElement {
         return labelItem(left, new UIElement.Text(right)).appendClass("normal-label");
     }
 
+    public static UIElement titleLabel(String title, String subtitle) {
+        return normalLabel(divText(title).appendClass("serif"), subtitle).appendClass("title-line");
+    }
+
+    public static UIElement titleLabel(String title) {
+        return titleLabel(title, "");
+    }
+
     public static UIElement hoverLabel(String left, String right) {
         return labelItem(new UIElement.Text(left), new UIElement.Text(right)).appendClass("hover-label");
     }

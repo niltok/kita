@@ -93,6 +93,10 @@
     gap: 1em;
 }
 
+.title-line {
+    border-top: 1px white solid;
+}
+
 .tech-trainer-header {
     flex: none;
 }
@@ -130,7 +134,7 @@
 }
 
 .pointer-cursor {
-    cursor: none;
+    cursor: pointer;
 }
 
 .normal-cursor {
@@ -177,14 +181,24 @@
     top: calc(50% - var(--line-height) / 2);
 }
 
+.multi-column {
+    display: flex;
+}
+
+.multi-column > * {
+    height: 100%;
+    overflow: auto;
+    flex: 1 1 0;
+}
+
 @media (prefers-color-scheme: light) {
-    .hover-label:hover, .focus-label {
-        background: #f9f9f9;
-    }
-    .background {
-        background-color: #ffffffc0;
-        box-shadow: 0 0 4px 1px #ffffff;
-    }
+    /*.hover-label:hover, .focus-label {*/
+    /*    background: #f9f9f9;*/
+    /*}*/
+    /*.background {*/
+    /*    background-color: #ffffffc0;*/
+    /*    box-shadow: 0 0 4px 1px #ffffff;*/
+    /*}*/
     /*.transfer-line {*/
     /*    background-color: #213547;*/
     /*}*/

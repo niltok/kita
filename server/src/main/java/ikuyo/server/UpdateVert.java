@@ -64,7 +64,8 @@ public class UpdateVert extends AsyncVerticle {
     UIRenderer.Composite<CommonContext> uiRenderer = new UIRenderer.Composite<>(
             new UserStateRenderer(),
             new CargoRenderer(),
-            new AdminPanelRenderer()
+            new AdminPanelRenderer(),
+            new ShipEquipRenderer()
     );
     Renderer<CommonContext> specialRenderer = new CompositeRenderer<>(true,
             new CameraRenderer().withName("camera"),

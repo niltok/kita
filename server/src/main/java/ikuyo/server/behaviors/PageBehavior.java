@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class PageBehavior implements Behavior<CommonContext> {
-    public static Set<String> supportedPage = Set.of("cargoHold", "adminPanel");
+    public static Set<String> supportedPage = Set.of("cargoHold", "adminPanel", "shipEquip");
     @Override
     public void update(CommonContext context) {
         context.updated().users().forEach(id -> {

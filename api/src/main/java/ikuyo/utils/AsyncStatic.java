@@ -1,6 +1,7 @@
 package ikuyo.utils;
 
 import io.vertx.await.Async;
+import io.vertx.await.impl.DefaultScheduler;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -14,8 +15,7 @@ import java.util.stream.Stream;
 
 public interface AsyncStatic {
     boolean UseEventLoopThread = false;
-    ThreadFactory threadFactory =
-            Thread.ofVirtual().name("kita-worker-", 0).factory();
+    ThreadFactory threadFactory = DefaultScheduler.DEFAULT_THREAD_FACTORY;
 
     @FunctionalInterface
     interface Supplier<T> {

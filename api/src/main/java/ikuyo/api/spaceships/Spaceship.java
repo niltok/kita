@@ -3,12 +3,15 @@ package ikuyo.api.spaceships;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import ikuyo.api.cargo.CargoHold;
+import ikuyo.api.cargo.CargoItem;
 import ikuyo.api.cargo.UnpackItem;
+import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.equipments.ActiveEquipment;
 import ikuyo.api.equipments.Equipment;
 import ikuyo.api.equipments.Weapon;
 import ikuyo.api.hooks.SpaceshipHook;
+import io.vertx.core.json.JsonObject;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -147,5 +150,68 @@ public class Spaceship implements UnpackItem {
     @Override
     public String getItemInfo() {
         return "";
+    }
+
+    public UIElement renderEditor() {
+        var cargo = new ArrayList<UIElement>();
+        var equip = new ArrayList<UIElement>();
+        cargo.add(UIElement.titleLabel("舰船货舱"));
+        renderCargoHold(cargoHold, "ship", cargo);
+        equip.add(UIElement.titleLabel("武器"));
+        renderEquip(weapons, "weapon", equip);
+        equip.add(UIElement.titleLabel("主动装备"));
+        renderEquip(activeEquipments, "active", equip);
+        equip.add(UIElement.titleLabel("被动装备"));
+        renderEquip(passiveEquipments, "passive", equip);
+        return UIElement.div(
+                UIElement.div(cargo.toArray(UIElement[]::new)),
+                UIElement.div(equip.toArray(UIElement[]::new))).appendClass("multi-column");
+    }
+
+    private <T extends Equipment> void renderEquip(List<T> equip, String src, List<UIElement> uis) {
+        for (int i = 0, equipSize = equip.size(); i < equipSize; i++) {
+            T e = equip.get(i);
+            var item = Objects.requireNonNull(CargoItem.get(e.getItemType()));
+            JsonObject callback = JsonObject.of(
+                    "type", "ship.unequip",
+                    "src", src,
+                    "index", i);
+            uis.add(UIElement.labelItem(
+                    new UIElement.Text(item.displayName),
+                    new UIElement.Text(e.getItemInfo()),
+                    callback
+            ).appendClass("hover-label").withTitle(item.description));
+        }
+    }
+
+    private void renderCargoHold(CargoHold cargo, String src, List<UIElement> uis) {
+        List<UnpackItem> unpacks = cargo.unpacks;
+        for (int i = 0, unpacksSize = unpacks.size(); i < unpacksSize; i++) {
+            UnpackItem unpack = unpacks.get(i);
+            if (!(unpack instanceof Equipment)) continue;
+            var item = Objects.requireNonNull(CargoItem.get(unpack.getItemType()));
+            JsonObject callback = JsonObject.of(
+                    "type", "ship.equip",
+                    "src", src,
+                    "index", i);
+            uis.add(UIElement.labelItem(
+                    new UIElement.Text(item.displayName),
+                    new UIElement.Text(unpack.getItemInfo()),
+                    callback
+            ).appendClass("hover-label").withTitle(item.description));
+        }
+        cargo.items.forEach((type, num) -> {
+            var item = Objects.requireNonNull(CargoItem.get(type));
+            if (item.unpackClass == null || !(Equipment.class.isAssignableFrom(item.unpackClass))) return;
+            JsonObject callback = JsonObject.of(
+                    "type", "ship.equip",
+                    "src", src,
+                    "key", type);
+            uis.add(UIElement.labelItem(
+                    new UIElement.Text(item.displayName),
+                    new UIElement.Text("Num: %d".formatted(num)),
+                    callback
+            ).appendClass("hover-label").withTitle(item.description));
+        });
     }
 }

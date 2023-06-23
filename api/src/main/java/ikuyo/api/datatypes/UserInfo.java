@@ -33,6 +33,7 @@ public class UserInfo {
         new Weapon(CargoStatic.r400.type()).equip(spaceship).tryEnable();
         new Equipment(CargoStatic.shieldExtender.type()).equip(spaceship).tryEnable();
         spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 500);
+        spaceship.cargoHold.put(CargoStatic.shieldExtender.type(), 1);
     }
 
     public UserInfo(double x, double y) {

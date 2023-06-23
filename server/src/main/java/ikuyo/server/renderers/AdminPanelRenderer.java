@@ -40,7 +40,7 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
                         "shadow-add-num")
         ).appendClass("label-item"));
         return new UIElement("div",
-                UIElement.normalLabel(UIElement.divText("User Manager").appendClass("serif"),""),
+                UIElement.titleLabel("User Manager"),
                 new UIElement("div", uis.toArray(UIElement[]::new)).appendClass());
     }
 
@@ -66,7 +66,7 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
             detail.add(UIElement.hoverLabel("EnabledAreas", "%d".formatted(context.enabledAreas.size())));
         }
         return new UIElement("div",
-                UIElement.normalLabel(UIElement.divText("Star Performance").appendClass("serif"), ""),
+                UIElement.titleLabel("Star Performance"),
                 new UIElement("div", detail.toArray(UIElement[]::new)).appendClass("column2"),
                 new UIElement("div", topComp.toArray(UIElement[]::new)).appendClass("column2"));
     }
@@ -81,8 +81,7 @@ public class AdminPanelRenderer implements UIRenderer<CommonContext> {
                     "id: %d%s".formatted(id, state.user.isAdmin() ? " | Admin" : "")));
         });
         return new UIElement("div",
-                UIElement.normalLabel(UIElement.divText("Star User").appendClass("serif"),
-                        "%d".formatted(infos.size())),
+                UIElement.titleLabel("Star User", "%d".formatted(infos.size())),
                 new UIElement("div", uis.toArray(UIElement[]::new)).appendClass("column2"));
     }
 }
