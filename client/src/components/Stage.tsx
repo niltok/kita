@@ -76,14 +76,14 @@ export const Stage = () => {
         const storeUnsub = store.subscribe(() => {
             const { star, windowSize } =
                 store.getState().gameState
-            if (star.camera == cache.camera && windowSize == cache.windowSize) return
-            cache.camera = star.camera
+            if (/*star.camera == cache.camera && */windowSize == cache.windowSize) return
+            // cache.camera = star.camera
             cache.windowSize = windowSize
             // canvas.style.height = `${windowSize.height}px`
             // canvas.style.width = `${windowSize.width}px`
             workerCommon$.next({
                 type: 'patch',
-                camera: star.camera,
+                // camera: star.camera,
                 windowSize: {
                     height: windowSize.height * window.devicePixelRatio,
                     width: windowSize.width * window.devicePixelRatio
@@ -106,7 +106,8 @@ export const Stage = () => {
             next(val) {
                 preprocessor.postMessage({
                     type: 'draw',
-                    drawables: val.data
+                    drawables: val.data,
+                    camera: store.getState().gameState.star.camera
                 })
             }
         })

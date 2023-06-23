@@ -24,6 +24,7 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
         }
         case 'draw': {
             if (e.data.drawables == undefined) break
+            if (e.data.camera) state.camera = e.data.camera
             for (const k in e.data.drawables) {
                 const d = drawables.get(k), vd = e.data.drawables[k]
                 if (!vd) {
@@ -78,6 +79,7 @@ update$.pipe(throttleTime(700 / FPS)).subscribe( () => {
     const data = new Map<string, Drawable | null>()
     for (const s of add) data.set(s, drawables.get(s) ?? null)
     for (const s of remove) data.set(s, null)
+    if (data.size > 2500) console.log(data)
     postMessage({
         modify: data,
         camera: state.camera
