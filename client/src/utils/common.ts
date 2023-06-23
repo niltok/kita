@@ -20,7 +20,13 @@ export function getKeyCode(e: KeyboardEvent) {
     return code
 }
 
-export function getMouseCode(e: PointerEvent) {
+export function getMouseCode(e: PointerEvent | WheelEvent) {
+    if (e.type == 'wheel') {
+        let dis = (e as WheelEvent).deltaY
+        if (dis < 0) return 'WheelUp'
+        if (dis > 0) return 'WheelDown'
+        return ''
+    }
     if (e.type == 'pointermove') return ''
     let code = '';
     if (e.ctrlKey) code += '$'

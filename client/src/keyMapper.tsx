@@ -24,6 +24,6 @@ export const keyMapper: { [key: string]: KeyType } = {
     "MouseLeft": {action: "shot", value: 3},
     "MouseLeft!": "shot",
     // "KeyT": {type: "page.toggle", page: "transfer"},
-    "Digit1": "prevWeapon",
-    "Digit2": "nextWeapon",
+    "WheelUp": "prevWeapon",
+    "WheelDown": "nextWeapon",
 }

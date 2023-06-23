@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {keyEvents$, mouseEvents$} from "../dbus";
+import {keyEvents$, mouseEvents$, wheelEvents$} from "../dbus";
 import {Observable} from "rxjs";
 import {useDiffGame} from "../stores/gameState";
 import {isDraft, original} from "@reduxjs/toolkit";
@@ -43,13 +43,13 @@ export function useKeyboard(target: HTMLElement | null) {
     useEffect(() => {
         if (!target) return
         function handleKeyEvent(e: KeyboardEvent) {
-            if (document.activeElement != document.body) return;
+            if (e.target != target) return;
             e.preventDefault()
             if (e.repeat) return
             keyEvents$.next(e)
         }
 
-        const elem = document.body;
+        const elem = target;
         elem.addEventListener('keydown', handleKeyEvent)
         elem.addEventListener('keyup', handleKeyEvent)
         return () => {
@@ -62,9 +62,13 @@ export function useKeyboard(target: HTMLElement | null) {
 export function useMouse(target: HTMLElement | null) {
     useEffect(() => {
         if (!target) return
-        function handlePassive(e: PointerEvent) {
-            if (!e.isPrimary || e.target != target) return
-            mouseEvents$.next(e)
+        function handlePassive(e: PointerEvent | WheelEvent) {
+            if (e.type == 'wheel') {
+                wheelEvents$.next(e as WheelEvent)
+                return
+            }
+            if (!((e as PointerEvent).isPrimary) || e.target != target) return
+            mouseEvents$.next(e as PointerEvent)
         }
         function handlePointer(e: PointerEvent) {
             e.preventDefault()
@@ -78,11 +82,15 @@ export function useMouse(target: HTMLElement | null) {
         elem.addEventListener('pointermove', handlePassive, {
             passive: true
         })
+        elem.addEventListener('wheel', handlePassive, {
+            passive: true
+        })
         return () => {
             elem.removeEventListener('pointerdown', handlePointer)
             elem.removeEventListener('pointerup', handlePointer)
             elem.removeEventListener('pointercancel', handlePointer)
             elem.removeEventListener('pointermove', handlePassive)
+            elem.removeEventListener('wheel', handlePassive)
         }
     }, [target])
 }
@@ -93,8 +101,8 @@ export function useWindowSize() {
         const listener = () => {
             diffGame({
                 windowSize: {
-                    height: document.body.clientHeight,
-                    width: document.body.clientWidth
+                    height: window.innerHeight,
+                    width: window.innerWidth
                 }
             })
         }

@@ -15,6 +15,15 @@ let camera: pixi.Container | null = null
 let screen: pixi.Container | null = null
 const assets: any = {}
 
+function updateState() {
+    if (!camera || !screen) return
+    camera.rotation = -Math.atan2(state.camera.x, -state.camera.y)
+    camera.y = Math.hypot(state.camera.x, state.camera.y)
+    screen.rotation = Math.atan2(state.camera.x, -state.camera.y) - state.camera.rotation
+    screen.x = state.windowSize.width / 2
+    screen.y = state.windowSize.height / 2
+}
+
 onmessage = async (e: MessageEvent<StateEvent>) => {
     switch (e.data.type) {
         case 'init': {
@@ -48,13 +57,13 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             // @ts-ignore
             delete e.data.type
             applyObjectDiff(state, e.data)
-            if (!app || !camera) return
-            app.view.height = state.windowSize.height
-            app.view.width = state.windowSize.width
+            if (!app) return
+            app.renderer.resize(state.windowSize.width, state.windowSize.height)
+            updateState();
             break
         }
         case 'preprocessed': {
-            if (!app || !camera || !screen) return
+            if (!app || !camera) return
             const map = e.data.modify!
             map.forEach((drawable, key) => {
                 if (drawable) {
@@ -80,11 +89,7 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             camera.sortableChildren = true
             camera.sortChildren()
             camera.sortableChildren = false
-            camera.rotation = -Math.atan2(state.camera.x, -state.camera.y)
-            camera.y = Math.hypot(state.camera.x, state.camera.y)
-            screen.rotation = Math.atan2(state.camera.x, -state.camera.y) - state.camera.rotation
-            screen.x = state.windowSize.width / 2
-            screen.y = state.windowSize.height / 2
+            updateState()
             break
         }
         case 'clear': {
