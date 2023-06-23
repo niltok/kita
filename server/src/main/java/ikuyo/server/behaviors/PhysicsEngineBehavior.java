@@ -1,9 +1,11 @@
 package ikuyo.server.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.cargo.CargoStatic;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.PhysicsEngine;
 import ikuyo.server.api.UserEngineData;
+import ikuyo.utils.Position;
 
 public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
     @Override
@@ -15,6 +17,14 @@ public class PhysicsEngineBehavior  implements Behavior<CommonContext> {
 
         for (var userdata: context.engine().users.values())
             userdata.preprocess(context.engine());
+
+        // TODO: 2023/6/23 分离 line
+        for (var bullet: context.engine().bullets.values()) {
+            if (bullet.type.equals(CargoStatic.chargeRifle.type())) {
+                Position pointAt = context.getState((int)bullet.getBody().getUserData()).input.pointAt;
+                bullet.setEndPoint(pointAt.x, pointAt.y);
+            }
+        }
 
         PE.EngineStep(1);
 

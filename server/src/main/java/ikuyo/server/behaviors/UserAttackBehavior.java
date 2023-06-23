@@ -7,6 +7,7 @@ import ikuyo.api.datatypes.UserInput;
 import ikuyo.api.equipments.Weapon;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
+import ikuyo.server.api.KitasBody;
 import ikuyo.server.api.PhysicsEngine;
 import ikuyo.utils.Position;
 import org.dyn4j.geometry.Ray;
@@ -32,7 +33,10 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         BulletInfo info = new BulletInfo();
         info.type = weapon.type;
         info.userId = id;
-        Bullet bullet = new Bullet();
+        Bullet bullet;
+
+        if (weapon.type.equals(CargoStatic.chargeRifle.type())) bullet = new Bullet.Line();
+        else bullet = new Bullet();
 
         Position point = input.pointAt;
         Vector2 userPos = new Vector2(context.star().starInfo().starUsers.get(id).x,
@@ -50,6 +54,9 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         if (weapon.type.equals(CargoStatic.r400.type()))
             info.gravityScale = 0.01;
 
+        if (weapon.type.equals(CargoStatic.chargeRifle.type()))
+            info.chargeRifleBody = context.engine().users.get(id).getBody();
+
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
         info.bulletCheck(userPos, direction, radius, context);
         bullet.set(info);
@@ -64,6 +71,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         public Vector2 velocity;
         public Damage damage;
         public double gravityScale = 1.0;
+        public KitasBody chargeRifleBody;
 
         public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, Damage damage) {
             this.r = bulletR;

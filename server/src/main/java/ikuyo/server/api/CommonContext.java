@@ -68,6 +68,7 @@ public final class CommonContext extends BaseContext {
             }
         });
         frameTime.put((System.nanoTime() - startTime) / 1000_000.);
+        this.engine.frame();
     }
 
     public UserInfo getInfo(int id) {

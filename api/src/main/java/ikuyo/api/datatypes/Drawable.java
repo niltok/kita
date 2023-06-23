@@ -14,12 +14,21 @@ import ikuyo.utils.RawDeserializer;
         @JsonSubTypes.Type(value = Drawable.AnimatedSprite.class, name = "AnimatedSprite"),
         @JsonSubTypes.Type(value = Drawable.Line.class, name = "Line")
 })
-public sealed abstract class Drawable {
+public sealed abstract class Drawable implements Cloneable{
     public double x, y;
     /** 单位：弧度 */
     public double rotation;
     public int zIndex = 0, user = -1;
     public static final double scaling = 20.0;
+
+    @Override
+    public Drawable clone() {
+        try {
+            return (Drawable) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 
     public static sealed class Sprite extends Drawable {
         public String bundle, asset;

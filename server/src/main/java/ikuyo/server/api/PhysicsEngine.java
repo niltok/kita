@@ -21,7 +21,7 @@ import org.dyn4j.world.result.RaycastResult;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class PhysicsEngine{
+public class PhysicsEngine {
     protected World<KitasBody> dynamicWorld;
     protected World<KitasBody> staticWorld;
 //    public Map<Integer, Map.Entry<User, KitasBody>> users;
@@ -162,11 +162,12 @@ public class PhysicsEngine{
 
     public void addBullet(Bullet bullet) {
         bullets.put(UUID.randomUUID().toString(), bullet);
-        dynamicWorld.addBody(bullet.getBody());
+        if (bullet.ifAddBodyToWorld)
+            dynamicWorld.addBody(bullet.getBody());
     }
 
     public void removeBullet(String id) {
-        if (bullets.get(id) != null)
+        if (bullets.get(id) != null && bullets.get(id).ifAddBodyToWorld)
             dynamicWorld.removeBody(bullets.get(id).getBody());
         bullets.put(id, null);
     }
@@ -239,6 +240,12 @@ public class PhysicsEngine{
     public void disableBody(KitasBody body) {
         dynamicWorld.removeBody(body);
         staticWorld.addBody(body);
+    }
+
+    public void frame() {
+        for (var bullet: this.bullets.values()) {
+            bullet.frame();
+        }
     }
 
 

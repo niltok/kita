@@ -2,7 +2,6 @@ package ikuyo.server.renderers;
 
 import ikuyo.api.datatypes.Drawable;
 import ikuyo.server.api.CommonContext;
-import org.dyn4j.geometry.Vector2;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -18,15 +17,9 @@ public class BulletRenderer implements DrawablesRenderer {
                 removeList.add(id);
             }
             else {
-                var newBullet = new Drawable.Sprite();
-                Vector2 pos = bullet.body.getWorldCenter();
-                newBullet.x = pos.x * Drawable.scaling;
-                newBullet.y = pos.y * Drawable.scaling;
-                newBullet.rotation = bullet.body.getTransform().getRotationAngle();
-                newBullet.bundle = "bullet";
-                newBullet.asset = bullet.type;
-                newBullet.zIndex = 3;
-
+                // TODO: 2023/6/23 update
+                bullet.updateDrawable();
+                Drawable newBullet = bullet.getDrawable().clone();
                 drawables.put(id, newBullet);
             }
         });

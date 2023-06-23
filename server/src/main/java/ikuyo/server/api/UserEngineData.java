@@ -46,4 +46,15 @@ public class UserEngineData {
 //                .add(pointer.getNormalized().multiply(Math.pow(pointer.getMagnitude(), 2))));
 //        else this.camera.applyForce(pointer.getNormalized().multiply(Math.pow(pointer.getMagnitude() * 100, 5)));
     }
+
+    public UserEngineData reSetCamera() {
+        camera.getTransform().setTranslation(body.getTransform().getTranslation());
+        camera.setLinearVelocity(body.getLinearVelocity());
+
+        return this;
+    }
+
+    public UserEngineData cameraMove() {
+        return this;
+    }
 }
