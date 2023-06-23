@@ -98,9 +98,8 @@ public class AreaBehavior implements Behavior<CommonContext> {
             var info = context.getInfo(id);
             if (info == null || !info.online) return;
             var r = MsgDiffer.cacheRange / Drawable.scaling + StarUtils.areaSize * 2;
-            context.loadingArea.queryAll(
-                    new double[]{info.x - r, info.x + r}, new double[]{info.y - r, info.y + r}
-            ).forEach(entry -> {
+            context.loadingArea.queryAll(new double[]{info.x - r, info.y - r}, new double[]{info.x + r, info.y + r})
+                    .forEach(entry -> {
                 var area = entry.getValue();
                 var state = context.areaStates.get(area);
                 if (!state.loaded) {

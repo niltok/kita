@@ -43,6 +43,10 @@ onmessage = async (e: MessageEvent<StateEvent>) => {
             update$.next(null)
             return
         }
+        case 'debug': {
+            console.log(prev, drawables)
+            return
+        }
         default: return
     }
 }

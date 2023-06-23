@@ -19,17 +19,24 @@ function handleInputEvent(mapper: { [key: string]: KeyType }, code: string) {
         code = code.substring(1)
         action = mapper[code]
     }
+    while (action instanceof Function) {
+        action = action()
+    }
     if (typeof action == 'undefined') return
-    if (typeof action == 'string')
+    if (typeof action == 'string') {
         sendSocket$.next({
             type: "star.operate.key",
             action
         })
-    else if (typeof action == 'object')
+        return;
+    }
+    if (typeof action == 'object') {
         sendSocket$.next({
             type: "star.operate.key",
             ...action
         })
+        return;
+    }
 }
 
 export const Stage = () => {

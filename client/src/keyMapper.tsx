@@ -1,4 +1,6 @@
-export type KeyType = string | { action: string, value: number } | { type: string, [key: string]: any };
+import {workerCommon$} from "./dbus";
+
+export type KeyType = string | { action: string, value: number } | { type: string, [key: string]: any } | Function;
 
 /// 前缀（注意顺序）：$(Ctrl), #(Meta), @(Alt), ^(Shift)
 //
@@ -26,4 +28,6 @@ export const keyMapper: { [key: string]: KeyType } = {
     // "KeyT": {type: "page.toggle", page: "transfer"},
     "WheelUp": "prevWeapon",
     "WheelDown": "nextWeapon",
+
+    "$KeyD": () => { workerCommon$.next({ type: "debug" }) }
 }
