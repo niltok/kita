@@ -5,6 +5,7 @@ import ikuyo.api.cargo.CargoStatic;
 import ikuyo.api.datatypes.Damage;
 import ikuyo.api.datatypes.UserInput;
 import ikuyo.api.equipments.Weapon;
+import ikuyo.api.equipments.WeaponItem;
 import ikuyo.server.api.Bullet;
 import ikuyo.server.api.CommonContext;
 import ikuyo.server.api.KitasBody;
@@ -12,6 +13,8 @@ import ikuyo.server.api.PhysicsEngine;
 import ikuyo.utils.Position;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
+
+import java.util.Objects;
 
 public class UserAttackBehavior implements Behavior<CommonContext> {
 
@@ -72,12 +75,14 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         public Damage damage;
         public double gravityScale = 1.0;
         public KitasBody userBody;
+        public long liveTime;
 
         public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, Damage damage) {
             this.r = bulletR;
             this.pos = bulletPos;
             this.velocity = bulletVelocity;
             this.damage = damage;
+            this.liveTime = Objects.requireNonNull(WeaponItem.get(this.type)).ammoType.liveTime;
         }
 
         private void bulletCheck(Vector2 userPos, Vector2 direction, double radius, CommonContext context) {

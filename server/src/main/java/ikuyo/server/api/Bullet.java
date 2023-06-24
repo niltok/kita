@@ -3,6 +3,7 @@ package ikuyo.server.api;
 import ikuyo.api.datatypes.Damage;
 import ikuyo.api.datatypes.Drawable;
 import ikuyo.server.behaviors.UserAttackBehavior;
+import ikuyo.utils.MsgDiffer;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
@@ -15,7 +16,7 @@ public class Bullet {
     public String type;
     public Damage damage;
     public Drawable.Sprite drawable;
-    public int frame = 0;
+    public long frame = 0;
     public boolean ifAddBodyToWorld = true;
 
     public void set(UserAttackBehavior.BulletInfo info, CommonContext context) {
@@ -39,6 +40,7 @@ public class Bullet {
         drawable.bundle = "bullet";
         drawable.asset = this.type;
         drawable.zIndex = 3;
+        this.setFrame(info.liveTime);
     }
 
     public KitasBody getBody() {
@@ -46,22 +48,27 @@ public class Bullet {
     }
 
     public void updateDrawable() {
-        Vector2 pos = this.body.getWorldCenter();
-        drawable.x = pos.x * Drawable.scaling;
-        drawable.y = pos.y * Drawable.scaling;
+        if (frame != 0) {
+            Vector2 pos = this.body.getWorldCenter();
+            drawable.x = pos.x * Drawable.scaling;
+            drawable.y = pos.y * Drawable.scaling;
+        }
     }
 
     public Drawable getDrawable() {
         return this.drawable;
     }
 
-    public void setFrame(int frame) {
+    public void setFrame(long frame) {
         this.frame = frame;
     }
 
     public void frame() {
         if (frame != 0) {
             frame--;
+        }
+        else {
+            this.drawable = null;
         }
     }
 
@@ -80,24 +87,24 @@ public class Bullet {
             this.damage = info.damage;
             this.drawable = new Drawable.Line();
             drawable.zIndex = 3;
-            drawable.width = 6;
+            drawable.width = 3;
             drawable.color = 16764928;
 
-            this.setFrame(90);
+            this.setFrame(60);
             this.update(context);
             this.updateDrawable();
         }
 
         @Override
         public void updateDrawable() {
-//            Vector2 pos = this.body.getWorldCenter();
-//            this.updateStartPoint();
-            drawable.x = start.x * Drawable.scaling;
-            drawable.y = start.y * Drawable.scaling;
+            if (frame != 0) {
+                drawable.x = start.x * Drawable.scaling;
+                drawable.y = start.y * Drawable.scaling;
 
-            if (frame != 0)
                 drawable.lineTo(end.x * Drawable.scaling, end.y * Drawable.scaling);
-            else drawable = null;
+                drawable.length = MsgDiffer.cacheRange;
+                drawable.width = (60 - frame) / 60.0 * 7 + 3;
+            }
         }
 
         @Override
@@ -111,6 +118,8 @@ public class Bullet {
             this.end = context.getState((int)this.body.getUserData()).input.pointAt.toVector();
             Vector2 direction = new Vector2(end.x - userPos.x, end.y - userPos.y).getNormalized();
             this.start = direction.copy().multiply(this.body.getRotationDiscRadius()).add(userPos);
+            if (end.copy().subtract(userPos).getMagnitude() < start.copy().subtract(userPos).getMagnitude())
+                this.end = this.start.copy().add(direction);
 
             var rayCast = context.engine().rayCast(new Ray(userPos, direction),
                             this.body.getRotationDiscRadius(), filter -> filter.equals(PhysicsEngine.BLOCK));
