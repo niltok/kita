@@ -23,6 +23,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
     public void update(CommonContext context) {
         context.engine().bullets.forEach((id, bullet) -> {
             if (bullet != null) {
+                // TODO: 2023/6/24 damage
+                bullet.update(context);
                 if (!bullet.ifAddBodyToWorld) {
                     return;
                 }

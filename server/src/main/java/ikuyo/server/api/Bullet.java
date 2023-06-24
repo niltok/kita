@@ -6,6 +6,7 @@ import ikuyo.server.behaviors.UserAttackBehavior;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
 
 
@@ -17,7 +18,7 @@ public class Bullet {
     public int frame = 0;
     public boolean ifAddBodyToWorld = true;
 
-    public void set(UserAttackBehavior.BulletInfo info) {
+    public void set(UserAttackBehavior.BulletInfo info, CommonContext context) {
         this.type = info.type;
         this.damage = info.damage;
         BodyFixture fixture = body.addFixture(Geometry.createCircle(info.r));
@@ -44,8 +45,6 @@ public class Bullet {
         return body;
     }
 
-    public void setEndPoint(double x, double y) {}
-
     public void updateDrawable() {
         Vector2 pos = this.body.getWorldCenter();
         drawable.x = pos.x * Drawable.scaling;
@@ -66,46 +65,57 @@ public class Bullet {
         }
     }
 
+    public void update(CommonContext context) {}
+
     public static class Laser extends Bullet {
         public Drawable.Line drawable;
-        public double endX;
-        public double endY;
+        public Vector2 start;
+        public Vector2 end;
         @Override
-        public void set(UserAttackBehavior.BulletInfo info) {
+        public void set(UserAttackBehavior.BulletInfo info, CommonContext context) {
             this.ifAddBodyToWorld = false;
 
-            body = info.chargeRifleBody;
+            body = info.userBody;
             this.type = info.type;
             this.damage = info.damage;
             this.drawable = new Drawable.Line();
             drawable.zIndex = 3;
-            drawable.width = 3;
-            drawable.color = 3;
+            drawable.width = 6;
+            drawable.color = 16764928;
 
-            this.setFrame(120);
+            this.setFrame(90);
+            this.update(context);
             this.updateDrawable();
         }
 
         @Override
-        public void setEndPoint(double x, double y) {
-            endX = x;
-            endY = y;
-        }
-
-        @Override
         public void updateDrawable() {
-            Vector2 pos = this.body.getWorldCenter();
-            drawable.x = pos.x * Drawable.scaling;
-            drawable.y = pos.y * Drawable.scaling;
+//            Vector2 pos = this.body.getWorldCenter();
+//            this.updateStartPoint();
+            drawable.x = start.x * Drawable.scaling;
+            drawable.y = start.y * Drawable.scaling;
 
             if (frame != 0)
-                drawable.lineTo(endX, endY);
+                drawable.lineTo(end.x * Drawable.scaling, end.y * Drawable.scaling);
             else drawable = null;
         }
 
         @Override
         public Drawable getDrawable() {
             return this.drawable;
+        }
+
+        @Override
+        public void update(CommonContext context) {
+            Vector2  userPos = this.body.getWorldCenter();
+            this.end = context.getState((int)this.body.getUserData()).input.pointAt.toVector();
+            Vector2 direction = new Vector2(end.x - userPos.x, end.y - userPos.y).getNormalized();
+            this.start = direction.copy().multiply(this.body.getRotationDiscRadius()).add(userPos);
+
+            var rayCast = context.engine().rayCast(new Ray(userPos, direction),
+                            this.body.getRotationDiscRadius(), filter -> filter.equals(PhysicsEngine.BLOCK));
+            rayCast.ifPresent(kitasBodyBodyFixtureRaycastResult ->
+                    this.start = kitasBodyBodyFixtureRaycastResult.copy().getRaycast().getPoint());
         }
     }
 }

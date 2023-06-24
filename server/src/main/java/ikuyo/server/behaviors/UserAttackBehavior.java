@@ -55,11 +55,11 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
             info.gravityScale = 0.01;
 
         if (weapon.type.equals(CargoStatic.chargeRifle.type()))
-            info.chargeRifleBody = context.engine().users.get(id).getBody();
+            info.userBody = context.engine().users.get(id).getBody();
 
 //        v.add(context.engine().users.get(id).getValue().getLinearVelocity());
         info.bulletCheck(userPos, direction, radius, context);
-        bullet.set(info);
+        bullet.set(info, context);
         context.engine().addBullet(bullet);
     }
 
@@ -71,7 +71,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         public Vector2 velocity;
         public Damage damage;
         public double gravityScale = 1.0;
-        public KitasBody chargeRifleBody;
+        public KitasBody userBody;
 
         public void set(double bulletR, Vector2 bulletPos, Vector2 bulletVelocity, Damage damage) {
             this.r = bulletR;
