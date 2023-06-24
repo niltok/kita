@@ -35,7 +35,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         info.userId = id;
         Bullet bullet;
 
-        if (weapon.type.equals(CargoStatic.chargeRifle.type())) bullet = new Bullet.Line();
+        if (weapon.type.equals(CargoStatic.chargeRifle.type())) bullet = new Bullet.Laser();
         else bullet = new Bullet();
 
         Position point = input.pointAt;

@@ -19,8 +19,14 @@ public class BulletRenderer implements DrawablesRenderer {
             else {
                 // TODO: 2023/6/23 update
                 bullet.updateDrawable();
-                Drawable newBullet = bullet.getDrawable().clone();
-                drawables.put(id, newBullet);
+                if (bullet.getDrawable() != null) {
+                    Drawable newBullet = bullet.getDrawable().clone();
+                    drawables.put(id, newBullet);
+                }
+                else {
+                    drawables.put(id, null);
+                    removeList.add(id);
+                }
             }
         });
 

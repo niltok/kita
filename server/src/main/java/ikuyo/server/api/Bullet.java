@@ -66,7 +66,7 @@ public class Bullet {
         }
     }
 
-    public static class Line extends Bullet {
+    public static class Laser extends Bullet {
         public Drawable.Line drawable;
         public double endX;
         public double endY;
@@ -78,12 +78,12 @@ public class Bullet {
             this.type = info.type;
             this.damage = info.damage;
             this.drawable = new Drawable.Line();
-            this.updateDrawable();
             drawable.zIndex = 3;
             drawable.width = 3;
             drawable.color = 3;
 
-            setFrame(120);
+            this.setFrame(120);
+            this.updateDrawable();
         }
 
         @Override
@@ -98,9 +98,9 @@ public class Bullet {
             drawable.x = pos.x * Drawable.scaling;
             drawable.y = pos.y * Drawable.scaling;
 
-            if (frame != 0) {
+            if (frame != 0)
                 drawable.lineTo(endX, endY);
-            }
+            else drawable = null;
         }
 
         @Override
