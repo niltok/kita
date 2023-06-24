@@ -9,6 +9,7 @@ import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.equipments.ActiveEquipment;
 import ikuyo.api.equipments.Equipment;
+import ikuyo.api.equipments.EquipmentItem;
 import ikuyo.api.equipments.Weapon;
 import ikuyo.api.hooks.SpaceshipHook;
 import io.vertx.core.json.JsonObject;
@@ -152,11 +153,15 @@ public class Spaceship implements UnpackItem {
         return "";
     }
 
-    public UIElement renderEditor() {
+    public UIElement renderEditor(Map<String, CargoHold> cargos) {
         var cargo = new ArrayList<UIElement>();
         var equip = new ArrayList<UIElement>();
-        cargo.add(UIElement.titleLabel("舰船货舱"));
+        cargo.add(UIElement.titleLabel("舰船货舱", "剩余容量: %.2f".formatted(cargoHold.getRestVolume())));
         renderCargoHold(cargoHold, "ship", cargo);
+        for (var e : cargos.entrySet()) {
+            cargo.add(UIElement.titleLabel(e.getKey()));
+            renderCargoHold(e.getValue(), e.getKey(), cargo);
+        }
         equip.add(UIElement.titleLabel("武器"));
         renderEquip(weapons, "weapon", equip);
         equip.add(UIElement.titleLabel("主动装备"));
@@ -213,5 +218,49 @@ public class Spaceship implements UnpackItem {
                     callback
             ).appendClass("hover-label").withTitle(item.description));
         });
+    }
+
+    public void handleUserEvents(Map<String, List<JsonObject>> events, Map<String, CargoHold> cargos) {
+        var equipMsg = events.get("ship.equip");
+        if (equipMsg != null) for (var msg : equipMsg) {
+            var src = msg.getString("src");
+            var cargo = switch (src) {
+                case "ship" -> cargoHold;
+                case null -> null;
+                default -> cargos.get(src);
+            };
+            if (cargo == null) continue;
+            if (msg.containsKey("key")) {
+                var key = msg.getString("key");
+                var item = EquipmentItem.get(key);
+                if (item == null) continue;
+                var e = item.unpack();
+                if (!e.equip(this).tryEnable().isEnable() || cargo.take(key) != 0) {
+                    e.unequip();
+                }
+            } else {
+                var index = msg.getInteger("index");
+                var unpack = cargo.unpacks.get(index);
+                if (!(unpack instanceof Equipment e)) continue;
+                if (!e.equip(this).tryEnable().isEnable() || cargo.take(index) != 0) {
+                    e.unequip();
+                }
+            }
+        }
+        var unequipMsg = events.get("ship.unequip");
+        if (unequipMsg != null) for (var msg : unequipMsg) {
+            var index = msg.getInteger("index");
+            if (index == null) continue;
+            var e = switch (msg.getString("src")) {
+                case "weapon" -> weapons.get(index);
+                case "active" -> activeEquipments.get(index);
+                case "passive" -> passiveEquipments.get(index);
+                case null, default -> null;
+            };
+            if (e == null) continue;
+            if (cargoHold.put(e) == 0) {
+                e.unequip();
+            }
+        }
     }
 }

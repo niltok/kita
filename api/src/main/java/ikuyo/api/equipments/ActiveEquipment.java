@@ -71,8 +71,11 @@ public class ActiveEquipment extends Equipment {
         if (restActiveTime > 0) restActiveTime--;
         if (restActiveTime == 0) {
             reloading = false;
-            if (spaceship != null && spaceship.user != null)
-                activeHookTokens.forEach(token -> spaceship.user.hooks.remove(token));
+            if (spaceship != null) {
+                activeHookTokens.forEach(token -> spaceship.hooks.remove(token));
+                if (spaceship.user != null)
+                    activeHookTokens.forEach(token -> spaceship.user.hooks.remove(token));
+            }
         }
     }
 

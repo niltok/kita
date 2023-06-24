@@ -60,8 +60,11 @@ public class Equipment implements UnpackItem {
     }
 
     public void disable() {
-        if (spaceship != null && spaceship.user != null)
-            hookTokens.forEach(token -> spaceship.user.hooks.remove(token));
+        if (spaceship != null) {
+            hookTokens.forEach(token -> spaceship.hooks.remove(token));
+            if (spaceship.user != null)
+                hookTokens.forEach(token -> spaceship.user.hooks.remove(token));
+        }
         enable = false;
     }
 

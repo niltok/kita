@@ -52,7 +52,8 @@ public class UpdateVert extends AsyncVerticle {
             new UserAttackBehavior(),
             new BulletBehavior(),
             new PageBehavior(),
-            new AreaBehavior()
+            new AreaBehavior(),
+            new ShipEquipBehavior()
     );
     DrawablesRenderer.Composite drawableRenderer = new DrawablesRenderer.Composite(
             new BlockRenderer(),
