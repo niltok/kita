@@ -28,8 +28,8 @@ public class CargoStatic {
                     new Damage(1).setRange(0.1)).withFireTime(6)
                     .withAmmoType(defaultAmmo).build(),
             chargeRifle = WeaponItemBuilder.create("ChargeRifle", "",
-                    new Damage(50).setRange(0.1).setIfBreakBlock(false)).withFireTime(30)
-                    .withAmmoMax(2).withAmmoType(defaultAmmo).build()
+                    new Damage(50).setRange(0.1).setIfBreakBlock(false)).withFireTime(90)
+                    .withAmmoMax(4).withAmmoType(defaultAmmo).build()
     ;
 
     public static final EquipmentItem shieldExtender = EquipmentItemBuilder.create("护盾扩展器", "")

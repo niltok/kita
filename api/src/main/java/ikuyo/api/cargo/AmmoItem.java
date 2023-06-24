@@ -1,7 +1,7 @@
 package ikuyo.api.cargo;
 
 public class AmmoItem extends CargoItem {
-    long liveTime;
+    public long liveTime;
     public AmmoItem(String displayName, String description, double volume, long liveTime) {
         super(displayName, description, volume);
         this.liveTime = liveTime;
