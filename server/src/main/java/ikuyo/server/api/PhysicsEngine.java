@@ -162,12 +162,12 @@ public class PhysicsEngine {
 
     public void addBullet(Bullet bullet) {
         bullets.put(UUID.randomUUID().toString(), bullet);
-        if (bullet.ifAddBodyToWorld)
+        if (bullet.ifHasEntity)
             dynamicWorld.addBody(bullet.getBody());
     }
 
     public void removeBullet(String id) {
-        if (bullets.get(id) != null && bullets.get(id).ifAddBodyToWorld)
+        if (bullets.get(id) != null && bullets.get(id).ifHasEntity)
             dynamicWorld.removeBody(bullets.get(id).getBody());
         bullets.put(id, null);
     }

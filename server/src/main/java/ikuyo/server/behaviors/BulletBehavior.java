@@ -25,9 +25,8 @@ public class BulletBehavior implements Behavior<CommonContext> {
             if (bullet != null) {
                 // TODO: 2023/6/24 damage
                 bullet.update(context);
-                if (!bullet.ifAddBodyToWorld) {
+                if (!bullet.ifHasEntity)
                     return;
-                }
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
                         context.engine().broadPhaseDetect(bullet.body, null);
                 if (iterator.hasNext() && context.engine().ManifoldDetect(bullet.body, iterator)) {

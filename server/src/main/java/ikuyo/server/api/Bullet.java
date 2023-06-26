@@ -17,7 +17,7 @@ public class Bullet {
     public Damage damage;
     public Drawable.Sprite drawable;
     public long frame = 0;
-    public boolean ifAddBodyToWorld = true;
+    public boolean ifHasEntity = true;
 
     public void set(UserAttackBehavior.BulletInfo info, CommonContext context) {
         this.type = info.type;
@@ -48,11 +48,13 @@ public class Bullet {
     }
 
     public void updateDrawable() {
-        if (frame != 0) {
-            Vector2 pos = this.body.getWorldCenter();
-            drawable.x = pos.x * Drawable.scaling;
-            drawable.y = pos.y * Drawable.scaling;
+        if (frame == 0) {
+            this.drawable = null;
+            return;
         }
+        Vector2 pos = this.body.getWorldCenter();
+        drawable.x = pos.x * Drawable.scaling;
+        drawable.y = pos.y * Drawable.scaling;
     }
 
     public Drawable getDrawable() {
@@ -64,12 +66,8 @@ public class Bullet {
     }
 
     public void frame() {
-        if (frame != 0) {
+        if (frame != 0)
             frame--;
-        }
-        else {
-            this.drawable = null;
-        }
     }
 
     public void update(CommonContext context) {}
@@ -80,7 +78,7 @@ public class Bullet {
         public Vector2 end;
         @Override
         public void set(UserAttackBehavior.BulletInfo info, CommonContext context) {
-            this.ifAddBodyToWorld = false;
+            this.ifHasEntity = false;
 
             body = info.userBody;
             this.type = info.type;
@@ -90,20 +88,32 @@ public class Bullet {
             drawable.width = 3;
             drawable.color = 16764928;
 
-            this.setFrame(60);
+            this.setFrame(80);
             this.update(context);
             this.updateDrawable();
         }
 
         @Override
         public void updateDrawable() {
-            if (frame != 0) {
-                drawable.x = start.x * Drawable.scaling;
-                drawable.y = start.y * Drawable.scaling;
+            if (frame == 0) {
+                this.drawable = null;
+                return;
+            }
+            drawable.x = start.x * Drawable.scaling;
+            drawable.y = start.y * Drawable.scaling;
 
-                drawable.lineTo(end.x * Drawable.scaling, end.y * Drawable.scaling);
-                drawable.length = MsgDiffer.cacheRange;
-                drawable.width = (60 - frame) / 60.0 * 7 + 3;
+            drawable.lineTo(end.x * Drawable.scaling, end.y * Drawable.scaling);
+            drawable.length = MsgDiffer.cacheRange;
+
+            long count = 80 - frame;
+            if (count <= 40) {
+                drawable.width = (double) count / 40 + 3;
+            }
+            else if (count <= 48) {
+                drawable.width = (double) (count - 40) / 8 * 6 + 4;
+            }
+            else {
+                drawable.width = 10 - (double) (count - 48) / 32 * 10;
             }
         }
 

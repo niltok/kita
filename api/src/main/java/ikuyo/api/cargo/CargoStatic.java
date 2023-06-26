@@ -28,7 +28,7 @@ public class CargoStatic {
                     new Damage(1).setRange(0.1)).withFireTime(6)
                     .withAmmoType(defaultAmmo).build(),
             chargeRifle = WeaponItemBuilder.create("ChargeRifle", "",
-                    new Damage(50).setRange(0.1).setIfBreakBlock(false)).withFireTime(90)
+                    new Damage(50).setRange(0.1).setIfBreakBlock(false)).withFireTime(160)
                     .withAmmoMax(4).withAmmoType(defaultAmmo).build()
     ;
 
