@@ -20,6 +20,9 @@ public class EquipmentItem extends CargoItem {
         this.hpMax = hpMax;
         this.hooker = hooker;
     }
+    public Equipment unpack() {
+        return (Equipment) super.unpack();
+    }
     public static EquipmentItem get(String index) {
         try {
             return (EquipmentItem) CargoStatic.class.getField(index).get(null);

@@ -4,6 +4,7 @@ import ikuyo.api.datatypes.UIElement;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.server.api.CommonContext;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 
@@ -18,7 +19,7 @@ public class ShipEquipRenderer implements UIRenderer<CommonContext> {
             }
             var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
             ui.add(new UIElement("div",
-                    info.spaceship.renderEditor()
+                    info.spaceship.renderEditor(new HashMap<>())
                             .appendClass("auto-expand", "auto-flow-container")
             ).appendClass("popout-container", "flex-box-container", "background"));
         });
