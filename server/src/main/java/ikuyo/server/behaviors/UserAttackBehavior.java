@@ -6,10 +6,7 @@ import ikuyo.api.datatypes.Damage;
 import ikuyo.api.datatypes.UserInput;
 import ikuyo.api.equipments.Weapon;
 import ikuyo.api.equipments.WeaponItem;
-import ikuyo.server.api.Bullet;
-import ikuyo.server.api.CommonContext;
-import ikuyo.server.api.KitasBody;
-import ikuyo.server.api.PhysicsEngine;
+import ikuyo.server.api.*;
 import ikuyo.utils.Position;
 import org.dyn4j.geometry.Ray;
 import org.dyn4j.geometry.Vector2;
@@ -38,7 +35,7 @@ public class UserAttackBehavior implements Behavior<CommonContext> {
         info.userId = id;
         Bullet bullet;
 
-        if (weapon.type.equals(CargoStatic.chargeRifle.type())) bullet = new Bullet.Laser();
+        if (weapon.type.equals(CargoStatic.chargeRifle.type())) bullet = new Laser();
         else bullet = new Bullet();
 
         Position point = input.pointAt;
