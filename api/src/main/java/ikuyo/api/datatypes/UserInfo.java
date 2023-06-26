@@ -34,10 +34,10 @@ public class UserInfo {
     public UserInfo() {
         var ship = new Spaceship(CargoStatic.shuttle.type());
         ship.deploy(this);
-        new Weapon(CargoStatic.r400.type()).equip(spaceship).tryEnable();
+        new Weapon(CargoStatic.defaultWeapon.type()).equip(spaceship).tryEnable();
         new Weapon(CargoStatic.chargeRifle.type()).equip(spaceship).tryEnable();
         new Equipment(CargoStatic.shieldExtender.type()).equip(spaceship).tryEnable();
-        spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 500);
+        spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 100);
         spaceship.cargoHold.put(CargoStatic.shieldExtender.type(), 1);
     }
 

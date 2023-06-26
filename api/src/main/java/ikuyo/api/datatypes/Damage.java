@@ -39,7 +39,7 @@ public class Damage implements Cloneable{
         this.ifPersistentDamage = false;
     }
 
-    public  boolean ifInflict() {
+    public boolean ifInflict() {
         if (!this.ifPersistentDamage) return true;
         if (this.frameCount == 0) {
             this.frameCount = this.damageFrequency;
@@ -47,6 +47,10 @@ public class Damage implements Cloneable{
         }
         this.frameCount--;
         return false;
+    }
+
+    public double getDamage(long frame) {
+        return this.normalDamage;
     }
 
     @Override
