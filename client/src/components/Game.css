@@ -45,6 +45,7 @@
     padding: 0.3em;
     border-radius: 8px;
     white-space: nowrap;
+    transition: border-color,background-color 0.25s;
 }
 
 .hover-label:hover, .focus-label {
@@ -122,11 +123,21 @@
     box-shadow: 0 0 4px 1px #242424;
     backdrop-filter: blur(20px);
     border-radius: 8px;
+    border: 1px solid #1a1a1a;
+    transition: border-color 0.25s;
+}
+
+.background:hover {
+    border-color: #646cff;
 }
 
 .transfer-background {
     background-color: #242424;
     z-index: 10;
+}
+
+.station-background {
+    background-color: #242424;
 }
 
 .no-cursor {

@@ -45,8 +45,9 @@ button, .button {
     cursor: pointer;
 }
 
-button,
+button, .button,
 input[type='text'], input[type='password'], input[type='number'] {
+    color: rgba(255, 255, 255, 0.87);
     border-radius: 8px;
     border: 1px solid transparent;
     padding: 0.6em 1.2em;
@@ -54,14 +55,15 @@ input[type='text'], input[type='password'], input[type='number'] {
     font-weight: 500;
     font-family: inherit;
     background-color: #1a1a1a;
+    text-align: center;
     transition: border-color 0.25s;
 }
-button:hover,
+button:hover, .button:hover,
 input[type='text']:hover, input[type='password']:hover, input[type='number']:hover {
     border-color: #646cff;
 }
-button:focus,
-button:focus-visible,
+button:focus, .button:focus,
+button:focus-visible, .button:focus-visible,
 input[type='text']:focus, input[type='password']:focus, input[type='number']:focus,
 input[type='text']:focus-visible, input[type='password']:focus-visible, input[type='number']:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;

@@ -18,6 +18,9 @@ public class UserState {
         this.socket = socket;
         this.user = user;
     }
+    public boolean inStation() {
+        return user.station() >= 0;
+    }
     public String starAddress() {
         return "star." + user.star();
     }

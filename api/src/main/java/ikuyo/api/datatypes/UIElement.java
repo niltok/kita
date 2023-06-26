@@ -101,7 +101,7 @@ public class UIElement {
 
     public static UIElement callbackText(String text, JsonObject callback, String... states) {
         return new UIElement.Callback("div", callback, Arrays.stream(states).toList(), UIElement.text(text))
-                .appendClass("label-item", "button", "hover-label");
+                .appendClass("button");
     }
 
     public static UIElement div(UIElement... children) {

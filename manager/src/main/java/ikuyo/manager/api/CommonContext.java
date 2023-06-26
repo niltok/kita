@@ -1,6 +1,7 @@
 package ikuyo.manager.api;
 
 import ikuyo.api.datatypes.BaseContext;
+import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.entities.Star;
 import ikuyo.api.entities.User;
 import ikuyo.utils.AsyncHelper;
@@ -19,11 +20,16 @@ import java.util.Map;
 import static ikuyo.utils.AsyncStatic.delay;
 
 public final class CommonContext extends BaseContext implements AsyncHelper {
-    public void addUser(String socket, User user) {
+    public UserState addUser(String socket, User user) {
         socketCache().put(socket, user);
         var state = userState().computeIfAbsent(user.id(), i -> new UserState(socket, user));
         state.user = user;
+        if (state.inStation()) {
+            userInfo.put(user.id(), User.getInfo(sql, user.id()));
+            state.page = "";
+        }
         updated().users().add(user.id());
+        return state;
     }
 
     public User getUser(String socket) {
@@ -47,6 +53,7 @@ public final class CommonContext extends BaseContext implements AsyncHelper {
     private final Logger logger;
     private final UpdatedContext updated;
     private final Map<Integer, UserState> userState;
+    private final Map<Integer, UserInfo> userInfo = new HashMap<>();
     private final Map<String, User> socketCache;
 
     public CommonContext(
@@ -120,5 +127,13 @@ public final class CommonContext extends BaseContext implements AsyncHelper {
 
     public Map<String, User> socketCache() {
         return socketCache;
+    }
+
+    public UserInfo getInfo(int id) {
+        return userInfo.get(id);
+    }
+
+    public void removeInfo(int id) {
+        userInfo.remove(id);
     }
 }

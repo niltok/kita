@@ -8,9 +8,7 @@ import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import ikuyo.manager.behaviors.*;
-import ikuyo.manager.renderers.StarMapRenderer;
-import ikuyo.manager.renderers.TechTrainerRenderer;
-import ikuyo.manager.renderers.TransferRenderer;
+import ikuyo.manager.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -48,10 +46,14 @@ public class HttpVert extends AsyncVerticle {
             new CargoBehavior(),
             new StarMapBehavior(),
             new TechTrainerBehavior(),
-            new UserManageBehavior()
+            new UserManageBehavior(),
+            new ShipEquipBehavior()
     );
     Renderer<CommonContext> uiRenderer = new CompositeRenderer<>(true,
             new UIRenderer.Composite<>(
+                    new StationRenderer(),
+                    new ShipEquipRenderer(),
+                    new CargoRenderer(),
                     new StarMapRenderer(),
                     new TechTrainerRenderer(),
                     new TransferRenderer()
@@ -141,9 +143,24 @@ public class HttpVert extends AsyncVerticle {
                     socket.close(4001, "auth.repeat");
                     return;
                 }
-                commonContext.addUser(socket.writeHandlerID(), user);
-                commonContext.registerUser(user, socket.writeHandlerID(), null, 6);
+                var state = commonContext.addUser(socket.writeHandlerID(), user);
+                if (!state.inStation())
+                    commonContext.registerUser(user, socket.writeHandlerID(), null, 6);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
+            }
+            case "user.move.undock" -> {
+                var user = commonContext.getUser(socket.writeHandlerID());
+                commonContext.getState(user.id()).page = "transfer";
+                commonContext.updated().users().add(user.id());
+                var info = commonContext.getInfo(user.id());
+                info.controlType = "fly";
+                commonContext.registerUser(user, socket.writeHandlerID(), JsonObject.mapFrom(info), 6);
+                commonContext.removeInfo(user.id());
+                await(pool.preparedQuery("""
+                    update "user" set station = -1 where id = $1
+                    """).execute(Tuple.of(user.id())));
+                commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, user.id()));
+                User.putInfo(pool, user.id(), null);
             }
             case "user.move.star" -> {
                 var target = msg.getInteger("target");
@@ -166,7 +183,7 @@ public class HttpVert extends AsyncVerticle {
                 var state = commonContext.userState().get(id);
                 state.events.computeIfAbsent(msg.getString("type"), i -> new ArrayList<>()).add(msg);
                 commonContext.updated().users().add(id);
-                if (state.allowOperate()) {
+                if (!state.inStation() && state.allowOperate()) {
                     eventBus.send(socketAddress(socket), JsonObject.of(
                             "type", "user.message",
                             "socket", socket.writeHandlerID(),

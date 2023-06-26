@@ -2,6 +2,7 @@ package ikuyo.api.entities;
 
 import com.google.common.hash.Hashing;
 import ikuyo.api.datatypes.StarInfo;
+import ikuyo.api.datatypes.Station;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.sqlclient.Row;
@@ -10,6 +11,7 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import static ikuyo.utils.AsyncStatic.async;
@@ -32,6 +34,7 @@ public record Star(
         double y,
         double z,
         StarInfo starInfo,
+        List<Station> stations,
         int seed,
         String vertId
 ) {
@@ -96,6 +99,7 @@ public record Star(
             y double precision not null,
             z double precision not null,
             star_info bytea default null,
+            stations bytea not null,
             seed int not null,
             vert_id text,
             time_lock timestamp not null default make_timestamp(1900, 1, 1, 0, 0, 0)
@@ -112,12 +116,13 @@ public record Star(
                 row.getInteger("index"), row.getString("name"), row.getInteger("universe"),
                 row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
                 StarInfo.fromJson(row.getBuffer("star_info")),
+                Station.fromJson(row.getBuffer("stations")),
                 row.getInteger("seed"), row.getString("vert_id"));
     }
 
     public static Star getSummery(SqlClient client, int index) {
         var rows = await(client.preparedQuery("""
-            select index, name, universe, x, y, z, seed, vert_id
+            select index, name, universe, x, y, z, seed, stations, vert_id
             from star
             where index = $1
             """).execute(Tuple.of(index)));
@@ -126,7 +131,8 @@ public record Star(
         return new Star(
                 row.getInteger("index"), row.getString("name"), row.getInteger("universe"),
                 row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
-                null, row.getInteger("seed"), row.getString("vert_id"));
+                null, Station.fromJson(row.getBuffer("stations")),
+                row.getInteger("seed"), row.getString("vert_id"));
     }
 
     public static void insert(SqlClient client, int universe, double x, double y, double z, int seed) {
@@ -138,10 +144,12 @@ public record Star(
             var v = rand.nextInt(0, 36);
             sb.append((char)(v < 10 ? '0' + v : 'A' + v - 10));
         }
-        await(client.preparedQuery("""
-            insert into star(name, universe, x, y, z, seed)
-            values ($1, $2, $3, $4, $5, $6)
-            """).execute(Tuple.of(sb.toString(), universe, x, y, z, seed)));
+        var id = await(client.preparedQuery("""
+            insert into star(name, universe, x, y, z, stations, seed)
+            values ($1, $2, $3, $4, $5, $6, $7) returning index
+            """).execute(Tuple.of(sb.toString(), universe, x, y, z, Station.toBuffer(
+                    List.of(new Station( 0, StarInfo.maxTier + 100))), seed)))
+                .iterator().next().getInteger(0);
     }
 
     /** 不包含 starInfo, vertId 的 Star 位置信息，若所属 universe 启用了 autoExpand 则会自动生成未访问过的星星 */
@@ -164,7 +172,7 @@ public record Star(
             await(CompositeFuture.all(fs));
         }
         var rows = await(client.preparedQuery("""
-                    select index, name, universe, x, y, z, seed
+                    select index, name, universe, x, y, z, stations, seed
                     from star
                     where universe = $1 and (x between $2 and $3) and (y between $4 and $5);""")
                 .execute(Tuple.of(universe, x1, x2, y1, y2)));
@@ -173,7 +181,8 @@ public record Star(
         for (Row row : rows) {
             res[i] = new Star(row.getInteger("index"), row.getString("name"), universe,
                     row.getDouble("x"), row.getDouble("y"), row.getDouble("z"),
-                    null, row.getInteger("seed"), null);
+                    null, Station.fromJson(row.getBuffer("stations")),
+                    row.getInteger("seed"), null);
             i++;
         }
         return res;
