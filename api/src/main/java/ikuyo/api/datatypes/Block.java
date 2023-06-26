@@ -14,6 +14,7 @@ public abstract sealed class Block {
     public int type = 0;
     /**变体贴图*/
     public int variant = 0;
+    public String drop;
     /**可见性*/
     public boolean isVisible = false;
     /**可交互性*/

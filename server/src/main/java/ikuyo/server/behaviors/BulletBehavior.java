@@ -40,7 +40,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
     private void bulletHandler(Bullet bullet, CommonContext context) {
         userHandler(bullet.body.getWorldCenter(), bullet.damage, context);
         if (bullet.damage.ifBreakBlock) {
-            blockHandler(bullet.body.getWorldCenter(), bullet.damage, context);
+            blockHandler(bullet, context);
         }
     }
 
@@ -73,10 +73,13 @@ public class BulletBehavior implements Behavior<CommonContext> {
         }
     }
 
-    private void blockHandler(Vector2 position, Damage damage, CommonContext context) {
+    private void blockHandler(Bullet bullet, CommonContext context) {
         var starInfo = context.star().starInfo();
-
-        int[] blocklist = StarUtils.nTierAround(new Position(position.x, position.y), damage.range, false)
+        var position = bullet.body.getWorldCenter();
+        var damage = bullet.damage;
+        int userId = (int) bullet.body.getUserData();
+        var userInfo = context.getInfo(userId);
+        int[] blocklist = StarUtils.nTierAround(Position.from(position), damage.range, false)
                 .stream().mapToInt(Integer::valueOf).toArray();
         for (var b : blocklist) {
             if (starInfo.blocks[b].isDestructible) {
@@ -84,6 +87,9 @@ public class BulletBehavior implements Behavior<CommonContext> {
                     context.engine().removeBody(context.engine().surfaceBlocks.get(b));
                     context.engine().surfaceBlocks.remove(b);
                 }
+
+                userInfo.spaceship.cargoHold.put(starInfo.blocks[b].drop);
+
                 starInfo.blocks[b] = new Block.Normal();
                 context.updated().blocks().add(b);
                 context.updated().areas.add(StarUtils.getAreaOf(StarUtils.realIndexOf(b)));

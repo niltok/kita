@@ -36,11 +36,12 @@ public class Bullet {
         body.setGravityScale(info.gravityScale);
 
         this.drawable = new Drawable.Sprite();
+        this.setFrame(info.liveTime);
         this.updateDrawable();
         drawable.bundle = "bullet";
         drawable.asset = this.type;
         drawable.zIndex = 3;
-        this.setFrame(info.liveTime);
+
     }
 
     public KitasBody getBody() {

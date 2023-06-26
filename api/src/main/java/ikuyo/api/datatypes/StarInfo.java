@@ -1,6 +1,7 @@
 package ikuyo.api.datatypes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import ikuyo.api.cargo.CargoStatic;
 import ikuyo.utils.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
@@ -99,6 +100,7 @@ public class StarInfo {
                 info.blocks[i].isDestructible = true;
                 info.blocks[i].isInteractive = true;
                 info.blocks[i].isCollisible = true;
+                info.blocks[i].drop = CargoStatic.soil.type();
             }
         });
 
@@ -116,6 +118,7 @@ public class StarInfo {
             block.isDestructible = true;
             block.isInteractive = true;
             block.isCollisible = true;
+            info.blocks[i].drop = CargoStatic.soil.type();
         });
 
 //        圆角修饰部分_out
@@ -136,6 +139,7 @@ public class StarInfo {
                 info.blocks[i].isDestructible = true;
                 info.blocks[i].isInteractive = true;
                 info.blocks[i].isCollisible = true;
+                info.blocks[i].drop = CargoStatic.soil.type();
             }else { info.blocks[i].type = 0; info.blocks[i].variant = 0; }
         });
 
@@ -177,6 +181,7 @@ public class StarInfo {
                         > 2 * (Math.atan((height / info.star_r - (0.8 + 0.2 * Random)) * 10) + Math.PI / 2.0) / Math.PI) {
                     info.blocks[i].type = 2;
                     info.blocks[i].variant = 0;
+                    info.blocks[i].drop = CargoStatic.stone.type();
                 }
             }
             index++;
