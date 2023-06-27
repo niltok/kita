@@ -95,6 +95,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: "ring",
                     srcs: "../other/ring.png"
+                },
+                {
+                    name: "plane",
+                    srcs: "../other/plane.png"
                 }
             ]
         }

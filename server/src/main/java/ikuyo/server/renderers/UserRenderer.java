@@ -41,7 +41,12 @@ public class UserRenderer implements DrawablesRenderer {
         text.style = "{\"fill\":\"red\",\"fontSize\":20}";
         var pic = new Drawable.Sprite();
         pic.bundle = "other";
+
+        // TODO: 2023/6/27 spaceship type
+//        pic.asset = info.spaceship.type;
         pic.asset = "paimon";
+        if (info.controlType.equals("fly")) pic.asset = "plane";
+
         var drawable = new Drawable.Container();
         drawable.x = info.x * Drawable.scaling;
         drawable.y = info.y * Drawable.scaling;
