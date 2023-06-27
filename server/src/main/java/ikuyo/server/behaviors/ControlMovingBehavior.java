@@ -28,13 +28,14 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
             var input = state.input;
             var body = context.engine().users.get(id).getBody();
 
+            body.setControlType(userInfo.controlType);
+
             if (userInfo.controlType.equals("fly")) {
                 Iterator<DetectResult<KitasBody, BodyFixture>> iterator =
                         context.engine().broadPhaseDetect(body, null);
                 if (iterator.hasNext() && context.engine().ManifoldDetect(body, iterator)) {
                     userInfo.controlType = "walk";
-                    body.setGravityScale(1);
-                    body.setFixRotation(true);
+                    body.setControlType("walk");
                 }
             }
 
@@ -43,9 +44,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     case 2 -> {
                         if (input.flyWhen.isBefore(Instant.now())) {
                             userInfo.controlType = "fly";
-                            body.setAngularVelocity(0);
-                            body.setGravityScale(0.05);
-                            body.setFixRotation(false);
+                            body.setControlType("fly");
                         }
                     }
                     case 3 -> input.flyWhen = Instant.now().plus(Duration.ofMillis(500));

@@ -9,6 +9,7 @@ import ikuyo.server.api.*;
 import ikuyo.utils.MsgDiffer;
 import ikuyo.utils.Position;
 import ikuyo.utils.StarUtils;
+import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.geometry.AABB;
 import org.dyn4j.geometry.Ray;
@@ -34,10 +35,15 @@ public class BulletBehavior implements Behavior<CommonContext> {
 
                     if (rayCast.isPresent()) {
                         laser.end = rayCast.get().copy().getRaycast().getPoint();
-                        if (rayCast.get().getBody().getFixture(0).getFilter().equals(PhysicsEngine.USER)) {
-//                            int userId = (int) rayCast.get().getBody().getUserData();
+                        Filter filter = rayCast.get().getBody().getFixture(0).getFilter();
+                        if (filter.equals(PhysicsEngine.USER))
                             inflictDamage(rayCast.get().getBody(), laser.getDamage(), context);
-                        }
+
+                        // TODO: 2023/6/27 子弹消除
+//                        else if (filter.equals(PhysicsEngine.BULLET)) {
+//                            bulletHandler(bullet, context);
+//                            context.engine().removeBody(rayCast.get().getBody());
+//                        }
                     }
                 }
                 else {
