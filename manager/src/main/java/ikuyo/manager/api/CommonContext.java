@@ -3,6 +3,7 @@ package ikuyo.manager.api;
 import ikuyo.api.datatypes.BaseContext;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.entities.Star;
+import ikuyo.api.entities.StationCargo;
 import ikuyo.api.entities.User;
 import ikuyo.utils.AsyncHelper;
 import io.vertx.core.Vertx;
@@ -26,6 +27,7 @@ public final class CommonContext extends BaseContext implements AsyncHelper {
         state.user = user;
         if (state.inStation()) {
             userInfo.put(user.id(), User.getInfo(sql, user.id()));
+            state.stationCargo = StationCargo.get(sql, user);
             state.page = "";
         }
         updated().users().add(user.id());

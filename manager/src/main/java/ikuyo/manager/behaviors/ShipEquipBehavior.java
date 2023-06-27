@@ -1,9 +1,10 @@
 package ikuyo.manager.behaviors;
 
 import ikuyo.api.behaviors.Behavior;
+import ikuyo.api.entities.StationCargo;
 import ikuyo.manager.api.CommonContext;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class ShipEquipBehavior implements Behavior<CommonContext> {
     @Override
@@ -12,7 +13,9 @@ public class ShipEquipBehavior implements Behavior<CommonContext> {
             var state = context.getState(id);
             var info = context.getInfo(id);
             if (state == null || info == null || !state.inStation()) return;
-            info.spaceship.handleUserEvents(state.events, new HashMap<>());
+            var modify = info.spaceship.handleUserEvents(state.events,
+                    Map.of("空间站", state.stationCargo), "空间站");
+            if (modify) StationCargo.put(context.sql(), state.user, state.stationCargo);
         });
     }
 }

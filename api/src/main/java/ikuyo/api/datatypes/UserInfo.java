@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ikuyo.api.cargo.CargoStatic;
-import ikuyo.api.equipments.Equipment;
 import ikuyo.api.equipments.Weapon;
 import ikuyo.api.hooks.UserHook;
 import ikuyo.api.spaceships.Spaceship;
@@ -36,9 +35,7 @@ public class UserInfo {
         ship.deploy(this);
         new Weapon(CargoStatic.defaultWeapon.type()).equip(spaceship).tryEnable();
         new Weapon(CargoStatic.chargeRifle.type()).equip(spaceship).tryEnable();
-        new Equipment(CargoStatic.shieldExtender.type()).equip(spaceship).tryEnable();
         spaceship.cargoHold.put(CargoStatic.defaultAmmo.type(), 100);
-        spaceship.cargoHold.put(CargoStatic.shieldExtender.type(), 1);
     }
 
     public UserInfo(double x, double y) {

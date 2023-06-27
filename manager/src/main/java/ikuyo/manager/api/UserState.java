@@ -1,5 +1,6 @@
 package ikuyo.manager.api;
 
+import ikuyo.api.cargo.CargoHold;
 import ikuyo.api.entities.User;
 import io.vertx.core.json.JsonObject;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 
 public class UserState {
     public User user;
+    public CargoHold stationCargo = null;
     public String socket, page = "transfer", nextPage = "";
     public int starFocus, pageEdge = 3;
     public JsonObject cache = JsonObject.of();

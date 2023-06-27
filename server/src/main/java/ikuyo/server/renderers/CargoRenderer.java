@@ -17,9 +17,12 @@ public class CargoRenderer implements UIRenderer<CommonContext> {
                 return;
             }
             var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
+            var cargo = info.spaceship.cargoHold;
             ui.add(new UIElement("div",
-                    info.spaceship.cargoHold.renderUI()
-                            .appendClass("column2", "auto-expand", "auto-flow-container")
+                    UIElement.div(
+                            UIElement.titleLabel("货舱", "剩余容量: %.2f".formatted(cargo.getRestVolume())),
+                            cargo.renderUI(null, null).appendClass("column2")
+                    ).appendClass("auto-expand", "auto-flow-container")
             ).appendClass("popout-container", "flex-box-container", "background"));
         });
     }

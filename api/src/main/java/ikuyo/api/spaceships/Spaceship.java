@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class Spaceship implements UnpackItem {
-    public String type;
+    public String type, name;
     public double hp, shield;
     public CargoHold cargoHold;
     @JsonManagedReference
@@ -40,6 +40,7 @@ public class Spaceship implements UnpackItem {
     public Spaceship(String type) {
         this.type = type;
         var ship = Objects.requireNonNull(SpaceshipItem.get(type));
+        this.name = ship.displayName;
         hp = getMaxHp();
         shield = getMaxShield();
         cargoHold = new CargoHold(ship.cargoVolume);
@@ -169,8 +170,17 @@ public class Spaceship implements UnpackItem {
         equip.add(UIElement.titleLabel("被动装备"));
         renderEquip(passiveEquipments, "passive", equip);
         return UIElement.div(
-                UIElement.div(cargo.toArray(UIElement[]::new)),
-                UIElement.div(equip.toArray(UIElement[]::new))).appendClass("multi-column");
+                UIElement.div(
+                        new UIElement.Stateful("input.text", "ship-name", name)
+                                .appendClass("auto-expand"),
+                        UIElement.callbackText("修改名称",
+                                JsonObject.of("type", "ship.name"), "ship-name")
+                ).appendClass("label-item"),
+                UIElement.div(
+                        UIElement.div(cargo.toArray(UIElement[]::new)),
+                        UIElement.div(equip.toArray(UIElement[]::new))
+                ).appendClass("multi-column")
+        );
     }
 
     private <T extends Equipment> void renderEquip(List<T> equip, String src, List<UIElement> uis) {
@@ -220,14 +230,18 @@ public class Spaceship implements UnpackItem {
         });
     }
 
-    public void handleUserEvents(Map<String, List<JsonObject>> events, Map<String, CargoHold> cargos) {
+    public boolean handleUserEvents(Map<String, List<JsonObject>> events, Map<String, CargoHold> cargos, String unequipTo) {
+        var flag = false;
         var equipMsg = events.get("ship.equip");
         if (equipMsg != null) for (var msg : equipMsg) {
             var src = msg.getString("src");
             var cargo = switch (src) {
                 case "ship" -> cargoHold;
                 case null -> null;
-                default -> cargos.get(src);
+                default -> {
+                    flag = true;
+                    yield cargos.get(src);
+                }
             };
             if (cargo == null) continue;
             if (msg.containsKey("key")) {
@@ -258,9 +272,21 @@ public class Spaceship implements UnpackItem {
                 case null, default -> null;
             };
             if (e == null) continue;
-            if (cargoHold.put(e) == 0) {
+            if (cargos.containsKey(unequipTo)) {
+                if (cargos.get(unequipTo).put(e) == 0) {
+                    e.unequip();
+                    flag = true;
+                }
+            } else if (cargoHold.put(e) == 0) {
                 e.unequip();
             }
         }
+        var nameMsg = events.get("ship.name");
+        if (nameMsg != null && !nameMsg.isEmpty()) {
+            var msg = nameMsg.get(nameMsg.size() - 1);
+            var s = msg.getJsonObject("states").getString("ship-name");
+            if (!s.isEmpty()) name = s;
+        }
+        return flag;
     }
 }
