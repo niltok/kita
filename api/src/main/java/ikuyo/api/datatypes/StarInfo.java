@@ -168,26 +168,47 @@ public class StarInfo {
 */
 
 //        石头
+        creatBlocks(info, 2, 0, CargoStatic.stone.type(), groundNum, 10, 0.8, 0, random);
+//        铁矿
+        creatBlocks(info, 40, 4, CargoStatic.iron.type(), groundNum, 30, -1, 0.93, random);
+//        铜矿
+        creatBlocks(info, 3, 0, CargoStatic.copper.type(), groundNum, 30, -1, 0.93, random);
+////        水晶矿
+        creatBlocks(info, 5, 0, CargoStatic.crystal.type(), groundNum, 50, -1, 0.98, random);
+////        金矿
+        creatBlocks(info, 4, 0, CargoStatic.gold.type(), groundNum, 50, -1, 0.97, random);
+
+        return info;
+    }
+
+    /**生成指定类型块
+     * @param distribution 块分布密度，影响图稠密度。值越大越稀疏，但是相对的，对应 unchangedDensity 值的面积会变大。
+     * @param changeHeight 层级分布的分界线，值为 -1 时为均匀分布
+     * @param unchangedDensity 均匀分布时的指定密度
+     * */
+    private static void creatBlocks(StarInfo info, int type, int variant, String drop,
+                                    int blockNum, double distribution, double changeHeight, double unchangedDensity, Random random) {
         int index = StarUtils.realIndexOf(0);
-        noiseSeed = random.nextLong();
-        range = new Range(random.nextLong());
-        for (int i = 0; i < groundNum; i++) {
+        long noiseSeed = random.nextLong();
+        Range range = new Range(random.nextLong());
+        for (int i = 0; i < blockNum; i++) {
             if (info.blocks[i].isVisible) {
                 Position pos = StarUtils.positionOf(index);
-                double height = Math.hypot(pos.x, pos.y);
+                double height = 0;
+                if (changeHeight != -1)
+                    height = Math.hypot(pos.x, pos.y);
                 double percent = StarUtils.angleOf(index) / Math.PI / 2.0;
-                double Random = range.Random(percent);
-                if ((OpenSimplex2S.noise2(noiseSeed, pos.x / 10, pos.y / 10) + 1)
-                        > 2 * (Math.atan((height / info.star_r - (0.8 + 0.2 * Random)) * 10) + Math.PI / 2.0) / Math.PI) {
-                    info.blocks[i].type = 2;
-                    info.blocks[i].variant = 0;
-                    info.blocks[i].drop = CargoStatic.stone.type();
+                double newRandom = range.Random(percent);
+                if ((OpenSimplex2S.noise2(noiseSeed, pos.x / distribution, pos.y / distribution) + 1)
+                        > 2 * (changeHeight == -1 ? unchangedDensity :
+                        (Math.atan((height / info.star_r - (changeHeight + (1 - changeHeight) * newRandom)) * 10) + Math.PI / 2.0) / Math.PI)) {
+                    info.blocks[i].type = type;
+                    info.blocks[i].variant = variant;
+                    info.blocks[i].drop = drop;
                 }
             }
             index++;
         }
-
-        return info;
     }
 
     public static StarInfo fromJson(String str) {
@@ -206,7 +227,7 @@ public class StarInfo {
         return json.mapTo(StarInfo.class);
     }
 
-//        /**创建属于你的星球
+//        /**creat your own star!
 //     * @param seed random
 //     * */
 //    public static StarInfo CreatMyStar(int seed) {

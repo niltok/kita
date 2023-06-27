@@ -42,7 +42,7 @@ public class Laser extends Bullet {
                 this.body.getRotationDiscRadius(), filter -> filter.equals(PhysicsEngine.BLOCK));
         rayCast.ifPresent(kitasBodyBodyFixtureRaycastResult ->
                 this.start = kitasBodyBodyFixtureRaycastResult.copy().getRaycast().getPoint()
-                        .copy().subtract(direction.multiply(0.0001)));
+                        .copy().subtract(direction.multiply(0.00001)));
     }
 
     @Override
