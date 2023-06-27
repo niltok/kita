@@ -165,7 +165,7 @@ public class CargoHold {
             JsonObject callback = msg == null ? null : JsonObject.of("type", msg, "key", type);
             uis.add(UIElement.labelItem(
                     new UIElement.Text(item.displayName),
-                    new UIElement.Text("Num: %d".formatted(num)),
+                    new UIElement.Text("数量: %d".formatted(num)),
                     callback
             ).appendClass("hover-label").withTitle(item.description));
         }
