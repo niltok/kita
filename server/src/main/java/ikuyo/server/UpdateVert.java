@@ -195,8 +195,6 @@ public class UpdateVert extends AsyncVerticle {
                 var info = star.starInfo().starUsers.computeIfAbsent(id, i ->
                         infoJson == null ? new UserInfo() : infoJson.mapTo(UserInfo.class));
                 info.online = true;
-                info.x = 0;
-                info.y = StarInfo.maxTier;
                 assert user != null;
                 commonContext.add(user);
                 var state = commonContext.getState(id);
