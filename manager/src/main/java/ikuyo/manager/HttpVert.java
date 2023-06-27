@@ -8,9 +8,7 @@ import ikuyo.api.renderers.Renderer;
 import ikuyo.api.renderers.UIRenderer;
 import ikuyo.manager.api.CommonContext;
 import ikuyo.manager.behaviors.*;
-import ikuyo.manager.renderers.StarMapRenderer;
-import ikuyo.manager.renderers.TechTrainerRenderer;
-import ikuyo.manager.renderers.TransferRenderer;
+import ikuyo.manager.renderers.*;
 import ikuyo.utils.AsyncVerticle;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -36,7 +34,7 @@ import java.util.UUID;
 import static ikuyo.utils.MsgDiffer.jsonDiff;
 
 public class HttpVert extends AsyncVerticle {
-    static long millisPerFrame = 500;
+    static long millisPerFrame = 100;
     HttpServer server;
     PgPool pool;
     Router router;
@@ -48,10 +46,14 @@ public class HttpVert extends AsyncVerticle {
             new CargoBehavior(),
             new StarMapBehavior(),
             new TechTrainerBehavior(),
-            new UserManageBehavior()
+            new UserManageBehavior(),
+            new ShipEquipBehavior()
     );
     Renderer<CommonContext> uiRenderer = new CompositeRenderer<>(true,
             new UIRenderer.Composite<>(
+                    new StationRenderer(),
+                    new ShipEquipRenderer(),
+                    new CargoRenderer(),
                     new StarMapRenderer(),
                     new TechTrainerRenderer(),
                     new TransferRenderer()
@@ -141,32 +143,47 @@ public class HttpVert extends AsyncVerticle {
                     socket.close(4001, "auth.repeat");
                     return;
                 }
-                commonContext.addUser(socket.writeHandlerID(), user);
-                commonContext.registerUser(user, socket.writeHandlerID(), null, 6);
+                var state = commonContext.addUser(socket.writeHandlerID(), user);
+                if (!state.inStation())
+                    commonContext.registerUser(user, socket.writeHandlerID(), null, 6);
                 await(socket.write(JsonObject.of("type", "auth.pass").toBuffer()));
+            }
+            case "user.move.undock" -> {
+                var user = commonContext.getUser(socket.writeHandlerID());
+                commonContext.getState(user.id()).setPage("transfer");
+                commonContext.updated().users().add(user.id());
+                var info = commonContext.getInfo(user.id());
+                info.controlType = "fly";
+                commonContext.registerUser(user, socket.writeHandlerID(), JsonObject.mapFrom(info), 6);
+                commonContext.removeInfo(user.id());
+                await(pool.preparedQuery("""
+                    update "user" set station = -1 where id = $1
+                    """).execute(Tuple.of(user.id())));
+                commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, user.id()));
+                User.putInfo(pool, user.id(), null);
+            }
+            case "user.move.dock" -> {
+                var id = commonContext.getUser(socket.writeHandlerID()).id();
+                var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
+                        "type", "user.move.dock", "id", id))).body();
+                if (!"success".equals(res.getString("type"))) break;
+                commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, id));
             }
             case "user.move.star" -> {
                 var target = msg.getInteger("target");
                 var id = commonContext.getUser(socket.writeHandlerID()).id();
-                commonContext.getState(id).page = "transfer";
-                commonContext.updated().users().add(id);
-                var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
-                        "type", "user.remove", "id", id))).body();
+                if (commonContext.getInfo(id) == null) break;
                 await(pool.preparedQuery("""
                     update "user" set star = $2 where id = $1
                     """).execute(Tuple.of(id, target)));
-                var user = User.getUserById(pool, id);
-                assert user != null;
-                commonContext.registerUser(user, socket.writeHandlerID(),
-                        res.getJsonObject("userInfo"), 3);
-                commonContext.addUser(socket.writeHandlerID(), user);
+                commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, id));
             }
             default -> {
                 var id = commonContext.getUser(socket.writeHandlerID()).id();
                 var state = commonContext.userState().get(id);
                 state.events.computeIfAbsent(msg.getString("type"), i -> new ArrayList<>()).add(msg);
                 commonContext.updated().users().add(id);
-                if (state.allowOperate()) {
+                if (!state.inStation() && state.allowOperate()) {
                     eventBus.send(socketAddress(socket), JsonObject.of(
                             "type", "user.message",
                             "socket", socket.writeHandlerID(),

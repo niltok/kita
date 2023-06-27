@@ -21,6 +21,7 @@ export const keyMapper: { [key: string]: KeyType } = {
     "KeyE": {type: "page.toggle", page: "cargoHold"},
     "KeyC": {type: "page.toggle", page: "shipEquip"},
     "$KeyP": {type: "page.toggle", page: "adminPanel"},
+    "KeyF": {type: "user.move.dock"},
     "Space": {action: "jumpOrFly", value: 3},
     "Space!": "jumpOrFly",
     "MouseLeft": {action: "shot", value: 3},

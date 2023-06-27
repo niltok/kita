@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class PageBehavior implements Behavior<CommonContext> {
     public static Set<String> supportedPage = Set.of("transfer", "starMap", "techTrainer");
-    public static Set<String> stationPage = Set.of("cargoHold");
+    public static Set<String> stationPage = Set.of("cargoHold", "shipEquip");
     @Override
     public void update(CommonContext context) {
         context.updated().users().forEach(id -> {
@@ -18,10 +18,11 @@ public class PageBehavior implements Behavior<CommonContext> {
             if (toggleMsgs == null || toggleMsgs.isEmpty() || !state.allowOperate()) return;
             var msg = toggleMsgs.get(toggleMsgs.size() - 1);
             var page = msg.getString("page");
-            if (Objects.equals(state.page, page) || !supportedPage.contains(page)) {
-                state.setPage("");
-            } else  {
+            if (!Objects.equals(state.page, page) &&
+                    (supportedPage.contains(page) || state.inStation() && stationPage.contains(page))) {
                 state.setPage(page);
+            } else {
+                state.setPage("");
             }
         });
     }

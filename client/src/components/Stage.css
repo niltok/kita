@@ -1,4 +1,4 @@
-.info-panel, .left-bottom, .right-bottom, .right-top, .center-top {
+.info-panel, .left-bottom, .right-bottom, .right-top, .center-top, .center-bottom {
     position: absolute;
     min-width: 10em;
     padding: 0.5em;
@@ -12,7 +12,7 @@
     left: 1em;
 }
 
-.left-bottom, .right-bottom {
+.left-bottom, .right-bottom, .center-bottom {
     bottom: 1em;
 }
 
@@ -24,7 +24,7 @@
     top: 1em;
 }
 
-.center-top {
+.center-top, .center-bottom {
     left: 50%;
     transform: translate(-50%, 0);
 }
