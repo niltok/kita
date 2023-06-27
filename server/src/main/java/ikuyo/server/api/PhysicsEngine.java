@@ -118,22 +118,10 @@ public class PhysicsEngine {
 
             KitasBody body = userData.getBody();
             BodyFixture fixture = body.addFixture(Geometry.createRectangle(5, 5));
-            fixture.setFriction(0.1);
-            fixture.setFilter(USER);
-            body.translate(userInfo.x, userInfo.y);
-            body.setRotatable(true);
-            body.setBearTheGravity(true);
+            bodyCreator(body, fixture, user.id());
             body.setFixRotation(true);
-            body.setLinearDamping(1);
-            body.setAngularDamping(5);
-            body.setUserData(user.id());
+            body.translate(userInfo.x, userInfo.y);
 
-
-//            KitasBody frame = userData.getBody();
-//            KitasBody rareWheel = new KitasBody();
-//            rareWheel.addFixture(Geometry.createCircle(0.1));
-//            KitasBody frontWheel = new KitasBody();
-//            frontWheel.addFixture(Geometry.createCircle(0.1));
 //            body.setAngularDamping(Double.MAX_VALUE);
 
 //            {Circle} [double]: mass * r2 * 0.5
@@ -155,7 +143,33 @@ public class PhysicsEngine {
             users.put(user.id(), userData);
             dynamicWorld.addBody(body);
             dynamicWorld.addBody(userData.camera);
+
+//            KitasBody frontWheel = new KitasBody();
+//            bodyCreator(frontWheel, frontWheel.addFixture(Geometry.createCircle(0.5)), user.id());
+//            frontWheel.translate(userInfo.x + 1.5, userInfo.y - 2.5);
+//            dynamicWorld.addBody(frontWheel);
+//            RevoluteJoint<KitasBody> frontJoint = new RevoluteJoint<>(body, frontWheel, new Vector2(userInfo.x + 1.5, userInfo.y - 2.5));
+////            RevoluteJoint<KitasBody> frontJoint = new RevoluteJoint<>(body, frontWheel);
+//            dynamicWorld.addJoint(frontJoint);
+//
+//            KitasBody rearWheel = new KitasBody();
+//            bodyCreator(rearWheel, rearWheel.addFixture(Geometry.createCircle(0.5)), user.id());
+//            rearWheel.translate(userInfo.x - 1.5, userInfo.y - 2.5);
+//            dynamicWorld.addBody(rearWheel);
+//            RevoluteJoint<KitasBody> rearJoint = new RevoluteJoint<>(body, rearWheel, new Vector2(userInfo.x - 1.5, userInfo.y - 2.5));
+////            AngleJoint<KitasBody> rearJoint = new AngleJoint<>(body, rearWheel);
+//            dynamicWorld.addJoint(rearJoint);
         }
+    }
+
+    private static void bodyCreator(KitasBody body, BodyFixture fixture, int userId) {
+        fixture.setFriction(0.1);
+        fixture.setFilter(USER);
+        body.setRotatable(true);
+        body.setBearTheGravity(true);
+        body.setLinearDamping(1);
+        body.setAngularDamping(5);
+        body.setUserData(userId);
     }
 
     public void removeUser(int id) {
