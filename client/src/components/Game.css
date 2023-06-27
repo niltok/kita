@@ -138,6 +138,10 @@
 
 .station-background {
     background-color: #242424;
+    background-image: url("./docker.svg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 30%;
 }
 
 .no-cursor {

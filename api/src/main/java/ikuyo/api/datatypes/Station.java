@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class Station {
+    public static final double dockDist = 600 / Drawable.scaling;
     public Position pos;
     public Station() {}
     public Station(Position pos) {

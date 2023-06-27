@@ -3,7 +3,7 @@
 }
 
 @media (prefers-color-scheme: light) {
-    .svg {
-        stroke: #213547;
-    }
+    /*.svg {*/
+    /*    stroke: #213547;*/
+    /*}*/
 }

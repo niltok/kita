@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import ikuyo.api.behaviors.CompositeBehavior;
 import ikuyo.api.cargo.CargoStatic;
 import ikuyo.api.datatypes.StarInfo;
+import ikuyo.api.datatypes.Station;
 import ikuyo.api.datatypes.UserInfo;
 import ikuyo.api.entities.Star;
 import ikuyo.api.entities.User;
@@ -29,6 +30,7 @@ import io.vertx.sqlclient.Tuple;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -58,7 +60,8 @@ public class UpdateVert extends AsyncVerticle {
     DrawablesRenderer.Composite drawableRenderer = new DrawablesRenderer.Composite(
             new BlockRenderer(),
             new UserRenderer(),
-            new BulletRenderer()
+            new BulletRenderer(),
+            new StationRenderer()
     );
     Renderer<CommonContext> commonSeqRenderer = drawableRenderer;
     Renderer<CommonContext> commonRenderer = new CompositeRenderer<>(true);
@@ -219,6 +222,23 @@ public class UpdateVert extends AsyncVerticle {
                 star.starInfo().starUsers.remove(id);
                 commonContext.remove(id);
                 msg.reply(JsonObject.of("type", "success", "userInfo", info));
+            }
+            case "user.move.dock" -> {
+                var id = json.getInteger("id");
+                var info = star.starInfo().starUsers.get(id);
+                var s = star.stations().stream()
+                        .min(Comparator.comparingDouble(a -> Math.hypot(a.pos.x - info.x, a.pos.y - info.y)));
+                if (s.isEmpty() || Math.hypot(s.get().pos.x - info.x, s.get().pos.y - info.y) > Station.dockDist) {
+                    msg.reply(JsonObject.of("type", "dock.tooFar"));
+                    return;
+                }
+                star.starInfo().starUsers.remove(id);
+                commonContext.remove(id);
+                await(pool.preparedQuery("""
+                    update "user" set station = $2 where id = $1
+                    """).execute(Tuple.of(id, star.stations().indexOf(s.get()))));
+                User.putInfo(pool, id, info);
+                msg.reply(JsonObject.of("type", "success"));
             }
             case "user.update" -> {
                 var id = json.getInteger("id");

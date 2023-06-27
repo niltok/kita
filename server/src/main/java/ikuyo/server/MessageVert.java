@@ -77,38 +77,55 @@ public class MessageVert extends AsyncVerticle {
             }
             case "user.remove" -> {
                 var id = json.getInteger("id");
-                var userState = userStates.get(id);
                 var res = await(eventBus.request(updaterId, json)).body();
-                if (userState.socket != null) eventBus.send(userState.socket, JsonObject.of(
-                        "type", "state.dispatch",
-                        "action", "gameState/diffGame",
-                        "payload", JsonObject.of("star",
-                                MsgDiffer.jsonDiff(userState.specialCache, JsonObject.of()))
-                ).toBuffer());
-                if (userState.socket != null) eventBus.send(userState.socket, JsonObject.of(
-                        "type", "seq.operate",
-                        "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
-                userStates.remove(id);
+                removeUser(id);
                 msg.reply(res);
-                if (userStates.isEmpty()) {
-                    if (reserveStar) await(delay(reserveTime));
-                    if (userStates.isEmpty())
-                        eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
+                testReserve();
+            }
+            case "user.move.dock" -> {
+                var id = json.getInteger("id");
+                var res = (JsonObject) await(eventBus.request(updaterId, json)).body();
+                if (!"success".equals(res.getString("type"))) {
+                    msg.reply(res);
+                    return;
                 }
+                removeUser(id);
+                msg.reply(res);
+                testReserve();
             }
             case "user.disconnect" -> {
                 userStates.remove(json.getInteger("id"));
                 await(eventBus.request(updaterId, json));
-                if (userStates.isEmpty()) {
-                    if (reserveStar) await(delay(reserveTime));
-                    if (userStates.isEmpty())
-                        eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
-                }
+                testReserve();
             }
             case "user.update" -> {
                 eventBus.send(updaterId, json);
             }
             case "user.message" -> userEventHandler(json);
+        }
+    }
+
+    private void removeUser(int id) {
+        var userState = userStates.get(id);
+        if (userState.socket != null) {
+            eventBus.send(userState.socket, JsonObject.of(
+                    "type", "state.dispatch",
+                    "action", "gameState/diffGame",
+                    "payload", JsonObject.of("star",
+                            JsonObject.of("ui", null))
+            ).toBuffer());
+            eventBus.send(userState.socket, JsonObject.of(
+                    "type", "seq.operate",
+                    "data", msgDiffer.removeAll(userState.drawableCache)).toBuffer());
+        }
+        userStates.remove(id);
+    }
+
+    private void testReserve() {
+        if (userStates.isEmpty()) {
+            if (reserveStar) await(delay(reserveTime));
+            if (userStates.isEmpty())
+                eventBus.send(updaterId, JsonObject.of("type", "vert.undeploy"));
         }
     }
 

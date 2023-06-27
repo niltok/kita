@@ -28,6 +28,10 @@ export const manifest: ResolverManifest = {
                 {
                     name: "redArrow",
                     srcs: "../ui/redArrow.png"
+                },
+                {
+                    name: "station",
+                    srcs: "../ui/docker.png"
                 }
             ]
         },

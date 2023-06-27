@@ -34,7 +34,7 @@ import java.util.UUID;
 import static ikuyo.utils.MsgDiffer.jsonDiff;
 
 public class HttpVert extends AsyncVerticle {
-    static long millisPerFrame = 500;
+    static long millisPerFrame = 100;
     HttpServer server;
     PgPool pool;
     Router router;
@@ -150,7 +150,7 @@ public class HttpVert extends AsyncVerticle {
             }
             case "user.move.undock" -> {
                 var user = commonContext.getUser(socket.writeHandlerID());
-                commonContext.getState(user.id()).page = "transfer";
+                commonContext.getState(user.id()).setPage("transfer");
                 commonContext.updated().users().add(user.id());
                 var info = commonContext.getInfo(user.id());
                 info.controlType = "fly";
@@ -162,21 +162,21 @@ public class HttpVert extends AsyncVerticle {
                 commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, user.id()));
                 User.putInfo(pool, user.id(), null);
             }
+            case "user.move.dock" -> {
+                var id = commonContext.getUser(socket.writeHandlerID()).id();
+                var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
+                        "type", "user.move.dock", "id", id))).body();
+                if (!"success".equals(res.getString("type"))) break;
+                commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, id));
+            }
             case "user.move.star" -> {
                 var target = msg.getInteger("target");
                 var id = commonContext.getUser(socket.writeHandlerID()).id();
-                commonContext.getState(id).page = "transfer";
-                commonContext.updated().users().add(id);
-                var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
-                        "type", "user.remove", "id", id))).body();
+                if (commonContext.getInfo(id) == null) break;
                 await(pool.preparedQuery("""
                     update "user" set star = $2 where id = $1
                     """).execute(Tuple.of(id, target)));
-                var user = User.getUserById(pool, id);
-                assert user != null;
-                commonContext.registerUser(user, socket.writeHandlerID(),
-                        res.getJsonObject("userInfo"), 3);
-                commonContext.addUser(socket.writeHandlerID(), user);
+                commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, id));
             }
             default -> {
                 var id = commonContext.getUser(socket.writeHandlerID()).id();
