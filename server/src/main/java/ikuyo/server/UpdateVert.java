@@ -221,12 +221,14 @@ public class UpdateVert extends AsyncVerticle {
                 commonContext.remove(id);
                 msg.reply(JsonObject.of("type", "success", "userInfo", info));
             }
-            case "user.move.dock" -> {
+            case "user.move.dock", "user.move.rebirth" -> {
                 var id = json.getInteger("id");
                 var info = star.starInfo().starUsers.get(id);
+                var rebirth = "user.move.rebirth".equals(json.getString("type"));
                 var s = star.stations().stream()
                         .min(Comparator.comparingDouble(a -> Math.hypot(a.pos.x - info.x, a.pos.y - info.y)));
-                if (s.isEmpty() || Math.hypot(s.get().pos.x - info.x, s.get().pos.y - info.y) > Station.dockDist) {
+                if (!rebirth && (s.isEmpty() ||
+                        Math.hypot(s.get().pos.x - info.x, s.get().pos.y - info.y) > Station.dockDist)) {
                     msg.reply(JsonObject.of("type", "dock.tooFar"));
                     return;
                 }
@@ -234,8 +236,8 @@ public class UpdateVert extends AsyncVerticle {
                 commonContext.remove(id);
                 await(pool.preparedQuery("""
                     update "user" set station = $2 where id = $1
-                    """).execute(Tuple.of(id, star.stations().indexOf(s.get()))));
-                User.putInfo(pool, id, info);
+                    """).execute(Tuple.of(id, rebirth ? 0 : star.stations().indexOf(s.get()))));
+                User.putInfo(pool, id, rebirth ? new UserInfo() : info);
                 msg.reply(JsonObject.of("type", "success"));
             }
             case "user.update" -> {

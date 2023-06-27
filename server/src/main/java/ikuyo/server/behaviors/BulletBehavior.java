@@ -94,8 +94,7 @@ public class BulletBehavior implements Behavior<CommonContext> {
 
         if (userInfo.san == 0) userInfo.controlType = "destroyed";
         if (userInfo.spaceship.hp == 0) {
-            // TODO: 2023/6/26 死了啦！都是你害的！
-            userInfo.controlType = "destroyed";
+            userInfo.controlType = "rebirth";
         }
     }
 

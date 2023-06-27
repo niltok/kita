@@ -39,7 +39,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                 }
             }
 
-            if (!userInfo.controlType.equals("destroyed")) {
+            if (!userInfo.controlType.equals("destroyed") && !userInfo.controlType.equals("rebirth")) {
                 switch (input.jumpOrFly) {
                     case 2 -> {
                         if (input.flyWhen.isBefore(Instant.now())) {
@@ -114,7 +114,7 @@ public class ControlMovingBehavior implements Behavior<CommonContext> {
                     body.applyForce(force);
                 }
             }
-            case "destroyed" -> {
+            case "destroyed", "rebirth" -> {
 
             }
         }
