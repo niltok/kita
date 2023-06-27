@@ -1,9 +1,13 @@
 package ikuyo.api.cargo;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import ikuyo.api.datatypes.UIElement;
+import ikuyo.utils.DataStatic;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -12,6 +16,7 @@ import java.util.*;
  * */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class CargoHold {
+    public final double eps = 1e-6;
     /** 剩余容量 */
     private double restVolume = Double.POSITIVE_INFINITY;
     /** 对于装箱（可堆叠）货物的 type-num 映射<br>！！用于遍历，请不要直接修改！！ */
@@ -23,7 +28,7 @@ public class CargoHold {
         restVolume = volume;
     }
     public double getRestVolume() {
-        return restVolume;
+        return Math.max(0, restVolume);
     }
     /** 放入物品
      * @param type 物品类型
@@ -33,7 +38,7 @@ public class CargoHold {
     public int put(String type, int num) {
         var item = CargoItem.get(type);
         if (item == null) return 1;
-        if (item.volume * num > restVolume) return 2;
+        if (item.volume * num > restVolume + eps) return 2;
         items.put(type, items.getOrDefault(type, 0) + num);
         restVolume -= item.volume * num;
         return 0;
@@ -52,7 +57,7 @@ public class CargoHold {
     public int put(UnpackItem unpack) {
         var item = CargoItem.get(unpack.getItemType());
         if (item == null) return 1;
-        if (item.unpackVolume > restVolume) return 2;
+        if (item.unpackVolume > restVolume + eps) return 2;
         unpacks.add(unpack);
         restVolume -= item.unpackVolume;
         return 0;
@@ -67,7 +72,7 @@ public class CargoHold {
         if (!unpack.canPack()) return 3;
         var item = CargoItem.get(unpack.getItemType());
         if (item == null) return 1;
-        if (unpack.packSize() - item.unpackVolume > restVolume) return 2;
+        if (unpack.packSize() - item.unpackVolume > restVolume + eps) return 2;
         unpacks.remove(index);
         unpack.pack(items);
         restVolume -= unpack.packSize() - item.unpackVolume;
@@ -84,7 +89,7 @@ public class CargoHold {
         var totalNum = items.getOrDefault(type, 0);
         if (totalNum < num) return 3;
         var deltaVolume = (item.unpackVolume - item.volume) * num;
-        if (deltaVolume > restVolume) return 2;
+        if (deltaVolume > restVolume + eps) return 2;
         restVolume -= deltaVolume;
         if (totalNum == num) items.remove(type);
         else items.put(type, totalNum - num);
@@ -109,7 +114,7 @@ public class CargoHold {
         var totalNum = items.getOrDefault(type, 0);
         if (totalNum < num) return 3;
         var deltaVolume = -item.volume * num;
-        if (deltaVolume > restVolume) return 2;
+        if (deltaVolume > restVolume + eps) return 2;
         restVolume -= deltaVolume;
         if (totalNum == num) items.remove(type);
         else items.put(type, totalNum - num);
@@ -130,31 +135,50 @@ public class CargoHold {
         var unpack = unpacks.get(index);
         var item = CargoItem.get(unpack.getItemType());
         if (item == null) return 1;
-        if (-item.unpackVolume > restVolume) return 2;
+        if (-item.unpackVolume > restVolume + eps) return 2;
         unpacks.remove(index);
         restVolume -= -item.unpackVolume;
         return 0;
     }
-    public UIElement renderUI() {
+    public static CargoHold fromJson(Buffer buffer) {
+        try {
+            return DataStatic.mapper.readValue(DataStatic.gzipDecode(buffer), CargoHold.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Buffer toBuffer() {
+        try {
+            return DataStatic.gzipEncode(DataStatic.mapper.writeValueAsBytes(this));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public UIElement renderUI(String title, String msg) {
         var uis = new ArrayList<UIElement>();
-        items.forEach((type, num) -> {
+        if (title != null) uis.add(UIElement.titleLabel(title, "剩余容量: %.2f".formatted(getRestVolume())));
+        for (Map.Entry<String, Integer> entry : items.entrySet()) {
+            String type = entry.getKey();
+            Integer num = entry.getValue();
             var item = Objects.requireNonNull(CargoItem.get(type));
-            JsonObject callback = null;
+            JsonObject callback = msg == null ? null : JsonObject.of("type", msg, "key", type);
             uis.add(UIElement.labelItem(
                     new UIElement.Text(item.displayName),
                     new UIElement.Text("Num: %d".formatted(num)),
                     callback
             ).appendClass("hover-label").withTitle(item.description));
-        });
-        unpacks.forEach(unpack -> {
+        }
+        for (int i = 0, unpacksSize = unpacks.size(); i < unpacksSize; i++) {
+            UnpackItem unpack = unpacks.get(i);
             var item = Objects.requireNonNull(CargoItem.get(unpack.getItemType()));
-            JsonObject callback = null;
+            JsonObject callback = msg == null ? null : JsonObject.of("type", msg, "index", i);
             uis.add(UIElement.labelItem(
                     new UIElement.Text(item.displayName),
                     new UIElement.Text(unpack.getItemInfo()),
                     callback
             ).appendClass("hover-label").withTitle(item.description));
-        });
+        }
         return new UIElement("div", uis.toArray(UIElement[]::new));
     }
 }

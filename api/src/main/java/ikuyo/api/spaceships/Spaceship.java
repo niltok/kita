@@ -173,7 +173,7 @@ public class Spaceship implements UnpackItem {
                 UIElement.div(
                         new UIElement.Stateful("input.text", "ship-name", name)
                                 .appendClass("auto-expand"),
-                        UIElement.callbackText("修改",
+                        UIElement.callbackText("修改名称",
                                 JsonObject.of("type", "ship.name"), "ship-name")
                 ).appendClass("label-item"),
                 UIElement.div(
@@ -230,14 +230,18 @@ public class Spaceship implements UnpackItem {
         });
     }
 
-    public void handleUserEvents(Map<String, List<JsonObject>> events, Map<String, CargoHold> cargos) {
+    public boolean handleUserEvents(Map<String, List<JsonObject>> events, Map<String, CargoHold> cargos, String unequipTo) {
+        var flag = false;
         var equipMsg = events.get("ship.equip");
         if (equipMsg != null) for (var msg : equipMsg) {
             var src = msg.getString("src");
             var cargo = switch (src) {
                 case "ship" -> cargoHold;
                 case null -> null;
-                default -> cargos.get(src);
+                default -> {
+                    flag = true;
+                    yield cargos.get(src);
+                }
             };
             if (cargo == null) continue;
             if (msg.containsKey("key")) {
@@ -268,7 +272,12 @@ public class Spaceship implements UnpackItem {
                 case null, default -> null;
             };
             if (e == null) continue;
-            if (cargoHold.put(e) == 0) {
+            if (cargos.containsKey(unequipTo)) {
+                if (cargos.get(unequipTo).put(e) == 0) {
+                    e.unequip();
+                    flag = true;
+                }
+            } else if (cargoHold.put(e) == 0) {
                 e.unequip();
             }
         }
@@ -278,5 +287,6 @@ public class Spaceship implements UnpackItem {
             var s = msg.getJsonObject("states").getString("ship-name");
             if (!s.isEmpty()) name = s;
         }
+        return flag;
     }
 }

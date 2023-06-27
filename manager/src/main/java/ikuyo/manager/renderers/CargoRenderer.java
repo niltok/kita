@@ -17,9 +17,11 @@ public class CargoRenderer implements UIRenderer<CommonContext> {
                 return;
             }
             var ui = result.computeIfAbsent(id, i -> UIRenderer.emptyQueue());
-            ui.add(new UIElement("div",
-                    info.spaceship.cargoHold.renderUI()
-                            .appendClass("column2", "auto-expand", "auto-flow-container")
+            ui.add(UIElement.div(
+                    UIElement.div(
+                            state.stationCargo.renderUI("空间站", "ship.load"),
+                            info.spaceship.cargoHold.renderUI("货舱", "ship.unload")
+                    ).appendClass("multi-column", "auto-expand", "auto-flow-container")
             ).appendClass("popout-container", "flex-box-container", "background"));
         });
     }
