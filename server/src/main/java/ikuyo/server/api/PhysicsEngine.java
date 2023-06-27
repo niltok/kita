@@ -127,6 +127,13 @@ public class PhysicsEngine {
             body.setLinearDamping(1);
             body.setAngularDamping(5);
             body.setUserData(user.id());
+
+
+//            KitasBody frame = userData.getBody();
+//            KitasBody rareWheel = new KitasBody();
+//            rareWheel.addFixture(Geometry.createCircle(0.1));
+//            KitasBody frontWheel = new KitasBody();
+//            frontWheel.addFixture(Geometry.createCircle(0.1));
 //            body.setAngularDamping(Double.MAX_VALUE);
 
 //            {Circle} [double]: mass * r2 * 0.5
