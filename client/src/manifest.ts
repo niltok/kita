@@ -89,12 +89,16 @@ export const manifest: ResolverManifest = {
             name: "other",
             assets: [
                 {
-                    name: "paimon",
+                    name: "shuttle-walk",
                     srcs: "../other/paimon.png"
                 },
                 {
                     name: "ring",
                     srcs: "../other/ring.png"
+                },
+                {
+                    name: "shuttle-fly",
+                    srcs: "../other/plane_blue.png"
                 }
             ]
         }
