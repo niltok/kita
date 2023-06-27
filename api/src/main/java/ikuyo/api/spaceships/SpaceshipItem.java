@@ -33,4 +33,7 @@ public class SpaceshipItem extends CargoItem {
             throw new RuntimeException(e);
         }
     }
+    public Spaceship unpack() {
+        return (Spaceship) super.unpack();
+    }
 }
