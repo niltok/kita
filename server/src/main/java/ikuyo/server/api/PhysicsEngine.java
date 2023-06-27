@@ -148,7 +148,7 @@ public class PhysicsEngine {
 //            bodyCreator(frontWheel, frontWheel.addFixture(Geometry.createCircle(0.5)), user.id());
 //            frontWheel.translate(userInfo.x + 1.5, userInfo.y - 2.5);
 //            dynamicWorld.addBody(frontWheel);
-//            RevoluteJoint<KitasBody> frontJoint = new RevoluteJoint<>(body, frontWheel, new Vector2(userInfo.x + 1.5, userInfo.y - 2.5));
+//            FrictionJoint<KitasBody> frontJoint = new FrictionJoint<>(body, frontWheel, new Vector2(userInfo.x + 1.5, userInfo.y - 2.5));
 ////            RevoluteJoint<KitasBody> frontJoint = new RevoluteJoint<>(body, frontWheel);
 //            dynamicWorld.addJoint(frontJoint);
 //
@@ -156,7 +156,7 @@ public class PhysicsEngine {
 //            bodyCreator(rearWheel, rearWheel.addFixture(Geometry.createCircle(0.5)), user.id());
 //            rearWheel.translate(userInfo.x - 1.5, userInfo.y - 2.5);
 //            dynamicWorld.addBody(rearWheel);
-//            RevoluteJoint<KitasBody> rearJoint = new RevoluteJoint<>(body, rearWheel, new Vector2(userInfo.x - 1.5, userInfo.y - 2.5));
+//            FrictionJoint<KitasBody> rearJoint = new FrictionJoint<>(body, rearWheel, new Vector2(userInfo.x - 1.5, userInfo.y - 2.5));
 ////            AngleJoint<KitasBody> rearJoint = new AngleJoint<>(body, rearWheel);
 //            dynamicWorld.addJoint(rearJoint);
         }
