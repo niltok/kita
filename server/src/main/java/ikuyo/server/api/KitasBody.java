@@ -10,6 +10,7 @@ public class KitasBody extends Body{
     private boolean fixRotation = false;
     public double lastAngle = 0.0;
     public double angle = 0.0;
+    public String controlType = "walk";
 
     public boolean getRotatable() {
         return this.isRotatable;
@@ -63,6 +64,20 @@ public class KitasBody extends Body{
                         || !(this.getWorldCenter().distance(0, 0) >= PhysicsEngine.starR));
                 this.applyGravity();
                 this.updateRotation();
+    }
+
+    public void setControlType(String type) {
+        if (this.controlType.equals(type)) return;
+        this.controlType = type;
+        if (type.equals("fly")) {
+            this.setAngularVelocity(0);
+            this.setGravityScale(0.01);
+            this.setFixRotation(false);
+        }
+        else if (type.equals("walk")) {
+            this.setGravityScale(1);
+            this.setFixRotation(true);
+        }
     }
 }
 

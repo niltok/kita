@@ -173,9 +173,9 @@ public class StarInfo {
         creatBlocks(info, 40, 4, CargoStatic.iron.type(), groundNum, 30, -1, 0.93, random);
 //        铜矿
         creatBlocks(info, 3, 0, CargoStatic.copper.type(), groundNum, 30, -1, 0.93, random);
-////        水晶矿
+//        水晶矿
         creatBlocks(info, 5, 0, CargoStatic.crystal.type(), groundNum, 50, -1, 0.98, random);
-////        金矿
+//        金矿
         creatBlocks(info, 4, 0, CargoStatic.gold.type(), groundNum, 50, -1, 0.97, random);
 
         return info;
