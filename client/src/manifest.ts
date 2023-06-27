@@ -89,7 +89,7 @@ export const manifest: ResolverManifest = {
             name: "other",
             assets: [
                 {
-                    name: "paimon",
+                    name: "shuttle-walk",
                     srcs: "../other/paimon.png"
                 },
                 {
@@ -97,8 +97,8 @@ export const manifest: ResolverManifest = {
                     srcs: "../other/ring.png"
                 },
                 {
-                    name: "plane",
-                    srcs: "../other/plane.png"
+                    name: "shuttle-fly",
+                    srcs: "../other/plane_blue.png"
                 }
             ]
         }

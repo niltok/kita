@@ -43,9 +43,8 @@ public class UserRenderer implements DrawablesRenderer {
         pic.bundle = "other";
 
         // TODO: 2023/6/27 spaceship type
-//        pic.asset = info.spaceship.type;
-        pic.asset = "paimon";
-        if (info.controlType.equals("fly")) pic.asset = "plane";
+        pic.asset = info.spaceship.type + "-" + info.controlType;
+//        if (info.controlType.equals("fly")) pic.asset = "穿梭机";
 
         var drawable = new Drawable.Container();
         drawable.x = info.x * Drawable.scaling;
