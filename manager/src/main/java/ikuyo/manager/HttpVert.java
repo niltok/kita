@@ -162,10 +162,10 @@ public class HttpVert extends AsyncVerticle {
                 commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, user.id()));
                 User.putInfo(pool, user.id(), null);
             }
-            case "user.move.dock" -> {
+            case "user.move.dock", "user.move.rebirth" -> {
                 var id = commonContext.getUser(socket.writeHandlerID()).id();
                 var res = (JsonObject) await(eventBus.request(socketAddress(socket), JsonObject.of(
-                        "type", "user.move.dock", "id", id))).body();
+                        "type", msg.getString("type"), "id", id))).body();
                 if (!"success".equals(res.getString("type"))) break;
                 commonContext.addUser(socket.writeHandlerID(), User.getUserById(pool, id));
             }

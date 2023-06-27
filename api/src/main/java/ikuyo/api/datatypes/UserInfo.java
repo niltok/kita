@@ -46,6 +46,7 @@ public class UserInfo {
     }
 
     public boolean frame() {
+        if ("rebirth".equals(controlType)) controlType = "destroyed";
         if (!online) return false;
         boolean update = false;
         if (spaceship != null) update |= spaceship.frame();

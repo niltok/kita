@@ -82,7 +82,7 @@ public class MessageVert extends AsyncVerticle {
                 msg.reply(res);
                 testReserve();
             }
-            case "user.move.dock" -> {
+            case "user.move.dock", "user.move.rebirth" -> {
                 var id = json.getInteger("id");
                 var res = (JsonObject) await(eventBus.request(updaterId, json)).body();
                 if (!"success".equals(res.getString("type"))) {
@@ -187,6 +187,10 @@ public class MessageVert extends AsyncVerticle {
             camera_ = JsonObject.of(
                     "x", userState.camera.x,
                     "y", userState.camera.y);
+        } else if (camera_.getBoolean("rebirth", false)) {
+            msg.add(JsonObject.of(
+                "type", "socket.echo",
+                "payload", JsonObject.of("type", "user.move.rebirth")));
         }
         var pos = new Position(camera_.getInteger("x"), camera_.getInteger("y"));
         var diff = msgDiffer.query(id, pos, userState.camera, userState.drawableCache);
